@@ -1,0 +1,348 @@
+  .slider-track {
+    cursor: default;
+
+  }
+  .slider-handle {
+    width: 100px;
+    height: 40px;
+    margin-top: -15px !important;
+    padding-top: 5px;
+    font-size: 20px; 
+    color: #FFF; 
+    text-align: center;
+  }
+  .slider-gris {
+    background-color: grey;
+  }
+
+  .txt_paso_info {
+    font-size: 11px;
+    color: #000;
+    margin-bottom: 5px !important;
+  }
+
+  .sombra {
+    /*
+    -webkit-box-shadow: 2px 6px 25px -3px rgba(0,0,0,0.75);
+    -moz-box-shadow: 2px 6px 25px -3px rgba(0,0,0,0.75);
+    box-shadow: 2px 6px 25px -3px rgba(0,0,0,0.75);
+    */
+  }
+
+  .datos-finales-asistente {
+    font-size: 15px;
+    margin: 2px;
+  }
+
+  .datos-expandle-solicitud .box-body p {
+    color: #000;
+  }
+
+  .datos-expandle-solicitud .box-header {
+    padding: 0px;
+    padding-left: 10px;
+  }
+
+
+  .datos-expandle-solicitud .btn {
+    margin: 5px;
+  }
+
+
+
+/*SWITCH*/
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  /*box-shadow: 0 0 5px #000;*/
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #004276;
+  /*box-shadow: 0 0 5px #000;*/
+}
+
+input:focus + .slider {
+  /*box-shadow: 0 0 5px #000;*/
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  /*border-radius: 34px;*/
+}
+
+.slider.round:before {
+  /*border-radius: 50%;*/
+}
+
+/* FIN SWITCH */
+
+
+/*SWITCH*/
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  /*box-shadow: 0 0 5px #000;*/
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #a59a9a;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #004276;
+  /*box-shadow: 0 0 5px #000;*/
+}
+
+input:focus + .slider {
+  /*box-shadow: 0 0 5px #000;*/
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  /*border-radius: 34px;*/
+}
+
+.slider.round:before {
+  /*border-radius: 50%;*/
+}
+
+/* FIN SWITCH */
+
+.label_aprobacion {
+  font-size: 20px;
+  margin-left: 10px;
+  padding-top: 0px;
+  float: right;
+}
+
+.bg-grey {
+  background-color: #CCC;
+}
+
+.visible {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 1s, opacity 1s linear;
+}
+
+.oculto {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 1s, opacity 1s linear;
+}
+
+.div-paso-inscripcion {
+  width: 100%;
+  height: auto;
+  /*max-height: 55px !important;*/
+  /*border-radius: 15px;*/
+  margin: 4px;
+  padding: 8px;
+  /*
+  -webkit-box-shadow: 0px 0px 10px -1px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 10px -1px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 10px -1px rgba(0,0,0,0.75);
+  */
+  overflow: auto;
+}
+
+.switch-inscripcion {
+  float: right;
+}
+
+.btn-blanco {
+  background-color: white;
+  margin-right: 5px;
+  /*border-radius: 34px;*/
+}
+
+.btn-verde {
+  background-color: white;
+  margin-right: 5px;
+  border-radius: 34px;
+  /*
+  -webkit-box-shadow: 0px 0px 10px -1px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 10px -1px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 10px -1px rgba(0,0,0,0.75);  
+  */
+  margin-bottom: 5px;
+}
+
+.seccion-form {
+  background-color: lightblue;
+    /*border-radius: 4px;*/
+  margin: 4px;
+  padding: 8px;
+}
+
+.aclaracion_campo_form {
+  color: grey;
+}
+
+.aclaracion_campo_form_ejemplo {
+  color: #6e68be;
+  font-style: italic;
+}
+
+.btn-sel-tipo-de-evento {
+  width: 100%;
+}
+
+.txt_enlaces {
+  font-size: 13px;
+}
+
+.p-error {
+  background-color: red;
+  color: white;
+}
+
+
+
+
+/*SWITCH*/
+/* The switch - the box around the slider */
+.switch_c {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+/* Hide default HTML checkbox */
+.switch_c input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider_c {
+  /*box-shadow: 0 0 5px #000;*/
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider_c:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider_c {
+  background-color: #004276;
+  /*box-shadow: 0 0 5px #000;*/
+}
+
+input:focus + .slider_c {
+  /*box-shadow: 0 0 5px #000;*/
+}
+
+input:checked + .slider_c:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider_c.round {
+  /*border-radius: 24px;*/
+}
+
+.slider_c.round:before {
+  /*border-radius: 50%;*/
+}
+
+/* FIN SWITCH */

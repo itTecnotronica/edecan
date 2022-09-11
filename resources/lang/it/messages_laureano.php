@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'algunos_temas' => "Karma - Reincarnazione - Il Risveglio - Le Paure e le Emozioni Negative - Meditazione e Rilassamento - Chakra e Mantra - Personalitá, Essenza ed Ego - Leggi Meta-fisiche e Biologia Esoterica - Significato dei sogni - Viaggi Astrali - Kabala - Intelligenza Emozionale - Relazioni Umane - Il saggio uso della nostra energia - Alchimia - Evoluzione ed Involuzione",
+    'informacion_del_curso_1' => "Questa Istituzione consegna in modo libero e gratuito i suoi Corsi per l'auto-conoscenza profonda ed per lo sviluppo del potenziale umano.",
+    'informacion_del_curso_2' => "E' un Corso teorico-pratico di 23 lezioni dove si abbordano temi di grande profondità psicologica, antropologica, filosofica e metafisica aiutandoci a comprendere che la natura dell'essere umano possiede una profondità ancora maggiore di quella che conosciamo normalmente.",
+    'informacion_del_curso_3' => "Mediante questo corso potremo comprendere la struttura fisica, animica e psichica dell'essere umano ed addentrarci nella conoscenza profonda delle nostre capacità interne ma anche della natura intima che ci limita e condiziona per svilupparci pienamente.",
+    'algunas_tematicas_1' => "In questo corso, a carico di istruttori avallati dall'Istituzione, iniziamo un viaggio attraverso la ampia tematica abbordata della conoscenza gnostica, dove incontreremo temi come:",
+    'algunas_tematicas_2' => "- La Conoscenza Interiore, la saggezza millenaria.",
+    'algunas_tematicas_3' => "- Gli aspetti che si manifiestano nel nostro mondo interiore ed esteriore: la personalità, l'essenza e l'ego - Il risveglio della coscienza, le sue capacità e la liberazione psicologica.",
+    'algunas_tematicas_4' => "- Le leggi metafisiche che ci dirigono e che determinano il nostro destino, il Karma ed il Dharma, il ritorno, la ricorrenza, la reincarnazione, l'evoluzione e l'involuzione, ecc.",
+    'algunas_tematicas_5' => "- I nostri difetti psicologici maggiormente condizionanti: le nostre paure, complessi ed insicurezze, le nostre emozioni negative di odio, rancore, invidia, bramosia, i nostri cattivi abiti, vizi e condotte negative. Conosceremo le tecniche di auto-conoscenza e auto-scoperta per comprendere questi elementi e sradicarli definitivamente dalla nostra vita.",
+    'algunas_tematicas_6' => "- Conosceremo anche la nostra biologia esoterica o interna dove parleremo dei nostri centri psico-fisiologici, dei nostri Chakra, della nostra constituzione interna con i suoi distinti corpi e dimensioni.",
+    'algunas_tematicas_7' => "- Svilupperemo tecniche di autoconoscenza per addentrarci nel nostro mondo interiore e conoscere le sue meraviglie e le sue infinite possibilità, apprenderemo tecniche di rilassamento, concentrazione, mantra, rune, la scienza pranica, tecniche per ridurre lo stress, tecniche di sdoppiamento astrale.",
+    'algunas_tematicas_8' => "- Parleremo delle Relazioni Umane, sul come alimentarci correttamente, sul come avere e produrre una energia adatta per la nostra vita e la nostra trasformazione e rigenerazione fisica, psicologica e spirituale, conoscendo la alchimia degli antichi saggi e il suo senso profondo di trasformazione e superazione interiore.",
+    'algunas_tematicas_9' => "",
+    'proposito_de_curso_1' => "Creato con il fine di trasmettere un messaggio di vita trasformatore e pratico, diretto ad ogni individuo, questo corso di prima camera è un vero richiamo alla coscienza dell'essere umano, che promuove la sua influenza sui nostri atti e decisioni.",
+    'proposito_de_curso_2' => "Attraverso i diversi incontri ed attraverso una didattica guidata sulla esperienza, questo corso fa risaltare l'importanza dell'auto-scoperta che l'uomo deve realizzare rispetto alla sua vera essenza, per ottenere in questo modo di dare un direzione cosciente e trascendentale ai propri passi nella vita.",
+    'proposito_de_curso_3' => "Ci insegna a cominciare un lavoro interno che conduce ad espandere la nostra nozione rispetto a chi siamo, della nostra meravigliosa composizione tanto materiale come spirituale, della relazione che abbiamo con ogni essere vivente, con il pianeta e l'universo in sé.",
+    'proposito_de_curso_4' => "Cosí come anche ci viene data una conoscenza fondamentale al momento di proporci di superare gli ostacoli che attualmente impediscono la nostra armonia psico-fisica e il libero fluire delle capacità che portiamo nascoste dentro noi stessi.",
+    'proposito_de_curso_5' => "Rispondere a domande come: Chi sono? Dove ero prima di nascere? Cosa c'è al di là della morte? Son inquietudini naturali in qualunque persona che abbia raggiunto un certo grado di 'maturità' interiore.",
+    'proposito_de_curso_6' => "Le risposte a queste inquietudini le incontriamo all'intorno dell'asse filosofico su cui gira la Gnosis, 'Uomo conosci te stesso'.",
+    'proposito_de_curso_7' => "E' attraverso il cammino dell'auto-conoscenza, che possiamo avere una vita più profonda e ricca di una vivenza diretta; ed è per mezzo di questo Corso che otterremo gli strumenti per percorrere il nostro propio Cammino.",
+    'proposito_de_curso_8' => "Vi aspettiamo."
+];

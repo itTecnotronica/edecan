@@ -1,0 +1,12 @@
+ .container {
+  background: linear-gradient(to top right, #fc2c77 0%, #6c4079 100%)
+ }
+  .sombra {
+    -webkit-box-shadow: 2px 6px 25px -3px rgba(0,0,0,0.75);
+    -moz-box-shadow: 2px 6px 25px -3px rgba(0,0,0,0.75);
+    box-shadow: 2px 6px 25px -3px rgba(0,0,0,0.75);
+  }
+
+.body-form {
+  margin-top: 20px;
+}

@@ -1,0 +1,37 @@
+
+td img {
+    display: block;
+}
+
+.tabla-certificado {
+  display: inline-table;
+}
+
+.titulo-nombre {
+  font-size: 40px; 
+  text-align: center;
+  font-family: Verdana,sans-serif;
+}
+
+.texto1 {
+  font-size: 17px; 
+  text-align: center;  
+  font-family: Verdana,sans-serif;
+
+}
+
+.img_firma {
+  width: 753px;
+  height: 133px;
+}
+
+.cuerpo-de-texto {
+  padding: 10px; 
+  width:954px;
+  height:345px
+}
+
+.txt_numero_certificado {
+  font-size: 11px;
+  font-family: Verdana,sans-serif;
+}

@@ -1,0 +1,21 @@
+@font-face {
+    font-family: taylorGothic;
+    src: url("../../../img/certificados/2/taylor_gothic/TaylorGothic.woff2") format("opentype");
+}
+
+body {
+    
+}
+
+.titulo-nombre {
+  font-family: taylorGothic, Helvetica, sans-serif;
+  font-size: 35px;
+  text-align: center;
+  margin-bottom: 0px;
+  margin-top: 20px;
+}
+
+table {
+  width: 1000px;
+}
+

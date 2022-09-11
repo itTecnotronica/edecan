@@ -1,0 +1,21 @@
+{
+  "name": "public",
+  "version": "1.0.0",
+  "description": "Introduction ============",
+  "main": "Gruntfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^16.0.0",
+    "@ckeditor/ckeditor5-image": "^23.1.0",
+    "chart.js": "^2.8.0",
+    "intl-tel-input": "^17.0.0",
+    "vee-validate": "^3.3.9",
+    "vue-phone-number-input": "^1.1.6",
+    "vue-tel-input": "^4.3.0",
+    "vue2-google-maps": "^0.10.6"
+  }
+}
