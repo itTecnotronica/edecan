@@ -218,7 +218,7 @@ class FormController extends Controller
                 }
                 else {
 
-                    if ($Solicitud->img_imagen_del_formulario_personalizada == '') {
+                    if ($Solicitud->file_imagen_del_formulario_personalizada == '') {
                         if ($Solicitud->tipo_de_evento_id == 1 or $Solicitud->tipo_de_evento_id == 3) {
                             if ($idioma_por_pais->pais_id <> 1) {
                                 $imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'/templates/2/img/flamarion_original_rec.jpg">';
@@ -230,7 +230,7 @@ class FormController extends Controller
                         }
                     }
                     else {
-                        $imagen = '<img class="img-ancho-total" src="'.$Solicitud->img_imagen_del_formulario_personalizada.'">';
+                        $imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'storage/'.$Solicitud->file_imagen_del_formulario_personalizada.'">';
                     }
                 }
 
@@ -357,7 +357,13 @@ class FormController extends Controller
                             $idioma_img_gnosis = $array_mnemo[0];
                         }
                     }
-                    $imagen_top = env('PATH_PUBLIC').'img/gnosis-'.$idioma_img_gnosis.'.png';
+                    $imagen_top_interno = env('PATH_PUBLIC_INTERNO').'img/gnosis-'.$idioma_img_gnosis.'.png';
+                    if (file_exists($imagen_top_interno)) {
+                        $imagen_top = env('PATH_PUBLIC').'img/gnosis-'.$idioma_img_gnosis.'.png';
+                    }
+                    else {
+                        $imagen_top = env('PATH_PUBLIC').'img/gnosis.png';
+                    }
                     $imagen_chica = env('PATH_PUBLIC').'img/sol-de-acuario-chico.jpg';
                     $css_template = env('PATH_PUBLIC').'templates/2/css/main.css';
                     $bgform = 'bg-gra-02';

@@ -130,7 +130,12 @@ class Fecha_de_evento extends Model
                     $hora_mostrar_prev = 'kl ';       
                 }
                 else { 
-                    $hora_mostrar_post .= 'h';
+                    if ($idioma == 'fr') {
+                        $hora_mostrar_post = date("G:i", $hora_time);      
+                    }
+                    else { 
+                        $hora_mostrar_post .= 'h';
+                    }
                 }
             }
             

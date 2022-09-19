@@ -20,9 +20,6 @@ else {
   }
 }
 
-if ($Solicitud->id == 15095) {
-  //dd(__('messages.informacion_del_curso_1'));
-}
 
 //echo 'idioma: '.App::getLocale($idioma);
 $cod_pais = '';

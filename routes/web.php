@@ -170,6 +170,8 @@ Route::get('/prueba', function () {
     return view('prueba');
 });	
 
+Route::get('/eventuales/convertir-img-bas64-soliciudes', 'AccionesEventualesController@convertirImgBase64Solicitudes');
+
 Route::get('/prueba_pdf', function () {
     return view('prueba_pdf');
 });	

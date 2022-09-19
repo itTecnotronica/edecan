@@ -80,7 +80,7 @@ class Solicitud extends Model
 
         if ($this->titulo_del_formulario_personalizado == '') {
             if ($this->tipo_de_evento->id == 1) {
-                $descripcion = __('CURSO DE AUTO-CONOCIMIENTO').'<br><strong>'.$this->localidad_nombre().'</strong>';  
+                $descripcion = __('CURSO DE AUTO-CONOCIMIENTO').'<br><strong> '.$this->localidad_nombre().'</strong>';  
             }
             if ($this->tipo_de_evento->id == 2) {
                 if ($this->cant() == 1) {
@@ -91,7 +91,7 @@ class Solicitud extends Model
                 }                    
             }
             if ($this->tipo_de_evento->id == 3) {
-                $descripcion = __('CURSO DE AUTO-CONOCIMIENTO ON LINE').'<br><strong>'.$this->localidad_nombre().'</strong>';  
+                $descripcion = __('CURSO DE AUTO-CONOCIMIENTO ON LINE').'<br><strong> '.$this->localidad_nombre().'</strong>';  
             }
             if ($this->tipo_de_evento->id == 4) {
                 $descripcion = '';  

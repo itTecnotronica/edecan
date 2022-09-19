@@ -1262,7 +1262,7 @@ $solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11
 
   /*
   if ($rol_de_usuario_id > 3) {
-    $gen_seteo['no_mostrar_campos_abm'] .= '|titulo_del_formulario_personalizado|subtitulo_del_formulario_personalizado|img_imagen_del_formulario_personalizada|resumen_del_formulario_personalizado|texto_del_formulario_personalizado';
+    $gen_seteo['no_mostrar_campos_abm'] .= '|titulo_del_formulario_personalizado|subtitulo_del_formulario_personalizado|file_imagen_del_formulario_personalizada|resumen_del_formulario_personalizado|texto_del_formulario_personalizado';
   }
   */
 
@@ -1351,7 +1351,7 @@ $solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11
   <?php 
   $gen_seteo = array(
       'gen_url_siguiente' => $gen_url_siguiente, 
-      'no_mostrar_campos_abm' => 'user_id|tipo_de_evento_id|idioma_id|nombre_del_solicitante|celular_del_solicitante|localidad_id|escribe_tu_ciudad_sino_esta_en_la_lista_anterior|pais_id|moneda_id|monto_a_invertir|nombre_responsable_de_inscripciones|celular_responsable_de_inscripciones|sino_solicitar_responsable_de_inscripcion|observaciones|created_at|updated_at|sino_aprobado_administracion|sino_aprobado_solicitar_revision|sino_aprobado_finalizada|fecha_de_solicitud|observaciones_aprobado_administracion|observaciones_aprobado_solicitar_revision|observaciones_aprobado_finalizada|hash|ejecutivo|sino_cancelada|sino_envio_enlaces_a_resp_inscripcion|paypal_transaction_id|payment_pending_reason|payment_error_code|payment_status|payment_paid|payment_paid_date|paypal_payerid|paypal_token|paypal_value|payment_checkout_status|observaciones_cancelada|titulo_del_formulario_personalizado|subtitulo_del_formulario_personalizado|img_imagen_del_formulario_personalizada|rtf_resumen_del_formulario_personalizado|rtf_texto_del_formulario_personalizado|colpick_color_de_fondo_del_formulario'
+      'no_mostrar_campos_abm' => 'user_id|tipo_de_evento_id|idioma_id|nombre_del_solicitante|celular_del_solicitante|localidad_id|escribe_tu_ciudad_sino_esta_en_la_lista_anterior|pais_id|moneda_id|monto_a_invertir|nombre_responsable_de_inscripciones|celular_responsable_de_inscripciones|sino_solicitar_responsable_de_inscripcion|observaciones|created_at|updated_at|sino_aprobado_administracion|sino_aprobado_solicitar_revision|sino_aprobado_finalizada|fecha_de_solicitud|observaciones_aprobado_administracion|observaciones_aprobado_solicitar_revision|observaciones_aprobado_finalizada|hash|ejecutivo|sino_cancelada|sino_envio_enlaces_a_resp_inscripcion|paypal_transaction_id|payment_pending_reason|payment_error_code|payment_status|payment_paid|payment_paid_date|paypal_payerid|paypal_token|paypal_value|payment_checkout_status|observaciones_cancelada|titulo_del_formulario_personalizado|subtitulo_del_formulario_personalizado|file_imagen_del_formulario_personalizada|rtf_resumen_del_formulario_personalizado|rtf_texto_del_formulario_personalizado|colpick_color_de_fondo_del_formulario'
     );
   ?>   
        

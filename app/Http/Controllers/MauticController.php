@@ -193,11 +193,11 @@ class MauticController extends Controller
 
                 // DETERMINO LA IMAGEN
                 $imagen = '';
-                if ($Solicitud->img_imagen_del_formulario_personalizada == '') {
+                if ($Solicitud->file_imagen_del_formulario_personalizada == '') {
                     $imagen = 'https://forms.gnosis.is/media/images/0d25b0fce90353ad1313a03613dcdbb0.jpeg';
                 }
                 else {
-                    $imagen = $Solicitud->img_imagen_del_formulario_personalizada;
+                    $imagen = env('PATH_PUBLIC').'storage/'.$Solicitud->file_imagen_del_formulario_personalizada;
                 }
 
                 // VERIFICO SI HAY UN CONTENIDO ESPECIFICO PARA EL MAIL SINO LO CONSTRUYO
