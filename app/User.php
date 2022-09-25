@@ -47,6 +47,10 @@ class User extends Authenticatable
             $descripcion .= ' | Diocesis: '.$this->diocesis;
         }
         
+        if ($this->sino_activo == 'NO') {
+            $descripcion .= ' (Desactivado)';            
+        }
+        
         return $descripcion;
     }
 

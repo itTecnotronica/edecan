@@ -233,7 +233,7 @@ class MauticController extends Controller
                     // Construllo los detalles de cada evento
                     $detalle_horarios_y_lugar = '';
                     if ($Solicitud->fechas_de_evento->count() > 0) {
-                        $detalle_horarios_y_lugar = 'HORARIOS: <BR>';
+                        $detalle_horarios_y_lugar = '<BR>';
                         foreach ($Solicitud->fechas_de_evento as $Fecha_de_evento) {
                             $tipo = 'html';
                             $con_inicio = true;

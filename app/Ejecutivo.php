@@ -31,6 +31,28 @@ class Ejecutivo extends Authenticatable
         'password', 'remember_token',
     ];  
 
+
+
+
+    public function descrip_modelo()
+    {    
+        $descripcion = $this->name.' '.$this->apellido;
+        
+        if ($this->pais_id > 0) {
+            $descripcion .= ' | Pais: '.$this->pais->pais;
+        }
+
+        if ($this->diocesis <> '') {
+            $descripcion .= ' | Diocesis: '.$this->diocesis;
+        }
+
+        if ($this->sino_activo == 'NO') {
+            $descripcion .= ' (Desactivado)';            
+        }
+
+        return $descripcion;
+    }
+
     public function sucursal()
     {
         return $this->belongsTo('App\Sucursal');

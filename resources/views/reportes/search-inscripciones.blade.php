@@ -136,6 +136,14 @@ $pais_id = Auth::user()->pais_id;
               <?php $idiomas = App::make('App\Http\Controllers\HomeController')->get_idiomas();?>
               <?php echo Form::select("idioma_id", $idiomas, null, ['id' => "idioma_id", 'class' => 'form-control select2', 'style' => 'width: 100%;']); ?>
             </div>
+          </div>     
+
+          <div class="col-lg-3 col-xs-12">
+
+            <div class="form-group">
+              <label><?php echo __('Id de Campaña (Contador)') ?> </label>
+              <input type="text" name="campania_id" id="campania_id" class="form-control">
+            </div>
           </div>          
 
 
@@ -195,7 +203,8 @@ $pais_id = Auth::user()->pais_id;
         ciudad: $('#ciudad').val(),
         pais_id_inscripcion: $('#pais_id_inscripcion').val(),
         localidad_id: $('#localidad_id').val(),
-        idioma_id: $('#idioma_id').val()
+        idioma_id: $('#idioma_id').val(),
+        campania_id: $('#campania_id').val()
 
       },
       success: function success(data, status) {        

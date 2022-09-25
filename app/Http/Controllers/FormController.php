@@ -329,7 +329,7 @@ class FormController extends Controller
                     ];
                 }
 
-                $Fechas_de_eventos = Fecha_de_evento::where('solicitud_id', $solicitud_id)->orderBy('sino_agotado', 'asc')->get();  
+                $Fechas_de_eventos = Fecha_de_evento::where('solicitud_id', $solicitud_id)->orderBy('nro_de_orden_en_el_formulario', 'ASC')->orderBy(DB::Raw('IFNULL(sino_agotado, "NO")'), 'asc')->get();  
 
 
                 $style_body = '';
@@ -4622,6 +4622,7 @@ class FormController extends Controller
         $ciudad = $_POST['ciudad'];
         $localidad_id = $_POST['localidad_id'];
         $idioma_id = $_POST['idioma_id'];
+        $campania_id = $_POST['campania_id'];
 
         $whereRaw = '1 = 1';
 
@@ -4671,6 +4672,10 @@ class FormController extends Controller
 
         if ($idioma_id <> '') {
             $whereRaw .= " and s.idioma_id = $idioma_id";
+        }
+
+        if ($campania_id <> '') {
+            $whereRaw .= " and inscripciones.campania_id = $campania_id";
         }
 
         //dd($whereRaw);
