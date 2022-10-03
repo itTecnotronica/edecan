@@ -468,8 +468,8 @@ class Solicitud extends Model
         $pais_id = $this->id_pais();
 
         //busco el equipo y los paises que dependen de equipo
-        $Equipos = Equipo::where('pais_id', $pais_id)->get();
-        if (count($Equipos) == 1) {
+        $Equipos = Equipo::where('pais_id', $pais_id)->where('sino_es_un_equipo_de_ejecutivos_de_campanias', 'SI')->get();
+        if (count($Equipos) >= 1) {
             $equipo_id = $Equipos[0]->id;
             $asignar_ejecutivos = $Equipos[0]->sino_asignacion_de_ejecutivos_automatica;
             $coordinador_user_id = $Equipos[0]->coordinador_user_id;
@@ -482,10 +482,13 @@ class Solicitud extends Model
                 $coordinador_user_id = $Paises_por_equipo[0]->equipo->coordinador_user_id;
             }
             else {
-                $Equipos = Equipo::whereNull('pais_id')->get();
+                $Equipos = Equipo::whereNull('pais_id')->where('sino_es_un_equipo_de_ejecutivos_de_campanias', 'SI')->get();
                 $equipo_id = $Equipos[0]->id;
                 $asignar_ejecutivos = $Equipos[0]->sino_asignacion_de_ejecutivos_automatica;
                 $coordinador_user_id = $Equipos[0]->coordinador_user_id;
+                if ($this->id == 15478 or $this->id == 15491) {
+                    //dd($Equipos[0]->equipo);
+                }
             }
 
         }
@@ -493,6 +496,10 @@ class Solicitud extends Model
         $SolicitudController = new SolicitudController();
         $paisesDelEquipo = $SolicitudController->paisesDelEquipo($equipo_id);
         $in_paises = $paisesDelEquipo['in_paises'];
+
+        if ($this->id == 15478 or $this->id == 15491) {
+            //dd(222);
+        }
 
         if ($this->ejecutivo == '') {
             $ejecutivo_id = '';

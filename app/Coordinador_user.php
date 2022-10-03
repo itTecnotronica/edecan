@@ -37,7 +37,7 @@ class Coordinador_user extends Authenticatable
 
     public function descrip_modelo()
     {    
-        $descripcion = $this->name;
+        $descripcion = $this->name.' '.$this->apellido;
         
         if ($this->pais_id > 0) {
             $descripcion .= ' | Pais: '.$this->pais->pais;
@@ -46,7 +46,11 @@ class Coordinador_user extends Authenticatable
         if ($this->diocesis <> '') {
             $descripcion .= ' | Diocesis: '.$this->diocesis;
         }
-        
+
+        if ($this->sino_activo == 'NO') {
+            $descripcion .= ' (Desactivado)';            
+        }
+
         return $descripcion;
     }
 

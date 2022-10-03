@@ -425,65 +425,17 @@ if (!isset($criterio)) {
                                                        
 
 
-                              ID: <?php echo $Inscripcion->id ?> | <?php echo __('Fecha').': '.$gCont->FormatoFechayYHora($Inscripcion->created_at); ?> <br>       
-                              <strong><?php echo __('Solicitud') ?> ID: <?php echo $Inscripcion->solicitud_id ?></strong><br>
-                              <?php echo __('Codigo del alumno') ?>: <?php echo $Inscripcion->codigo_alumno ?><br>
+                              ID: <?php echo $Inscripcion->id ?> <br>       
                               <?php echo $nombre; ?> <?php echo $apellido; ?>  | <?php echo $Inscripcion->email_correo; ?><br>
                               <?php echo __('Celular').': '; ?> 
                               <input type="text" v-model="estados[<?php echo $i ?>].celular"> 
-                              <button type="button" class="btn btn-primary btn-xs" v-on:click="guardarCel(<?php echo $i ?>)"><i class="fa fa-fw fa-save" style="font-size: 19px"></i></button>  
-                              <!--a href="https://api.whatsapp.com/send?phone=<?php echo $Inscripcion->celular_wa($codigo_tel); ?>" target="_blank">
-                                <button type="button" class="btn btn-success btn-xs"><i class="fa fa-fw fa-whatsapp" style="font-size: 19px"></i></button>
-                              </a-->
-                              <span v-html="estados[<?php echo $i ?>].celular_status_save"></span>
-                              <br>
-                                <?php echo __('Pais') ?>: <?php echo $Inscripcion->nombre_pais; ?> | <?php echo __('Ciudad') ?>: <?php echo $Inscripcion->ciudad; ?><br>
-                              <i> 
-                            </i>                               
-                                                    
-                            <?php if ($Inscripcion->canal_de_recepcion_del_curso <> '') { ?>
-                              <?php echo __('En que app te gustaria recibir el curso') ?>: <?php echo $Inscripcion->canal_de_recepcion_del_curso ?>                        
-                            <br>     
-                            <?php } ?>
-                            <?php if ($Inscripcion->nombre_de_la_leccion <> '' or $Inscripcion->titulo <> '') { ?>                              
-                              <strong>
-                                <?php 
-                                echo __('Ultima leccion vista').': ';
-                                if ($Inscripcion->nombre_de_la_leccion <> '') {
-                                  echo '('.$Inscripcion->codigo_de_la_leccion.')'.$Inscripcion->nombre_de_la_leccion;
-                                }
-                                else {
-                                  echo '('.$Inscripcion->nro_o_codigo.')'.$Inscripcion->titulo;
-
-                                }
-                                ?>                                
-                              </strong>
-                              <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#modal-traer-lecciones" v-on:click="traerLeccionesVistas(<?php echo $Inscripcion->id ?>, '<?php echo md5(ENV('PREFIJO_HASH').$Inscripcion->id) ?>')">Ver todas</button>
-                              <br>
-                            <?php } ?>      
-                            <?php if ($Inscripcion->titulo_de_la_evaluacion <> '') { ?>            
-                              <p>                  
-                                <strong><?php echo __('Ultimo TP') ?>: <?php echo $Inscripcion->titulo_de_la_evaluacion ?></strong>
-                                <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#modal-tp-realizados" v-on:click="traerTPRealizados(<?php echo $Inscripcion->id ?>, '<?php echo md5(ENV('PREFIJO_HASH').$Inscripcion->id) ?>')"><?php echo __('Ver mas') ?></button>
-                              </p>
-                            <?php } ?>     
-
-
-                              <?php if ($Inscripcion->consulta <> '') {?>
-                                <p style="color: red; max-width: 400px"><strong><?php echo __('tu consulta') ?>: <?php echo $Inscripcion->consulta ?></strong></p>
-                              <?php } ?>
-                              <br><br>
+                              <button type="button" class="btn btn-primary btn-xs" v-on:click="guardarCel(<?php echo $i ?>)"><i class="fa fa-fw fa-save" style="font-size: 19px"></i></button> <br>
                                 <p>
                                   <textarea id="observaciones" v-model="estados[<?php echo $i ?>].observaciones" rows="2"  name="observaciones" class="form-control" placeholder="<?php echo __('Observaciones') ?>" v-on:change="estados[<?php echo $i ?>].observaciones = codificarCadena(estados[<?php echo $i ?>].observaciones)" maxlength="255"></textarea>
                                   <button type="button" class="btn btn-primary btn-xs" v-on:click="guardarObs(<?php echo $i ?>)"><i class="fa fa-fw fa-save" style="font-size: 19px"></i> <?php echo __('Guardar') ?> <?php echo __('Observaciones') ?></button>  
                                   <span v-html="estados[<?php echo $i ?>].obs_status_save"></span>
                                 </p>
                               
-                              <?php 
-                              if ($Inscripcion->solicitud_original <> '' and $Inscripcion->solicitud_original <> $Solicitud->id) { 
-                                echo '<br><br>'.$Inscripcion->planilla_original();
-                              } 
-                              ?>
                             </td>
                             <td v-show="show_col_fecha"><?php echo $gCont->FormatoFechayYHora($Inscripcion->created_at); ?></td>
                             <td v-show="show_col_apellido"><?php echo $apellido; ?></td>
@@ -1754,6 +1706,8 @@ if (!isset($criterio)) {
                   mensaje = mensaje.replaceAll(/icon_4diamantes/g, '💠')
                   mensaje = mensaje.replaceAll(/icon_check/g, '✅')
                   mensaje = mensaje.replaceAll(/icon_manito/g, '👉')
+                  mensaje = mensaje.replaceAll(/icon_explosion/g, '💥')
+                  mensaje = mensaje.replaceAll(/icon_libros/g, '📚')
                   mensaje = mensaje.replaceAll(/nombre_responsable_inscripcion/g, '<?php echo $nombre_responsable_inscripcion ?>')
                   url_mensa_extra = 'https://api.whatsapp.com/send?phone='+celular+'&text='+mensaje;
                   return url_mensa_extra

@@ -1384,7 +1384,8 @@ class SolicitudController extends Controller
 
     public function hashSolicitud($Solicitud) {
 
-        $localidad_array = explode(' ', $Solicitud->localidad_nombre());
+        $localidad_nombre = str_replace('/', '-', $Solicitud->localidad_nombre());
+        $localidad_array = explode(' ', $localidad_nombre);
         $hash_localidad = '';
         foreach ($localidad_array as $palabra_localidad) {
             $hash_localidad .= ucfirst($palabra_localidad);
