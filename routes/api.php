@@ -79,3 +79,19 @@ Route::get('GAPP/GETEVENTOS/{pais_id}/{token}', 'AppController@getEventos');
 Route::get('GAPP/GETTIPOCARNET/{pais_id}/{token}', 'AppController@getTipoCarnet');
 Route::get('GAPP/GETTARJETA/{pais_id}/{token}', 'AppController@getTarjeta');
 Route::get('GAPP/GETTIPOTARJETA/{pais_id}/{token}', 'AppController@getTipoTarjeta');
+//GETMATERIAL
+Route::get('GAPP/GETMATERIALSEARCH/{idioma_id}/{token}/{value}', 'AppController@getMaterialesSearch');
+Route::get('GAPP/GETALLMATERIAL/{idioma_id}/{token}/{tipo}/{cant}/{autor}', 'AppController@getAllMateriales');
+Route::get('GAPP/GETALLMATERIALRANDOM/{idioma_id}/{token}/{cant}', 'AppController@getAllMaterialesRandom');
+//MIEMBROS
+Route::get('GAPP/GETMIEMBRO/{token}/{documento}', 'AppController@getMiembro');
+//
+Route::get('APP/dialog', 'ExtController@dialog');
+
+Route::get('MM/paises/{idioma_id}', 'AppController@getPaises');
+Route::get('MM/ciudades/{idioma_id}/{pais_id}', 'AppController@getCiudades');
+Route::get('MM/eventos/{idioma_id}/{pais_id}/{localidad_id}', 'AppController@getEventos2');
+Route::get('MM/idiomas', 'AppController@getIdiomas');
+
+
+Route::get('MM/ciudadesviejas', 'AppController@getLocalidades');

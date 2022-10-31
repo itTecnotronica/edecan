@@ -901,7 +901,7 @@ $url_envio_de_motivacion_3 = '';
                                         </label>
                                     </div>
                                   
-                                    <!-- NUEVO ENVIO DE PEDIDO DE CONFIRMACION -->
+                                    <!-- ENVIO DE NUEVO PEDIDO DE CONFIRMACION -->
                                     <div v-show="estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_pedido_de_confirmacion)">
                                       
                                         <a href="<?php echo $url_no_respondieron_al_pedido_de_confirmacion; ?>" target="_blank">
@@ -926,7 +926,7 @@ $url_envio_de_motivacion_3 = '';
                                     </div>
                                     
                                     <!-- SI CONFIRMO -->
-                                    <div v-show="estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].envio_voucher && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].confirmo)">
+                                    <div v-show="(estados[<?php echo $i ?>].envio_pedido_de_confirmacion || estados[<?php echo $i ?>].confirmo) && !estados[<?php echo $i ?>].envio_voucher && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].confirmo)">
                                       <?php echo __('Confirmado') ?>
 
                                         <label class="switch switch-inscripcion">
@@ -936,7 +936,7 @@ $url_envio_de_motivacion_3 = '';
                                       </div>
                                     
                                     <!-- ENVIO DE VOUCHER -->
-                                    <div v-show="estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_voucher)">   
+                                    <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_voucher)">   
                                      
                                         <a href="<?php echo $url_envio_de_voucher; ?>" target="_blank">
                                             <button type="button" class="btn btn-blanco btn-md" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 4, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>

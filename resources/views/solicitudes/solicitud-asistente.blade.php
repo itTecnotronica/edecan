@@ -167,11 +167,21 @@ background-color: white !important;
           <!-- PASO 1 - DATOS SOLICITANTE -->
             <?php if ($paso == 1) { ?>          
                 <div class="panel-body">
-                  <div class="col-lg-6">                    
-                    <p><a href="<?php echo env('PATH_PUBLIC')?>Solicitudes/crear/elegir-tipo-de-evento/1"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Curso de Auto-Conocimiento') ?></button></a></p>
-                    <p><a href="<?php echo env('PATH_PUBLIC')?>Solicitudes/crear/elegir-tipo-de-evento/2"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Conferencia Pública') ?></button></a></p>
-                    <p><a href="<?php echo env('PATH_PUBLIC')?>Solicitudes/crear/elegir-tipo-de-evento/3"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Curso On Line de Auto-Conocimiento') ?></button></a></p>
-                    <p><a href="<?php echo env('PATH_PUBLIC')?>Solicitudes/crear/elegir-tipo-de-evento/4"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Formulario de Recoleccion de Datos') ?></button></a></p>
+                  <div id="app-tipo-solicitud">                  
+
+                    <div class="col-lg-6">                    
+                      <p><a v-bind:href="enlaceCrearSolicitudSegunTipo(1)"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Curso de Auto-Conocimiento') ?></button></a></p>
+                      <p><a v-bind:href="enlaceCrearSolicitudSegunTipo(2)"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Conferencia Pública') ?></button></a></p>
+                      <p><a v-bind:href="enlaceCrearSolicitudSegunTipo(3)"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Curso On Line de Auto-Conocimiento') ?></button></a></p>
+                      <p><a v-bind:href="enlaceCrearSolicitudSegunTipo(4)"><button type="button" class="btn btn-primary btn-lg center-block btn-sel-tipo-de-evento"><?php echo __('Formulario de Recoleccion de Datos') ?></button></a></p>
+
+                      <hr>
+
+                      <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
+
+                      <!--pre>@{{ $data }}</pre-->
+
+                      </div>
                   </div>
                 </div>
             <?php } ?>
@@ -440,6 +450,133 @@ $.ajax({
 
 </script>
 <?php } ?>
+
+<!-- PASO 1 - TIPO DE SOLICITUD -->
+  <?php if ($paso == 1) { ?>
+    <script type="text/javascript">
+
+      var VueFormGenerator = window.VueFormGenerator;
+
+      VueFormGenerator.validators.decimal = function(value, field, model) {
+        if (typeof value !== 'undefined') {
+          /*
+          if (typeof value == 'string') {
+            valor = Number(value.replace(",", "."));
+          }
+          else {
+            valor = value;
+          }
+          */
+          valor = value;
+          if(isNaN(valor)) {
+            return ["No es un valor decimal"];
+          }
+        }
+        return [];
+      }
+
+      var vm = new Vue({
+        el: "#app-tipo-solicitud",
+        components: {
+          "vue-form-generator": VueFormGenerator.component
+        },
+
+        methods: {
+          prettyJSON: function (json) {
+            if (json) {
+              json = JSON.stringify(json, undefined, 4);
+              json = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+              return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = "number";
+                if (/^"/.test(match)) {
+                  if (/:$/.test(match)) {
+                    cls = "key";
+                  } else {
+                    cls = "string";
+                  }
+                } else if (/true|false/.test(match)) {
+                  cls = "boolean";
+                } else if (/null/.test(match)) {
+                  cls = "null";
+                }
+                return "<span class=\"" + cls + "\">" + match + "</span>";
+              });
+            }
+          },
+          onValidated(isValid, errors) {
+            console.log("Validación del Form app-datos-solicitente: ", isValid, ", Errors:", errors);
+            isValid = true
+            /*
+            var fecha_de_vencimiento_de_la_solicitud = $("#fecha_de_vencimiento_de_la_solicitud").val();
+            console.log("fecha_de_vencimiento_de_la_solicitud: ", fecha_de_vencimiento_de_la_solicitud);
+            var valor_total = Number($("#valor_total").val());
+            var valor_total_calculado = Number($("#valor_total_calculado").val());
+            var anticipo = $("#anticipo").val();
+            if(valor_total < valor_total_calculado) {
+              $("#valor_total_error").html('El valor ingresado es menor al valor calculado por m<sup>2</sup>, valor m&iacute;nimo: '+valor_total_calculado);
+              isValid = false;
+            }
+            if(anticipo > valor_total) {
+              $("#valor_total_error").html('El valor del anticipo no puede ser mayor al valor total de la propiedad');
+              isValid = false;
+            }
+            if(fecha_de_vencimiento_de_la_solicitud == '') {
+              $("#fecha_de_vencimiento_de_la_solicitud_error").html('Este campo es obligatorio');
+              isValid = false;
+            }
+            */
+            if (!isValid) {
+                event.preventDefault();  
+            }      
+          }
+        },
+
+        data: {
+          model: {
+            sino_es_campania_de_capacitacion: false,
+            url: ''
+          },
+          schema: {
+            fields: [
+              {
+                type: "switch", 
+                model: "sino_es_campania_de_capacitacion",     
+                label: "Es una campaña de entrenamiento (CAPACITACIÓN)?",   
+                id: "sino_solicitar_responsable_de_inscripcion_switch",  
+                inputName: "sino_solicitar_responsable_de_inscripcion_switch",          
+                textOn: "SI", textOff: "NO", valueOn: true, valueOff: false
+              }
+            ]
+          },
+
+
+          formOptions: {
+            validateAfterLoad: false,
+            validateAfterChanged: false
+          }
+        },
+
+        methods: {
+          enlaceCrearSolicitudSegunTipo(tipo_de_evento_id) {
+            let parametro = ''
+            if (this.model.sino_es_campania_de_capacitacion) {
+              parametro = 't'
+            }
+            else {
+              parametro = 'f'
+            }
+
+            let enlace = '<?php echo env('PATH_PUBLIC')?>Solicitudes/crear/elegir-tipo-de-evento/'+tipo_de_evento_id+'/'+parametro
+            
+            return enlace
+
+          }
+        }
+      });
+
+    </script>
+  <?php } ?>
+<!-- PASO 1 - DATOS SOLICITANTE VUEJS -->
 
 <!-- PASO 2 - DATOS SOLICITANTE VUEJS -->
   <?php if ($paso == 2) { ?>

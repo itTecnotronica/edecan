@@ -281,7 +281,7 @@ App::setLocale($idioma);
 
     <?php if (strlen($Solicitud->url_redireccionar_automaticamente_al_enlace) > 5) { ?>
       <script type="text/javascript">
-        setTimeout("location.href='<?php echo $Solicitud->url_redireccionar_automaticamente_al_enlace ?>'",5000)
+        setTimeout("location.href='<?php echo $url_redireccionar_automaticamente_al_enlace ?>'",5000)
       </script>
     <?php } ?>
 

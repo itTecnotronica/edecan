@@ -46,7 +46,7 @@ class ExtController extends Controller
 
         $Solicitudes = Solicitud::
             where('sino_aprobado_administracion', 'SI')
-            ->whereRaw('(sino_cancelada IS NULL OR sino_cancelada = "NO")')
+            ->whereRaw('(sino_es_campania_de_capacitacion IS NULL OR sino_es_campania_de_capacitacion = "NO")')
             ->whereRaw('id in (SELECT f.solicitud_id FROM fechas_de_evento f WHERE (DATEDIFF(NOW(), f.fecha_de_inicio) <= '.$dias.'))')
             ->whereNotNull('fecha_de_solicitud')
             ->whereRaw('(sino_cancelada IS NULL OR sino_cancelada = "NO")')
@@ -124,7 +124,7 @@ class ExtController extends Controller
 
         $Solicitudes = Solicitud::
             where('sino_aprobado_administracion', 'SI')
-            ->whereRaw('(sino_cancelada IS NULL OR sino_cancelada = "NO")')
+            ->whereRaw('(sino_es_campania_de_capacitacion IS NULL OR sino_es_campania_de_capacitacion = "NO")')
             ->whereRaw('id in (SELECT f.solicitud_id FROM fechas_de_evento f WHERE (DATEDIFF(NOW(), f.fecha_de_inicio) <= '.$dias.'))')
             ->whereNotNull('fecha_de_solicitud')
             ->whereRaw('(sino_cancelada IS NULL OR sino_cancelada = "NO")')

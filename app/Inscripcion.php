@@ -1239,31 +1239,41 @@ class Inscripcion extends Model
                 $Solicitud = $this->solicitud;
             }
 
-            $fecha_de_inicio = '';
+            $fecha_de_inicio_evento = '';
 
             // sino viene null en fecha de evento
             if ($fecha_de_evento == null) {
                 // veo si la inscripcion tiene un evento
                 if ($this->fecha_de_evento_id <> null) {
-                        $fecha_de_inicio = $this->fecha_de_evento->fecha_de_inicio;
+                        $fecha_de_inicio_evento = $this->fecha_de_evento->fecha_de_inicio;
                 }         
             }
             else {
                 // saco la fecha de inicio del evento que viene por la funcion
-                $fecha_de_inicio = $fecha_de_evento->fecha_de_inicio;
+                $fecha_de_inicio_evento = $fecha_de_evento->fecha_de_inicio;
+            }
+            
+            $now = date_create();     
+            $cant_dias_inicio_evento = -1;           
+            $cant_dias_inscripcion = -1;           
+            
+            //Calculo la cantidad de dias desde el INICIO DEL EVENTO  hasta hoy
+            if ($fecha_de_inicio_evento <> '') {
+                $fecha_de_inicio_evento = date_create($fecha_de_inicio_evento);
+                $interval_inicio_evento = $fecha_de_inicio_evento->diff($now);
+                $cant_dias_inicio_evento = $interval_inicio_evento->format('%a');
             }
 
-            if ($fecha_de_inicio <> '') {
-                $fecha_de_inicio = date_create($fecha_de_inicio);
-                $now = date_create();
-                $interval = $fecha_de_inicio->diff($now);
-                $cant_dias = $interval->format('%a');
-                if ($cant_dias > 10) {
-                    $enviar = true;
-                }
-                else {
-                    $enviar = false;  
-                }
+            /*
+            //Calculo la cantidad de dias desde la INSCRIPCION hasta hoy
+            $fecha_de_inscripcion = date_create($this->created_at);
+            $interval_inscripcion = $fecha_de_inscripcion->diff($now);
+            $cant_dias_inscripcion = $interval_inscripcion->format('%a');
+            */
+
+            //Si han pasado mas de de 10 dias desde que inicio el evento marco para enviar
+            if ($cant_dias_inicio_evento > 10) {
+                $enviar = true;
             }
         }
 

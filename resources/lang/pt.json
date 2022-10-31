@@ -126,6 +126,8 @@
     "Certificado": "Certificado",
     "HORARIOS": "HORÁRIOS",
     "Mensaje": "Mensagem",
+    "te invita": "convida você",
+    "No encuentro mi ciudad": "Não consigo achar minha cidade",
     "****************** FIN FORMULARIOS": "**********************",
 
     "****************** INICIO PAISES": "**********************",
@@ -646,7 +648,7 @@
     "Te estoy enviando los datos de la campaña": "Estou enviando os dados da campanha",
     "Tablero de Control": "Painel de controle",
     "Estadísticas": "Estatisticas",
-    "Usuarios": "Utilizadores",
+    "Usuarios": "Usuários",
     "Próximos Eventos": "Próximos eventos",
     "Eventos hasta un mes atras": "Eventos até um mês atrás",
     "Notificar al Responsable de Inscripción": "Notificar o Oficial de Inscrição",
@@ -677,7 +679,6 @@
     "En que app te gustaria recibir el curso": "Em qual aplicativo você gostaria de receber o curso",
     "La página ha expirado, vuelva atrás, recárguela e intente nuevamente": "Página expirada, volte e tente novamente",
     "Determine Fecha y hora del inicio de cursos": "Determinar data e hora do início do curso",
-    "te invita": "convida você",
     "Fecha de inicio del curso online": "Data de Início do CURSO ONLINE",
     "Enlace de invitacion al grupo de whatsapp del aula virtual": "Link de convite para o grupo WhatsApp na sala de aula virtual",
     "Enviar Mensaje de Bienvenida": "Enviar mensagem de boas-vindas",
@@ -690,6 +691,7 @@
     "Causa de baja": "Causa da retirada",
     "Advertencias": "Advertencias",
     "Bajar Material": "Download Material",
+    "Revise y actualice sus datos": "Revise e atualize seus dados",
     "****************** FIN PLATAFORMA EDECAN": "**********************"
 
 }

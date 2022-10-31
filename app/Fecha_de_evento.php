@@ -131,7 +131,8 @@ class Fecha_de_evento extends Model
                 }
                 else { 
                     if ($idioma == 'fr') {
-                        $hora_mostrar_post = date("G:i", $hora_time);      
+                        $hora_mostrar_post = date("G:i", $hora_time);     
+                        $hora_mostrar_post = 'à '.str_replace(':', 'h', $hora_mostrar_post);
                     }
                     else { 
                         $hora_mostrar_post .= 'h';
@@ -187,7 +188,7 @@ class Fecha_de_evento extends Model
             $numero_dia = date("N", $fecha_de_inicio);
             $nombre_dia = __($fcx->nombre_de_dia($numero_dia));
         }
-        $dia = date("d", $fecha_de_inicio);
+        $dia = date("j", $fecha_de_inicio);
         $numero_de_mes = date("m", $fecha_de_inicio);
         $mes = $fcx->nombre_de_mes($numero_de_mes);
         $mes = __($mes);
@@ -216,6 +217,9 @@ class Fecha_de_evento extends Model
         if ($idioma == 'ar') {
             $inicio = "$mes $dia $nombre_dia $hora";
         }  
+        if ($idioma == 'el') {
+            $inicio = "$nombre_dia $dia $mes $hora";
+        }
         
         return  $inicio;
     }
@@ -306,6 +310,7 @@ class Fecha_de_evento extends Model
 
 
     public function armarDetalleFechasDeEventos($tipo = 'html', $con_inicio = true, $Idioma_por_pais = null, $Solicitud = null, $idioma = null, $ver_mapa = true, $con_dir_inicio_distinto = true) {
+
 
         $detalle = '';
 
@@ -465,7 +470,9 @@ class Fecha_de_evento extends Model
                             if ($con_inicio) {
                                 $detalle .= $inicio;
                             }                    
-                            $detalle .= "\n".__('Lugar').": $direccion \n".__('Ver Mapa').": $url_mapa \n";
+                            if ($ver_mapa) {
+                                $detalle .= "\n".__('Lugar').": $direccion \n".__('Ver Mapa').": $url_mapa \n";
+                            }
                     }
                     else {
                         $detalle = '<h4>'.$this->titulo_de_conferencia_publica.'</h4>';
@@ -475,7 +482,9 @@ class Fecha_de_evento extends Model
                         if ($con_inicio) {
                             $detalle .= $inicio;
                         }
+                        if ($ver_mapa) {
                             $detalle .= "<br>".__('Lugar').": $direccion <br>".__('Ver Mapa').": <a href='$url_mapa' target='_blank' class='url_ver_mapa'>$url_mapa</a><br>";
+                        }
                     }
                 }
                 else {
@@ -556,7 +565,7 @@ class Fecha_de_evento extends Model
             $y = 'e';
         }
         if ($idioma == 'fr') {
-            $y = 'et';
+            $y = 'et le';
         }
         if ($idioma == 'it') {
             $y = 'e';
@@ -570,6 +579,10 @@ class Fecha_de_evento extends Model
         if ($idioma == 'hu') {
             $y = 'és';
         }
+        if ($idioma == 'el') {
+            $y = 'και';
+        }
+        
 
         $array_fecha = array();
         // DIAS Y HORA DEL CURSO
@@ -625,7 +638,12 @@ class Fecha_de_evento extends Model
                 $hora_y_minutos = $array_hora[0];
             }
             else {
-                $hora_y_minutos = $array_hora[0].':'.$array_hora[1];
+                if ($idioma == 'fr') {
+                    $hora_y_minutos = $array_hora[0].'h'.$array_hora[1];
+                }
+                else {
+                    $hora_y_minutos = $array_hora[0].':'.$array_hora[1];
+                }
             }
             if ($i == 0) {
                 $hora_1 = $hora_y_minutos;

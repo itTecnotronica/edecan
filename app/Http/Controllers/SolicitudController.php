@@ -80,7 +80,7 @@ class SolicitudController extends Controller
 
             $paisesDelEquipo = $this->paisesDelEquipo();
             $where_raw_rol_usuario = $paisesDelEquipo['where_raw_rol_usuario'];
-            
+
             //Habilito campañas de prueba para capacitacion
             $users_capacitacion = [28, 73, 50, 71, 65, 290, 74, 152];
             if (in_array(Auth::user()->id, $users_capacitacion)) {
@@ -477,12 +477,20 @@ class SolicitudController extends Controller
         ->with('acciones_extra', $acciones_extra);       
     }
 
-    public function crearSolicitudElegirTipoDeEvento($tipo_de_evento_id)
+    public function crearSolicitudElegirTipoDeEvento($tipo_de_evento_id, $capacitacion = 'f')
     {   
         //Session::put('cliente_id', $cliente_id);
 
+        if ($capacitacion == 't') {
+            $sino_es_campania_de_capacitacion = 'SI';
+        }
+        else {
+            $sino_es_campania_de_capacitacion = 'NO';
+        }
+
         $Solicitud = new Solicitud;
         $Solicitud->tipo_de_evento_id = $tipo_de_evento_id;
+        $Solicitud->sino_es_campania_de_capacitacion = $sino_es_campania_de_capacitacion;
         $Solicitud->user_id = Auth::user()->id;
         $Solicitud->save();
 
@@ -1671,9 +1679,11 @@ class SolicitudController extends Controller
     public function resetearCampania($solicitud_id, $password_reset)
     {   
         
-        $solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11377, 11393, 11394, 11443, 11444];
+        //$solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11377, 11393, 11394, 11443, 11444];
 
-        if ($password_reset == 'flush' and (Auth::user()->id == 1 or (Auth::user()->id == 50 and in_array($solicitud_id, $solicitudes_capacitacion)))) {
+        $Solicitud = Solicitud::find($solicitud_id);
+
+        if ($password_reset == 'flush' and (Auth::user()->id == 1 or (Auth::user()->id == 50 and $Solicitud->sino_es_campania_de_capacitacion == 'SI'))) {
 
             Visualizacion_de_formulario::where('solicitud_id', $solicitud_id)->delete();
             Visualizacion_de_formulario::whereRaw('inscripcion_id in (Select i.id From inscripciones i Where i.solicitud_id = '.$solicitud_id.')')->delete();
@@ -1700,7 +1710,11 @@ class SolicitudController extends Controller
         if ($equipo_id == null) {
             $user_id = Auth::user()->id;
             $Equipos = Equipo::whereRaw("coordinador_user_id = $user_id or id in (SELECT ue.equipo_id FROM usuarios_por_equipo ue WHERE ue.user_id = $user_id )")->get();
+
             $equipo_id = Auth::user()->equipo_id;
+            if ($equipo_id == '' AND count($Equipos) >0) {
+                $equipo_id = $Equipos[0]->id;
+            }
         }
         else {
             $Equipos = Equipo::where('id', $equipo_id)->get();    
@@ -1720,6 +1734,7 @@ class SolicitudController extends Controller
 
             if ($pais_id == '') {
                 $Paises_por_equipo = Pais_por_equipo::where('equipo_id', $equipo_id)->get();
+
 
                 if (count($Paises_por_equipo) > 0) {
                     foreach ($Paises_por_equipo as $Pais) {

@@ -185,6 +185,17 @@ class ParticularController extends Controller
         }
         // FIN Usuarios_por_equipo
 
+        // INICIO users
+        if($modelo == 'User') {
+            if ($accion == 'a' or $accion == 'm') {
+                //Actualizo el coordinador_user_id del Usuarios_por_equipo
+                $User = User::find($id);
+                $User->updated_at = null;
+                $User->save();
+            }
+        }
+        // FIN Usuarios_por_equipo
+
 
 
 

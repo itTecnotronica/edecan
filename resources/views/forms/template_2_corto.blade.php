@@ -71,7 +71,7 @@ else {
     <meta property="og:image" content="<?php echo $imagen_chica ?>">
 
     <!-- Title Page-->
-    <title><?php echo $Solicitud->descripcion_sin_estado() ?></title>
+    <title><?php echo $Solicitud->descripcion_sin_estado(false) ?></title>
 
     <!-- Icons font CSS-->
     <link href="<?php echo $dominio_publico?>templates/2/vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet" media="all">
@@ -315,6 +315,9 @@ else {
                                           $array_canales_id = null;
                                           if ($Solicitud->id == 10715) {
                                             $array_canales_id = [1,2];
+                                            } 
+                                          if ($Solicitud->id == 15731) {
+                                            $array_canales_id = [1,5,9];
                                             } 
                                           ?>
                                         <div class="form-group required">

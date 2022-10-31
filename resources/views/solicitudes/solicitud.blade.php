@@ -49,7 +49,7 @@ function sino_a_tf($sino) {
   return $tf;
 }
 
-$solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11377, 11393, 11394, 11443, 11444];
+//$solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11377, 11393, 11394, 11443, 11444];
 
 ?>
 
@@ -90,7 +90,7 @@ $solicitudes_capacitacion = [1, 6, 9, 12, 6966, 6871, 4555, 4701, 5032, 5111, 11
 <h1>
   <?php echo __('Solicitud') ?>: <?php echo $Solicitud->id; ?>
   <small>Localidad: <?php echo $Solicitud->localidad_nombre(); ?> </small>
-  <?php if (Auth::user()->id == 1 or (Auth::user()->id == 50 and in_array($Solicitud->id, $solicitudes_capacitacion))) { ?>
+  <?php if (Auth::user()->id == 1 or (Auth::user()->id == 50 and $Solicitud->sino_es_campania_de_capacitacion == 'SI')) { ?>
     <button type="button" data-toggle="modal" data-toggle="modal" data-target="#modal-confirmar-resetear-campaña" class="btn btn-danger btn-md" style="margin-left: 100px;"><?php echo __('Resetear Campaña') ?></button>
   <?php } ?>
 </h1>

@@ -37,7 +37,7 @@ Route::group(['middleware' => 'auth'], function () {
 	    return view('solicitudes/solicitud-asistente');
 	});	
 	Route::post('/Solicitudes/crear/listar-tipos-de-eventos-para-seleccion', 'SolicitudController@listarTiposDeEventosParaSeleccion');
-	Route::get('/Solicitudes/crear/elegir-tipo-de-evento/{cliente_id}', 'SolicitudController@crearSolicitudElegirTipoDeEvento');
+	Route::get('/Solicitudes/crear/elegir-tipo-de-evento/{cliente_id}/{capacitacion}', 'SolicitudController@crearSolicitudElegirTipoDeEvento');
 	Route::post('/Solicitudes/crear/fechas-de-evento/{solicitud_id}', 'SolicitudController@listarFechasDeEventos');
 	Route::post('/Solicitudes/crear/conferencia-publica/{solicitud_id}', 'SolicitudController@listarConferenciasPublicas');
 	Route::post('/Solicitudes/crear/datos-del-evento/{solicitud_id}', 'SolicitudController@GuardarDatosDelSolicitante');

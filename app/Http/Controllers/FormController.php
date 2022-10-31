@@ -1315,12 +1315,19 @@ class FormController extends Controller
             $url_form_inscripcion = $Solicitud->url_form_inscripcion_con_campania_id($campania_id);
         }
 
+        $url_invitacion_grupo_whatsapp = $this->agregarHttp($url_invitacion_grupo_whatsapp);
+        $url_invitacion_grupo_facebook = $this->agregarHttp($url_invitacion_grupo_facebook);
+        $url_fanpage = $this->agregarHttp($url_fanpage);
+        $url_youtube = $this->agregarHttp($url_youtube);
+        $url_redireccionar_automaticamente_al_enlace = $this->agregarHttp($Solicitud->url_redireccionar_automaticamente_al_enlace);
+
         return View('forms/'.$blade_de_formulario)          
         ->with('Solicitud', $Solicitud)            
         ->with('titulo', $titulo)          
         ->with('mensaje_box', $mensaje_box)         
         ->with('url_invitacion_grupo_whatsapp', $url_invitacion_grupo_whatsapp)
         ->with('url_invitacion_grupo_facebook', $url_invitacion_grupo_facebook)
+        ->with('url_redireccionar_automaticamente_al_enlace', $url_redireccionar_automaticamente_al_enlace)
         ->with('url_fanpage', $url_fanpage)
         ->with('url_youtube', $url_youtube)         
         ->with('mnemo_face', $mnemo_face)   
@@ -1632,9 +1639,20 @@ class FormController extends Controller
             }
 
             //$whereRaw .= " and inscripciones.created_at < '2022-03-01'";
-            $whereRaw .= " and s.id <> $solicitud_id";
+
+            //Planilla especial de historicos para Francia
+            if ($solicitud_id == 15579) {
+                $whereRaw .= " and (inscripciones.celular like '+33%' or inscripciones.celular like '+33%')";
+            }
+            else  {
+                $whereRaw .= " and s.id <> $solicitud_id";
+            }
+
             //$whereRaw .= " and inscripciones.id = 198632 ";
             //$whereRaw .= " and inscripciones.sino_notificar_proximos_eventos = 'SI'";
+
+            //
+
             $Grupos['cant_total_inscriptos'] = DB::table('inscripciones')
             ->select(DB::Raw('COUNT(inscripciones.nombre)'))
             ->join('solicitudes as s', 's.id', '=', 'inscripciones.solicitud_id')
@@ -1705,7 +1723,7 @@ class FormController extends Controller
         }
         //DB::enableQueryLog();
         if ($historico) {
-            $selectRaw = 'MIN(inscripciones.id) id, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo';
+            $selectRaw = 'MIN(inscripciones.id) id, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo, MAX(en.id) envio_id';
             $groupByRaw = 'inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo';
         }
         else {
@@ -5001,6 +5019,20 @@ class FormController extends Controller
 
         return $generarPdfVMAron;
     }
+
+    public function agregarHttp($url) {
+        
+        $url_http = $url;
+
+        if ($url <> '') {
+            if (substr($url, 0, 4) <> 'http') {
+                $url_http = 'http://'.$url;
+            }
+        }
+
+        return $url_http;
+    }
+ 
 
 }
 
