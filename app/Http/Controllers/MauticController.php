@@ -113,7 +113,7 @@ class MauticController extends Controller
         $excepcion_ids = [13454, 13502, 16277];
         $excepcion = in_array($solicitud_id, $excepcion_ids);
         
-        if (($localidad_id <> '' or $excepcion) and $Solicitud->tipo_de_evento_id <> 4 and $Solicitud->campania_mautic_id == '' and $Solicitud->mautic_email_id == '' and $Solicitud->sino_es_campania_de_capacitacion <> '' and $Solicitud->sino_es_campania_de_capacitacion == 'NO') {
+        if (($localidad_id <> '' or $excepcion) and $Solicitud->tipo_de_evento_id <> 4 and $Solicitud->campania_mautic_id == '' and $Solicitud->mautic_email_id == '' and ($Solicitud->sino_es_campania_de_capacitacion <> '' or $Solicitud->sino_es_campania_de_capacitacion == 'NO')) {
 
 
             $idioma = $Idioma_por_pais->idioma->mnemo;

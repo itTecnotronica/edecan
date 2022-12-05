@@ -757,7 +757,7 @@ class SolicitudController extends Controller
             $nombre_del_campo = 'moneda';
             $valoresSchemaVFG_monedas = $this->valoresParaSelectEx($Monedas, $nombre_del_campo);
 
-            $Canales_de_recepcion_del_curso = Canal_de_recepcion_del_curso::whereRaw('id in (1, 2, 5, 9, 10)')->get();
+            $Canales_de_recepcion_del_curso = Canal_de_recepcion_del_curso::whereRaw('id in (1, 2, 5, 9, 10, 13)')->get();
             $nombre_del_campo = 'canal_de_recepcion_del_curso';
             $valoresSchemaVFG_canales_de_recepcion_del_curso = $this->valoresParaSelectEx($Canales_de_recepcion_del_curso, $nombre_del_campo);
 
@@ -1170,7 +1170,7 @@ class SolicitudController extends Controller
 
         if ($Solicitud->tipo_de_evento_id == 3) {
 
-            if (isset($_POST['canal_de_recepcion_del_curso_id'])) {
+            if (isset($_POST['canal_de_recepcion_del_curso_id']) and $_POST['canal_de_recepcion_del_curso_id'] > 0) {
                 $Solicitud->canal_de_recepcion_del_curso_id = $_POST['canal_de_recepcion_del_curso_id'];
             }  
 

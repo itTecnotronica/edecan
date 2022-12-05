@@ -311,7 +311,7 @@ else {
                                     <!-- CELULAR -->
 
                                     <!-- CANAL DE RECEPCION -->
-                                      <?php if (($Solicitud->sino_habilitar_pedido_de_canal_de_recepcion_del_curso == 'SI' and ($Solicitud->tipo_de_evento_id == 3 or $Solicitud->tipo_de_evento_id == 4)) or $Solicitud->id == 6 or $Solicitud->id == 10715 ) { ?>
+                                      <?php if (($Solicitud->sino_habilitar_pedido_de_canal_de_recepcion_del_curso == 'SI' and ($Solicitud->tipo_de_evento_id == 3 or $Solicitud->tipo_de_evento_id == 4)) or $Solicitud->id == 10715 or $Solicitud->id == 15731 ) { ?>
                                           <?php 
                                           $array_canales_id = null;
                                           if ($Solicitud->id == 10715) {

@@ -493,9 +493,11 @@ class FormController extends Controller
             $ciudad_requerido = 'required|';
         }
 
+        /*
         if (($Solicitud->sino_habilitar_pedido_de_canal_de_recepcion_del_curso == 'SI' and $Solicitud->tipo_de_evento_id == 3) or $Solicitud->id == 6 ) {
             $canal_de_recepcion_del_curso_id_requerido = 'required|';
         }
+        */
 
         if ($Solicitud->tipo_de_evento_id == 4 and $Solicitud->pais_id <> '' and in_array($Solicitud->id, array(3747, 4033, 4034, 4035, 4036, 4037)) ) {
             $localidad_id_requerido = 'required|';

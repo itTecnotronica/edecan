@@ -40,13 +40,13 @@ foreach ($Campaign_leads as $lead) {
 
 */
 
-/*
+
 $MauticController = new MauticController();
-$solicitud_id = 9328;
+$solicitud_id = 16275;
 $newCamnpaignId = $MauticController->programarCampaniaMautic($solicitud_id);
-*/
 
 
+/*
 $Solicitudes = [13502];
 
 foreach ($Solicitudes as $solicitud_id) {	
@@ -54,7 +54,7 @@ foreach ($Solicitudes as $solicitud_id) {
 	echo $solicitud_id.'<br>';
 }
 echo 'listo';
-
+*/
 
 
 //$FC = new FormController();

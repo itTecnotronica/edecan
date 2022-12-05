@@ -1001,7 +1001,7 @@ $.ajax({
                   label: "<?php echo __('Canal de recepcion del curso') ?>",
                   model: "canal_de_recepcion_del_curso_id",
                   id: "canal_de_recepcion_del_curso_id",
-                  required: true,
+                  required: false,
                   disabled: false,
                   inputName: "canal_de_recepcion_del_curso_id",
                   multi: "true",
