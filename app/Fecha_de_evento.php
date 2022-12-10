@@ -111,8 +111,42 @@ class Fecha_de_evento extends Model
 
         $hora_mostrar_prev = '';
         $hora_mostrar_post = '';
+        $hora_mostrar_post_h = '';
 
         if ($formato24 == 'S') {
+
+            //Ultimo cambio 
+            if (date("i", $hora_time) == '00' and $idioma <> 'sv') {
+                $hora_mostrar_post = date("G", $hora_time);
+            }
+            else {
+                $hora_mostrar_post = date("G:i", $hora_time);                
+            }
+
+
+            $hora_mostrar_post_h = 'h';
+
+            if ($idioma == 'it') {
+                $hora_mostrar_prev = 'alle ore ';
+                $hora_mostrar_post_h = '';
+            }
+            if ($idioma == 'sv') {
+                $hora_mostrar_prev = 'kl ';       
+                $hora_mostrar_post_h = '';
+            }
+            if ($idioma == 'fr') {
+                $hora_mostrar_post = date("G:i", $hora_time);     
+                $hora_mostrar_post = 'à '.str_replace(':', 'h', $hora_mostrar_post);
+                $hora_mostrar_post_h = '';
+            }
+            if ($idioma == 'de') {
+                $hora_mostrar_post = date("G:i", $hora_time);                
+                $hora_mostrar_post_h = ' Uhr';
+            }
+
+
+            //Antes
+            /*
             if (date("i", $hora_time) == '00' and $idioma <> 'sv') {
                 $hora_mostrar_post = date("G", $hora_time);
             }
@@ -138,7 +172,9 @@ class Fecha_de_evento extends Model
                         $hora_mostrar_post .= 'h';
                     }
                 }
-            }
+            }            
+            */
+
             
         }
         else {
@@ -163,7 +199,7 @@ class Fecha_de_evento extends Model
             }
         }                    
         
-        return  $hora_mostrar_prev.$hora_mostrar_post;
+        return  $hora_mostrar_prev.$hora_mostrar_post.$hora_mostrar_post_h;
     }
 
     public function FechayHoraInicio($Idioma_por_pais = null, $idioma = null) {
