@@ -31,8 +31,8 @@ return [
     'tit_info_cursos_instagram' => 'Metodología del curso por Instagram',
     'info_cursos_instagram' => '<strong>Registrate en este formulario y luego seguí nuestra cuenta de Instagram <a href="https://www.instagram.com/gnosisenvivo/" target="_blank">@gnosisenvivo</a></strong> donde reicibirás las lecciones semanalmente en sesiones en vivo, podrás hacer tus preguntas, entregaremos dinámicas, videos y material complementario. Todo desde la misma cuenta.<br>',
     'info_mail_invitacion_curso_online' => 'O Instituto Gnosis Brasil oferece seu Curso de Autoconhecimento na modalidade Online. Esse curso já é oferecido presencialmente em todas as nossas 110 sedes por todo Brasil há mais de 30 anos, e agora é oferecido de forma 100% remota. O objetivo é que você conheça e estude, de forma ordenada, os fundamentos do ensinamento gnóstico desta Escola de Mistérios; e assim provocar em sua vida uma transformação real e profunda nas formas de pensar, sentir e agir; buscando dar passos conscientes e transcendentais em sua vida e possui aproximadamente 30 aulas, que serão dadas por links privados no Youtube e WhatsaApp. Inscreva-se! Vagas limitadas (devido ao número limitado de tutores).',
-    'explicacion_modalidad_notificacion_de_asistencia_1' => '',
-    'explicacion_modalidad_notificacion_de_asistencia_2' => '',
+    'explicacion_modalidad_notificacion_de_asistencia_1' => 'IMPORTANTE: depois de terminar de assistir a todos os vídeos da lição, você deverá nos notificar, clicando no link de notificação que enviaremos junto a cada lição (para isso você precisará do Código do Aluno, que lhe foi enviado na mensagem personalizada de boas vindas que você recebeu inicialmente).',
+    'explicacion_modalidad_notificacion_de_asistencia_2' => 'IMPORTANTE: depois de haver assistido a todos os vídeos da lição, você deverá nos notificar, usando o link que receberá com a lição correspondente. Este é um link que lhe levará ao WhatsApp, portanto, é importante que você faça esse procedimento do seu telefone celular.',
 
 ];
 

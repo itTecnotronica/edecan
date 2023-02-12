@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Auth;
 use DateTime;
 use App\Idioma_por_pais;
+use App\Pais;
 use App\Fecha_de_evento;
 use App\Texto_anuncios;
 use App\Equipo;
@@ -195,6 +196,29 @@ class Solicitud extends Model
 
 
         return $Idioma_por_pais;
+    }
+
+
+    public function pais_de_solicitud()
+    {
+        $pais_id = null;
+        if($this->localidad_id <> null) {
+            $pais_id = $this->localidad->provincia->pais->id;
+        }
+        else {
+            if($this->pais_id <> null) {
+                $pais_id = $this->pais_id;
+            }
+        }
+
+        if ($pais_id <> null) {
+            $Pais = Pais::find($pais_id);
+        }
+        else {
+            $Pais = null;    
+        }
+
+        return $Pais;
     }
 
     public function url_contacto_whatsapp_form() {

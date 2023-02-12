@@ -196,7 +196,7 @@ Route::get('/delcache', function () {
 //FORMS
 Route::group(['middleware' => 'sesion'], function () {	
 	Route::get('/f/{solicitud_id}/{hash}', 'FormController@formShow');
-	Route::get('/fc/{solicitud_id}/{hash}/{campania_id}', 'FormController@formShow');
+	Route::get('/fc/{solicitud_id}/{hash}/{campania_id?}', 'FormController@formShow');
 	Route::get('/fapp/{solicitud_id}/{hash}/{campania_id}/{app_usuario_id}', 'FormController@formShow');
 	Route::post('/f/registrar-inscripcion', 'FormController@RegistrarInscripcion')->middleware('cors');
 	Route::get('/e/{inscripcion_id}/{hash}', 'EncuestaController@encShow');

@@ -4440,17 +4440,40 @@ class FormController extends Controller
         $leccion_id = $_POST['leccion_id'];
         $hash = $_POST['hash'];
         $password = $_POST['password'];
+        
+        $Leccion = Leccion::find($leccion_id);
+        $hash_leccion = md5($Leccion->codigo_de_la_leccion);
+
+        
+        if ($hash_leccion == $hash) {
+
+            $registro = $this->procesarRegistroDeFinDeLeccion($solicitud_id, $leccion_id, $password);
+            
+            return View('forms/registrar-fin-de-leccion')        
+            ->with('Solicitud', $registro['Solicitud'])
+            ->with('Leccion', $registro['Leccion'])
+            ->with('titulo', $registro['titulo'])
+            ->with('mensaje', $registro['mensaje'])
+            ->with('class_resultado', $registro['class_resultado'])
+            ->with('class_icon', $registro['class_icon']); 
+            }
+        else {
+            echo 'ERROR';
+        }  
+
+    }
+
+
+    public function procesarRegistroDeFinDeLeccion($solicitud_id, $leccion_id, $password) {
 
         $password = str_replace(' ', '', $password);
 
         $Solicitud = Solicitud::find($solicitud_id);
         $Leccion = Leccion::find($leccion_id);
-        $hash_leccion = md5($Leccion->codigo_de_la_leccion);
 
-        $asitencia_registrada = false;
-        
-        if ($hash_leccion == $hash) {
+        if ($Leccion !== null and $Solicitud !== null) { 
 
+            $asitencia_registrada = false;
 
             $idioma = $Solicitud->idioma->mnemo;
             App::setLocale($idioma);   
@@ -4487,6 +4510,9 @@ class FormController extends Controller
 
                     $Inscripcion->ultima_leccion_vista = $leccion_id;
                     $Inscripcion->save(); 
+                    
+                    $inscripcion_id = $Inscripcion->id;
+                    $email = $Inscripcion->email_correo;
 
                     $this->promocionarInscripto($Inscripcion);
 
@@ -4536,6 +4562,7 @@ class FormController extends Controller
                 $mensaje = __('Hemos notificado al Tutor que has finalizado la Lección');
                 $class_resultado = 'success';
                 $class_icon = 'check';
+                $error = false;
             }
             else {
                 $titulo = __('Error');
@@ -4543,23 +4570,37 @@ class FormController extends Controller
 
                 $class_resultado = 'danger';
                 $class_icon = 'close';
-            }
-            
-            return View('forms/registrar-fin-de-leccion')        
-            ->with('Solicitud', $Solicitud)
-            ->with('Leccion', $Leccion)
-            ->with('titulo', $titulo)
-            ->with('mensaje', $mensaje)
-            ->with('class_resultado', $class_resultado)
-            ->with('class_icon', $class_icon);            
-            }
-        else {
-            echo 'ERROR';
-        }  
+                $error = true;
+                $inscripcion_id = null;
+                $email = null;
+            }     
+        }
+        else {        
+            $titulo = __('Error');
+            $mensaje = __('El código de Leccion o Aula no existe');    
+            $class_resultado = 'danger';
+            $class_icon = 'close';
+            $error = true;
+            $inscripcion_id = null;
+            $email = null;
+        }   
+
+
+        $registro = [
+            'Solicitud' => $Solicitud,
+            'Leccion' => $Leccion,
+            'titulo' => $titulo,
+            'mensaje' => $mensaje,
+            'class_resultado' => $class_resultado,
+            'class_icon' => $class_icon,
+            'error' => $error,
+            'inscripcion_id' => $inscripcion_id,
+            'email' => $email
+            ];
+
+        return $registro;
 
     }
-
-
     
     public function paisesCodTelJson()
     {     

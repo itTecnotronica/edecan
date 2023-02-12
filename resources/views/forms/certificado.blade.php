@@ -135,7 +135,7 @@ App::setLocale($idioma);
 
                    <div class="cuerpo-de-texto">
 
-                    <p class="titulo-nombre"><?php echo mb_strtoupper($Inscripcion->nombre, 'UTF-8'); ?> <?php echo mb_strtoupper($Inscripcion->apellido, 'UTF-8'); ?></p>
+                    <p class="titulo-nombre"><?php echo $nombre; ?></p>
 
                     <p class="texto1"><?php echo $texto1; ?></p>
 

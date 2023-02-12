@@ -79,6 +79,7 @@ class SolicitudController extends Controller
         if (Auth::user()->rol_de_usuario_id == 2) {
 
             $paisesDelEquipo = $this->paisesDelEquipo();
+            //dd($paisesDelEquipo);
             $where_raw_rol_usuario = $paisesDelEquipo['where_raw_rol_usuario'];
 
             //Habilito campañas de prueba para capacitacion
@@ -1711,10 +1712,12 @@ class SolicitudController extends Controller
             $user_id = Auth::user()->id;
             $Equipos = Equipo::whereRaw("coordinador_user_id = $user_id or id in (SELECT ue.equipo_id FROM usuarios_por_equipo ue WHERE ue.user_id = $user_id )")->get();
 
+
             $equipo_id = Auth::user()->equipo_id;
             if ($equipo_id == '' AND count($Equipos) >0) {
                 $equipo_id = $Equipos[0]->id;
             }
+            //dd($equipo_id);
         }
         else {
             $Equipos = Equipo::where('id', $equipo_id)->get();    
@@ -1733,7 +1736,7 @@ class SolicitudController extends Controller
 
 
             if ($pais_id == '') {
-                $Paises_por_equipo = Pais_por_equipo::where('equipo_id', $equipo_id)->get();
+                $Paises_por_equipo = Pais_por_equipo::where('equipo_id', $Equipo->id)->get();
 
 
                 if (count($Paises_por_equipo) > 0) {

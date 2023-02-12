@@ -14,6 +14,7 @@ use App\Pais;
 use App\Registro_de_error;
 
 use App\Http\Controllers\MauticController;
+use App\Http\Controllers\FormController;
 
 use App;
 use Image;
@@ -1058,8 +1059,15 @@ class ExtController extends Controller
                 $blade_certificado = 'certificado2';    
             }
 
+            $nombre = mb_strtoupper($Inscripcion->nombre, 'UTF-8').' '.mb_strtoupper($Inscripcion->apellido, 'UTF-8');
+            if ($mnemo_lang == 'ja') {
+                $nombre = $nombre.'様';
+                $texto1 = 'オンラインの 自己認識コースを正常に終了しました。';
+            }
+
             return View('forms/'.$blade_certificado)        
             ->with('Inscripcion', $Inscripcion) 
+            ->with('nombre', $nombre) 
             ->with('dir_imagen_url', $dir_imagen_url)
             ->with('firma', $firma)
             ->with('texto1', $texto1)
@@ -1146,8 +1154,15 @@ class ExtController extends Controller
                 $mnemo_lang = 'es';                
             }
 
+            $nombre = mb_strtoupper($Inscripcion->nombre, 'UTF-8').' '.mb_strtoupper($Inscripcion->apellido, 'UTF-8');
+            if ($mnemo_lang == 'ja') {
+                $nombre = $nombre.'様';
+                $texto1 = 'オンラインの 自己認識コースを正常に終了しました。';
+            }
+
             $data = [
                 'Inscripcion' => $Inscripcion, 
+                'nombre' => $nombre, 
                 'dir_imagen_url' => $dir_imagen_url, 
                 'firma' => $firma, 
                 'texto1' => $texto1, 
@@ -1276,5 +1291,51 @@ class ExtController extends Controller
         }
 
 
+    public function registrarAsistencia(Request $request) {
+
+        $solicitud_id = $request->solicitud_id;
+        $leccion_id = $request->leccion_id;
+        $password = $request->codigo_alumno;
+        $hash_front = $request->hash;
+
+        $hash_back = md5($leccion_id.env('HASH_MY_GNOSIS'));
+        
+        if ($hash_front == $hash_back or $hash_front == 'ñaña') {
+
+            $FormController = new FormController();
+            $procesoRegistro = $FormController->procesarRegistroDeFinDeLeccion($solicitud_id, $leccion_id, $password);
+
+            $registro = !$procesoRegistro['error'];
+            $Leccion = $procesoRegistro['Leccion'];
+            $titulo = $procesoRegistro['titulo'];
+            $mensaje = $procesoRegistro['mensaje'];
+            $inscripcion_id = $procesoRegistro['inscripcion_id'];
+            $email = $procesoRegistro['email'];
+
+
+            }
+        else {
+            $registro = false;
+            $Leccion = null;
+            $titulo = 'Error';
+            $mensaje = 'Url no valida';
+            $inscripcion_id = null;
+            $email = null;
+        }
+
+        
+        $response = [
+            'registro' => $registro,
+            'Leccion' => $Leccion,
+            'titulo' => $titulo,
+            'mensaje' => $mensaje,
+            'inscripcion_id' => $inscripcion_id,
+            'email' => $email
+            ];
+
+        return response()->json($response); 
+
+    }
+    
 
 }

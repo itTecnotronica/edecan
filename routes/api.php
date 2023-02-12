@@ -64,8 +64,11 @@ Route::get('APP/ACTUALIZAR-ESTADO-ALUMNO/{inscripto_id}/{instancia_de_seguimient
 Route::get('GAPP/GETUSUARIO/{pais_id}/{documento}/{token}', 'AppController@getUsuario');
 Route::get('GAPP/SAVEUSUARIO/{id}/{nombre}/{apellido}/{tb_tipo_de_documento_id}/{numero_de_documento}/{nacionalidad}/{sexo}/{fecha_de_nacimiento}/{domicilio}/{localidad}/{tc_celular}/{mail_correo_electronico}/{token}', 'AppController@saveUsuario');
 //GAPP Inscripcion
+Route::get('GAPP/GETINSCRIPTOSALEVENTO/{pais_id}/{id_evento}/{token}', 'AppController@getInscriptosAlEvento'); 
+Route::get('GAPP/GETINSCRIPTOALEVENTO/{pais_id}/{id_evento}/{persona_id}/{token}', 'AppController@getInscriptoAlEvento');
 Route::get('GAPP/GETINSCRIPCION/{pais_id}/{id}/{token}', 'AppController@getInscripcion');
-Route::get('GAPP/SAVEINSCRIPCION/{id}/{tb_evento_id}/{tb_persona_id}/{token}', 'AppController@saveInscripcion');
+Route::get('GAPP/SAVEINSCRIPCION/{id}/{tb_evento_id}/{tb_persona_id}/{notas}/{token}', 'AppController@saveInscripcion');
+Route::get('GAPP/DELETEINSCRIPCION/{id}/{token}', 'AppController@deleteInscripcion');
 //GAPP Debitos
 Route::get('GAPP/GETDEBITO/{pais_id}/{id}/{token}', 'AppController@getDebito');
 Route::get('GAPP/SAVEDEBITO/{id}/{tb_tarjeta_id}/{tb_tipo_de_tarjeta_id}/{tb_persona_id}/{numero_de_tarjeta}/{monto}/{observaciones}/{token}', 'AppController@saveDebito');
@@ -95,3 +98,6 @@ Route::get('MM/idiomas', 'AppController@getIdiomas');
 
 
 Route::get('MM/ciudadesviejas', 'AppController@getLocalidades');
+
+// My Gnosis
+Route::post('MG/asistencia/notificar', 'ExtController@registrarAsistencia');

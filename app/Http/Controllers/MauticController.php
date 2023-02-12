@@ -109,11 +109,20 @@ class MauticController extends Controller
         $localidad_id = $Solicitud->localidad_id;
         $institucion_id = $Solicitud->institucion_id;
         $Idioma_por_pais = $Solicitud->idioma_por_pais();
+        $Pais = $Solicitud->pais_de_solicitud();
+
+        $enviar_mailing_pais = false;
+        if ($Pais <> null) {
+            if ($Pais->sino_enviar_mailing_por_apertura_de_nuevo_curso_online_en_pais == 'SI') {
+                $enviar_mailing_pais = true;
+            }
+        }
 
         $excepcion_ids = [13454, 13502, 16277];
+        
         $excepcion = in_array($solicitud_id, $excepcion_ids);
         
-        if (($localidad_id <> '' or $excepcion) and $Solicitud->tipo_de_evento_id <> 4 and $Solicitud->campania_mautic_id == '' and $Solicitud->mautic_email_id == '' and ($Solicitud->sino_es_campania_de_capacitacion <> '' or $Solicitud->sino_es_campania_de_capacitacion == 'NO')) {
+        if (($localidad_id <> '' or $excepcion or $enviar_mailing_pais) and $Solicitud->tipo_de_evento_id <> 4 and $Solicitud->campania_mautic_id == '' and $Solicitud->mautic_email_id == '' and ($Solicitud->sino_es_campania_de_capacitacion <> '' or $Solicitud->sino_es_campania_de_capacitacion == 'NO')) {
 
 
             $idioma = $Idioma_por_pais->idioma->mnemo;
