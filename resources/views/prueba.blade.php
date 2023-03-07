@@ -42,7 +42,7 @@ foreach ($Campaign_leads as $lead) {
 
 
 $MauticController = new MauticController();
-$solicitud_id = 16275;
+$solicitud_id = 12958;
 $newCamnpaignId = $MauticController->programarCampaniaMautic($solicitud_id);
 
 

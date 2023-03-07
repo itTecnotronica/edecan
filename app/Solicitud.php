@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Auth;
 use DateTime;
 use App\Idioma_por_pais;
+use App\Idioma;
 use App\Pais;
 use App\Fecha_de_evento;
 use App\Texto_anuncios;
@@ -1264,8 +1265,10 @@ class Solicitud extends Model
         $a_estado = $this->estado();
         $letra_estado = $a_estado['letra_estado'];
         $mensaje_redireccion = '';
+        $count_form_curso_online = Idioma::where('id_form_curso_online', $this->id)->count();
 
-        if ($this->institucion_id == 1) {
+
+        if ($this->institucion_id == 1 and $count_form_curso_online == 0) {
             if ($this->idioma_id <> '') {
                 $idioma = $this->idioma->mnemo;           
                 $locale_vee_validate = $this->idioma->locale_vee_validate;             

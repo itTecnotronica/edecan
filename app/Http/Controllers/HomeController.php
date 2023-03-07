@@ -577,6 +577,8 @@ class HomeController extends Controller
                 ->whereNotNull('fecha_de_solicitud')
                 ->whereRaw($where_raw_rol_usuario)->get();
 
+
+            /*
             $equipo_where = "";
             
             $Usuario_por_equipos = Auth::user()->usuario_por_equipo;  
@@ -596,6 +598,27 @@ class HomeController extends Controller
             select(DB::Raw('users.*, p.pais pais_desc'))
             ->leftjoin('paises as p', 'p.id', '=', 'users.pais_id')
             ->whereRaw("rol_de_usuario_id IS NULL and ($equipo_id in (SELECT ue.equipo_id from usuarios_por_equipo as ue WHERE ue.user_id = $user_id))")
+            ->get();
+            */
+        }
+
+        $idsDeEquiposQueCoordina = Auth::user()->idsDeEquiposQueCoordina();
+        if ($idsDeEquiposQueCoordina !== false) {
+
+            $equipo_where = "";
+            
+            $equipo_ids = $idsDeEquiposQueCoordina[0];
+
+            foreach ($idsDeEquiposQueCoordina as $id) {
+                $equipo_ids .= ', '.$id;
+            }
+
+            $Autorizaciones = User::
+            select(DB::Raw('users.*, p.pais pais_desc'))
+            ->leftjoin('paises as p', 'p.id', '=', 'users.pais_id')
+            ->leftjoin('usuarios_por_equipo as ue', 'ue.user_id', '=', 'users.id')
+            ->whereNull("rol_de_usuario_id")
+            ->whereRaw("(ue.equipo_id in ($equipo_ids) or users.equipo_id in ($equipo_ids))")
             ->get();
             
         }

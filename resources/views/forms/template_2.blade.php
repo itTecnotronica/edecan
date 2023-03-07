@@ -67,12 +67,12 @@ else {
     <!-- Required meta tags-->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta name="description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta name="author" content="<?php echo $nombre_institucion ?>.is">
-    <meta name="keywords" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>">
-    <meta property="og:title" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>" />
+    <meta name="keywords" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
+    <meta property="og:title" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>" />
     <meta property="og:url" content="<?php echo $Solicitud->url_form_inscripcion() ?>" />
-    <meta property="og:description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta property="og:description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta property="og:image" content="<?php echo $imagen_chica ?>">
 
     <!-- Title Page-->

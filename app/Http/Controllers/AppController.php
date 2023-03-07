@@ -1170,7 +1170,7 @@ class AppController extends Controller
             ->leftjoin('fechas_de_evento as fe', 's.id', '=', 'fe.solicitud_id')
             ->where('p.id', $pais_id)
             ->where('s.sino_aprobado_administracion', 'SI')
-            ->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2022-10-15") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2022-10-15") or s.created_at >= "2022-10-15")')
+            ->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2023-02-20") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2023-02-20") or s.created_at >= "2023-02-20")')
             ->whereRaw("(s.sino_es_campania_de_capacitacion IS NULL OR s.sino_es_campania_de_capacitacion = 'NO')")
             ->whereRaw("(s.sino_aprobado_finalizada IS NULL OR s.sino_aprobado_finalizada = 'NO')")
             ->get();
@@ -1251,7 +1251,7 @@ class AppController extends Controller
                 ->where('l.id', $localidad_id)
                 //->where('s.id', 4367)            
                 ->where('s.sino_aprobado_administracion', 'SI')
-                ->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2022-10-15") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2022-10-15") or s.created_at >= "2022-10-15")')
+                ->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2023-02-20") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2023-02-20") or s.created_at >= "2023-02-20")')
                 ->whereRaw("(s.sino_es_campania_de_capacitacion IS NULL OR s.sino_es_campania_de_capacitacion = 'NO')")
                 ->whereRaw("(s.sino_aprobado_finalizada IS NULL OR s.sino_aprobado_finalizada = 'NO')")
                 ->get();

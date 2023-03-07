@@ -10,6 +10,7 @@ use App\Fecha_de_evento;
 use App\Movimiento_contable;
 use App\Equipo;
 use App\Usuario_por_equipo;
+use App\Rol_de_usuario;
 
 use App\Http\Controllers\GenericController;
 use Illuminate\Http\Request;
@@ -91,9 +92,15 @@ class ParticularController extends Controller
 
                 $rol_de_usuario_id = $request->rol_de_usuario_id;
 
-                if ($rol_de_usuario_id == '1' and Auth::user()->id <> 1) {
+                // Controlo que no este queriendo asignar un rol que solo pueda asignar el Administrador
+                $Roles = Rol_de_usuario::select('id')->where('sino_solo_asigna_administrador', 'SI')->get();
+                $ids_roles_asignados_solo_por_administrador = $Roles->pluck('id')->toArray();
+
+
+                if (in_array($rol_de_usuario_id, $ids_roles_asignados_solo_por_administrador) and Auth::user()->id <> 1) {
+                    $Rol = Rol_de_usuario::find($rol_de_usuario_id);
                     $acc_ant_mensaje['error'] = true;
-                    $acc_ant_mensaje['detalle'] = 'No puede asignar a un usuario como Administrador';
+                    $acc_ant_mensaje['detalle'] = 'No puede asignarle a un usuario el Rol de '.$Rol->rol_de_usuario;
                     $acc_ant_mensaje['class'] = 'alert-danger';    
                 }
 
@@ -113,6 +120,8 @@ class ParticularController extends Controller
             }
         }
         // FIN Equipo
+
+
     
     return $acc_ant_mensaje;
 

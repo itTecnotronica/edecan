@@ -38,16 +38,16 @@ else {
     <!-- Required meta tags-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta name="description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta name="author" content="gnosis.is">
-    <meta name="keywords" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>">
-    <meta property="og:title" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>" />
+    <meta name="keywords" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
+    <meta property="og:title" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>" />
     <meta property="og:url" content="<?php echo $Solicitud->url_form_inscripcion() ?>" />
-    <meta property="og:description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta property="og:description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta property="og:image" content="<?php echo env('PATH_PUBLIC')?>/img/sol-de-acuario-chico.jpg">
 
     <!-- Title Page-->
-    <title><?php echo $Solicitud->descripcion_sin_estado() ?></title>
+    <title><?php echo $Solicitud->descripcion_sin_estado(false) ?></title>
 
     <!-- Icons font CSS-->
     <link href="<?php echo env('PATH_PUBLIC')?>templates/2/vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet" media="all">

@@ -256,6 +256,9 @@ class Fecha_de_evento extends Model
         if ($idioma == 'el') {
             $inicio = "$nombre_dia $dia $mes $hora";
         }
+        if ($idioma == 'ja') {
+            $inicio = $mes.$dia.'日 '.$hora;
+        }
         
         return  $inicio;
     }

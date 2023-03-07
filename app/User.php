@@ -76,6 +76,20 @@ class User extends Authenticatable
         return $Roles;
     }
 
+
+    public function idsDeEquiposQueCoordina() {
+
+        $CollecctionIds = Equipo::select('id')->where('coordinador_user_id', $this->id)->get();
+
+        $ids = $CollecctionIds->pluck('id')->toArray();
+
+        if (count($ids) == 0) {
+            $ids = false;
+        }
+
+        return $ids;
+    }
+
     public function sucursal()
     {
         return $this->belongsTo('App\Sucursal');

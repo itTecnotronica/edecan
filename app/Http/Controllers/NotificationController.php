@@ -53,7 +53,11 @@ class NotificationController extends Controller
             if ($medio == 0 or $medio == 2) {
                 $mail = $destinatario->email;
                 if ($mail <> '') {
-                    Mail::to($destinatario)->send(new NotificacionEmail($mensaje));       
+                    try {
+                        Mail::to($destinatario)->send(new NotificacionEmail($mensaje));       
+                    } catch (Exception $e) {
+                        echo 'Excepción capturada: ',  $e->getMessage(), "\n";
+                    }
                 }  
             }
         }

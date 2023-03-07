@@ -388,7 +388,7 @@ if ($_SERVER['HTTP_HOST'] == 'ac.igca.com.ar') {
               <?php 
 
                 $gen_seteo = array(      
-                  'no_mostrar_campos_abm' => 'password|remember_token|img_avatar|email|pais_id|idioma_id|telegram_chat_id|celular|sino_activo|lumisial|ciudad|diocesis|name',
+                  'no_mostrar_campos_abm' => 'password|remember_token|img_avatar|email|pais_id|idioma_id|telegram_chat_id|celular|sino_activo|lumisial|ciudad|diocesis|equipo_id',
                   'gen_url_siguiente' => 'back',
                 );
               ?>   

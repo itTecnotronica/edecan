@@ -110,11 +110,13 @@ class MauticController extends Controller
         $institucion_id = $Solicitud->institucion_id;
         $Idioma_por_pais = $Solicitud->idioma_por_pais();
         $Pais = $Solicitud->pais_de_solicitud();
+        $sino_federacion = '';
 
         $enviar_mailing_pais = false;
         if ($Pais <> null) {
+            $sino_federacion = $Pais->sino_federacion;
             if ($Pais->sino_enviar_mailing_por_apertura_de_nuevo_curso_online_en_pais == 'SI') {
-                $enviar_mailing_pais = true;
+                $enviar_mailing_pais = true;                
             }
         }
 
@@ -284,20 +286,12 @@ class MauticController extends Controller
 
                     //dd($newCampaign);
 
+                    $descripcion_sin_estado = mb_substr($descripcion_sin_estado, 0, 60, "UTF-8");
+
+
                     $title = 'GNOSIS '.$descripcion_sin_estado;
-                    if (strlen($title) >= 80) {
-                        $title = substr('GNOSIS '.$descripcion_sin_estado, 0,80).'...';
-                    }
-
                     $name = 'AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado;
-                    if (strlen($name) >= 80) {
-                        $name = substr('AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado, 0,80).'...';
-                    }
-
                     $subject = 'GNOSIS '.$descripcion_sin_estado;
-                    if (strlen($subject) >= 80) {
-                        $subject = substr('GNOSIS '.$descripcion_sin_estado, 0,80).'...';
-                    }
 
                     $data = array(
                         'title' => $title,
@@ -337,14 +331,32 @@ class MauticController extends Controller
 
                     $where_raw = "mautic_contact_id IS NOT NULL and sino_notificar_proximos_eventos = 'SI'";
                     $where_raw .= " AND s.institucion_id = $institucion_id";
-                    if ($localidad_id <> '') {
+                    $para_todos_en_el_pais = '';
+
+                    if ($localidad_id <> '') {                        
+                        //Si es un pais fuera de la federacion invito a todos de ese pais
+                        if ($sino_federacion <> 'SI' and $Pais <> null) {
+                            $para_todos_en_el_pais = 'OR (i.pais_id = '.$Pais->id.')';
+                        }
+
+                        //Si el idioma del formulario es arabe invito a todos estos paises
+                        if ($Idioma_por_pais->idioma->id == 12) {
+                            $para_todos_en_el_pais = 'OR (i.pais_id in (40, 41, 48, 68, 75, 86, 87, 119, 124, 129, 133, 135, 149, 153, 172, 176, 181, 203, 204, 208, 223, 236, 71, 88, 118, 122, 226, 41, 68, 135, 149, 208, 223))';
+                        }
+ 
                         $pais_id = $Solicitud->localidad->provincia->pais_id;
                         $localidad = $Solicitud->localidad->localidad;                        
-                        $where_raw .= " AND (s.localidad_id = $localidad_id OR (i.pais_id = $pais_id AND LOWER(i.ciudad) = LOWER('$localidad')))";
+                        $where_raw .= " AND (s.localidad_id = $localidad_id OR (i.pais_id = $pais_id AND LOWER(i.ciudad) = LOWER('$localidad')) $para_todos_en_el_pais)";
                     }
                     else {
+
+                        //Si el idioma del formulario es arabe invito a todos estos paises
+                        if ($Idioma_por_pais->idioma->id == 12) {
+                            $para_todos_en_el_pais = 'OR (i.pais_id in (40, 41, 48, 68, 75, 86, 87, 119, 124, 129, 133, 135, 149, 153, 172, 176, 181, 203, 204, 208, 223, 236, 71, 88, 118, 122, 226, 41, 68, 135, 149, 208, 223))';
+                        }
+
                         $pais_id = $Solicitud->pais_id;
-                        $where_raw .= " AND (s.pais_id = $pais_id OR (i.pais_id = $pais_id))";
+                        $where_raw .= " AND (s.pais_id = $pais_id OR (i.pais_id = $pais_id) $para_todos_en_el_pais)";
                     }
                     
                     $Inscripciones = DB::table('solicitudes as s')
