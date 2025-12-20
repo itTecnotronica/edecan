@@ -22,13 +22,15 @@ class CheckoutDetailsResponse
         $this->AmountItem = (float)($body["ITEMAMT"]);
         $this->ShippingAmount = (float)($body["SHIPPINGAMT"]);
         $this->HandlingAmount = (float)($body["HANDLINGAMT"]);
-        $this->TaxAmount = (float)($body["TAXAMT"]);
+        //$this->TaxAmount = (float)($body["TAXAMT"]);
+        $this->TaxAmount = null;
         $this->InsuranceAmount = (float)($body["INSURANCEAMT"]);
         $this->ShippingDiscountAmount = (float)($body["SHIPDISCAMT"]);
 
         $this->ItemName = $body["L_NAME0"];
         $this->ItemQuantity = (int)($body["L_QTY0"]);
-        $this->ItemTaxAmount = (float)($body["L_TAXAMT0"]);
+        //$this->ItemTaxAmount = (float)($body["L_TAXAMT0"]);
+        $this->ItemTaxAmount = null;
         $this->ItemAmount = (float)($body["L_AMT0"]);
 
         $this->PaymentCurrencyCode = $body["PAYMENTREQUEST_0_CURRENCYCODE"];
@@ -36,7 +38,8 @@ class CheckoutDetailsResponse
         $this->PaymentAmountItem = (float)($body["PAYMENTREQUEST_0_ITEMAMT"]);
         $this->PaymentShippingAmount = (float)($body["PAYMENTREQUEST_0_SHIPPINGAMT"]);
         $this->PaymentHandlingAmount = (float)($body["PAYMENTREQUEST_0_HANDLINGAMT"]);
-        $this->PaymentTaxAmount = (float)($body["PAYMENTREQUEST_0_TAXAMT"]);
+        //$this->PaymentTaxAmount = (float)($body["PAYMENTREQUEST_0_TAXAMT"]);
+        $this->PaymentTaxAmount = null;
         $this->PaymentInsuranceAmount = (float)($body["PAYMENTREQUEST_0_INSURANCEAMT"]);
         $this->PaymentShippingDiscountAmount = (float)($body["PAYMENTREQUEST_0_SHIPDISCAMT"]);
         
@@ -44,7 +47,8 @@ class CheckoutDetailsResponse
 
         $this->PaymentItemName = $body["L_PAYMENTREQUEST_0_NAME0"];
         $this->PaymentItemQuantity = (int)($body["L_PAYMENTREQUEST_0_QTY0"]);
-        $this->PaymentItemAmount = (float)($body["L_PAYMENTREQUEST_0_TAXAMT0"]);
+        //$this->PaymentItemAmount = (float)($body["L_PAYMENTREQUEST_0_TAXAMT0"]);
+        $this->PaymentItemAmount = null;
         $this->PaymentItemAmount = (float)($body["L_PAYMENTREQUEST_0_AMT0"]);
         $this->PaymentErrorCode = $body["PAYMENTREQUESTINFO_0_ERRORCODE"];
     }

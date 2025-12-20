@@ -18,4 +18,9 @@ class Provincia extends Model
     {
         return $this->belongsTo('App\Pais');
     } 
+
+    public function equipo()
+    {
+        return $this->belongsTo('App\Equipo');
+    }
 }

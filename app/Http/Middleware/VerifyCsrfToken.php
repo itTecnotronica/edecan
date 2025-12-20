@@ -16,6 +16,7 @@ class VerifyCsrfToken extends BaseVerifier
         'wabot/*',
         '/f/registrar-inscripcion',
         'telegram/*',
-        'dialog'
+        'dialog',
+        '/f/i/setear-sino/*'
     ];
 }

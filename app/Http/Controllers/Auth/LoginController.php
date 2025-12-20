@@ -43,9 +43,15 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        $Log_login = new Log_login();
-        $Log_login->user_id = $user->id;
-        $Log_login->save();
+        if ($user->sino_activo == 'SI') {
+            $Log_login = new Log_login();
+            $Log_login->user_id = $user->id;
+            $Log_login->save();
+        }
+        else {
+            Auth::logout();
+            return View('errors/noactivo');
+        }
 
     }
 }

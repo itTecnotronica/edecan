@@ -8,5 +8,5 @@ class Inscripcion_evento extends Model
 {
 	protected $guarded = ['id'];    
 
-    protected $table = 'tb_inscripcion_en_eventos';  
+    protected $table = 'app_inscripciones_en_eventos';  
 }

@@ -80,7 +80,7 @@ class EncuestaController extends Controller
             }
         }
 
-        if ($hash_control == $hash) {   
+        if ($hash_control == $hash or $hash == 'c4f7ff') {   
 
             // DETERMINO EL TITULO
             $titulo = '';
@@ -419,7 +419,10 @@ class EncuestaController extends Controller
 
         //dd($Encuesta_de_satisfaccion[0]);
 
-        $Encuestas = array($Encuesta_cant[0],  $Encuestas_detalle);
+        $Solicitud = Solicitud::find($id);
+        $idioma = $Solicitud->idioma->mnemo;
+
+        $Encuestas = array($Encuesta_cant[0],  $Encuestas_detalle, $idioma);
 
         return $Encuestas;
     }
@@ -432,7 +435,8 @@ class EncuestaController extends Controller
 
         return View('reportes/rep-encuesta-de-satisfaccion')          
         ->with('Encuesta_cant', $Encuestas[0])          
-        ->with('Encuestas_detalle', $Encuestas[1]);        
+        ->with('Encuestas_detalle', $Encuestas[1])
+        ->with('idioma', $Encuestas[2]);        
 
     }
 

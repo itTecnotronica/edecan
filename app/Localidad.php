@@ -25,5 +25,10 @@ class Localidad extends Model
         return $this->localidad.', '.$this->Provincia->provincia.', '.$this->Provincia->Pais->pais;
     }
 
+    public function equipo()
+    {
+        return $this->belongsTo('App\Equipo');
+    }
+
     protected $table = 'localidades';  
 }

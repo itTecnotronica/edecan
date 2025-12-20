@@ -12,8 +12,10 @@ use App\Evaluacion;
 use App\Leccion_extra;
 use App\Pais;
 use App\Registro_de_error;
+use App\Registro_eugenio_asistencia;
 
 use App\Http\Controllers\MauticController;
+use App\Http\Controllers\GenericController;
 use App\Http\Controllers\FormController;
 
 use App;
@@ -516,6 +518,16 @@ class ExtController extends Controller
     public function listaDeSedes($pais_id)
     {
 
+        $numero = '+5493804201747';
+        $codigo_tel = '';
+        /*
+        $texto = null
+        $etiqueta = 'Enviar Whatsapp'
+        $class_btn = 'btn btn-sm btn-success'
+        $class_icon = 'fa fa-whatsapp'
+        $style_btn = ''
+        */
+
 
         $where_raw = "";
         if ($pais_id > 0) {
@@ -523,6 +535,9 @@ class ExtController extends Controller
             $where_raw = "(s.pais_id = $pais_id)";
             $titulo = 'GNOSIS '.__('Sedes').' '.$Pais->pais;
             $mostrar_pais = false;
+            if ($Pais->whatsapp_oficial) {
+                $numero = $Pais->whatsapp_oficial;
+            }
         }
         else {
             $Pais = null;
@@ -531,8 +546,17 @@ class ExtController extends Controller
             $mostrar_pais = true;
         }
 
+        $GenericController = new GenericController();
+        $btn_enviar_wa = $GenericController->btn_enviar_wa($numero, $codigo_tel);
+        //$texto_whatsapp_info = __('Necesitas ayuda? Escribinos a nuestro WhatsApp:').' '.$btn_enviar_wa;
+        $texto_whatsapp_info = __('No pudiste contactarte con la sede o necesitas ayuda?:').' '.$btn_enviar_wa;
+
+        //DB::enableQueryLog();
+
         $Sedes = DB::table('sedes as s')
-            ->select(DB::Raw('s.id, s.direccion, s.ciudad, s.telefono_con_whatsapp, s.email_correo, s.latitud, s.longitud, s.url_enlace_a_google_maps, s.informacion_adicional, s.provincia_estado_o_region, p.pais, p.codigo_tel'))
+            ->select(DB::Raw('DISTINCT s.id, s.direccion, s.ciudad, s.telefono_con_whatsapp, s.email_correo, s.latitud, s.longitud, s.url_enlace_a_google_maps, s.informacion_adicional, s.provincia_estado_o_region, p.pais, p.codigo_tel, l.url_enlace_para_formulario_inactivo'))
+            ->leftjoin('localidades as l', 'l.id', '=', 's.localidad_id')
+            ->leftjoin('provincias as pr', 'pr.id', '=', 'l.provincia_id')
             ->leftjoin('paises as p', 'p.id', '=', 's.pais_id')
             ->where('s.sino_activa', "SI")
             ->whereRaw('s.id <> 962')
@@ -542,6 +566,8 @@ class ExtController extends Controller
             ->orderBy('s.ciudad')
             //->whereNotNull('sd.latitud_y_longitud_google_maps')
             ->get();
+        //dd(DB::getQueryLog());
+
 
 
         return View('reportes/lista-de-sedes')
@@ -549,6 +575,7 @@ class ExtController extends Controller
         ->with('titulo', $titulo)
         ->with('mostrar_pais', $mostrar_pais)
         ->with('Pais', $Pais)
+        ->with('texto_whatsapp_info', $texto_whatsapp_info)
         ->with('Sedes', $Sedes);
 
     }
@@ -743,8 +770,26 @@ class ExtController extends Controller
 
         
         $callbacks = json_decode($request->getContent(), true);
-        $callbacks = json_decode($callbacks, true);
+
+        
+        /*
+        $Asistencia_error = new Asistencia();
+        if (is_string($callbacks)) {
+            $Asistencia_error->log = 'Registro General|'.$callbacks;
+        } elseif (is_array($callbacks)) {
+            $Asistencia_error->log = 'Registro General|'.json_encode($callbacks);
+        } elseif (is_object($callbacks)) {
+            $Asistencia_error->log = 'Registro General|'.json_encode($callbacks);
+        } else {
+            $Asistencia_error->log = 'Registro General|'."La variable es de otro tipo.";
+        }
+        $Asistencia_error->save();  
+        
         //dd($callbacks);
+
+        $callbacks = json_decode($callbacks, true);
+        */
+
         
         $celular = $callbacks['callerid'];
         $dialog = $callbacks['dialog'];
@@ -752,7 +797,8 @@ class ExtController extends Controller
         $startmsg = ltrim($callbacks['dialog']['startmsg']);
 
         $palabra_clave_array = explode(' ', $startmsg);
-        $palabra_clave = $palabra_clave_array[0];
+        //$palabra_clave = $palabra_clave_array[0];
+        $palabra_clave = str_replace('#', '', $palabra_clave_array[0]);
 
         $palabras_claves_autorizadas = [
             'gnosis_in',
@@ -760,27 +806,34 @@ class ExtController extends Controller
             'gnosis_in_en',
             'gnosis_in_fr',
             'gnosis_inscripcion',
-            '#gnosis_inscripcion',
             'gnosis_pre',
             'gnosis_pre_pt',
             'gnosis_pre_en',
-            'gnosis_pre_fr'
+            'gnosis_pre_fr',
+            'gnosis_dn',
+        ];
+
+        $palabras_claves_inscripcion = [
+            'gnosis_in',
+            'gnosis_in_pt',
+            'gnosis_in_en',
+            'gnosis_in_fr',
+            'gnosis_inscripcion',
+            'gnosis_dn',
         ];
 
         if (in_array($palabra_clave, $palabras_claves_autorizadas)) {     
 
-            if ($palabra_clave == 'gnosis_in' or $palabra_clave == 'gnosis_in_pt' or $palabra_clave == 'gnosis_in_en' or $palabra_clave == 'gnosis_in_fr' or $palabra_clave == 'gnosis_inscripcion' or $palabra_clave == '#gnosis_inscripcion') {
+            if (in_array($palabra_clave, $palabras_claves_inscripcion)) {
 
                 try {
 
                     $nombre = str_replace(array("\n", "\t", "\r"), '', $callbacks['interactions'][0]['answer']);
                     $nombre = $this->limpiarCadena($nombre);
 
-                    if ($palabra_clave == 'gnosis_inscripcion' or $palabra_clave == '#gnosis_inscripcion') {
+                    if ($palabra_clave == 'gnosis_inscripcion') {
                         $ciudad = NULL;
                         $email = str_replace(array("\n", "\t", "\r",' '), '', $callbacks['interactions'][1]['answer']);
-
-
                     }
                     else {
                         $ciudad = str_replace(array("\n", "\t", "\r"), '', $callbacks['interactions'][1]['answer']);
@@ -808,6 +861,22 @@ class ExtController extends Controller
                     else {
                         $fecha_de_evento_id = null;    
                     }
+
+                    //PROCESO INSCRIPCION A FORMULARIO 28771 DE DONACIONES
+                    if ($palabra_clave == 'gnosis_dn' and $solicitud_id == '28771') {
+                        $fecha_de_evento_id = null;
+
+                        $startmsg_array = explode('p#', $startmsg);
+                        if (count($startmsg_array) > 1) {
+                            $startmsg_array_2 =  explode(' ', $startmsg_array[1]);
+                            $idiomas_por_pais_id = trim($startmsg_array_2[0]);
+                            if ($idiomas_por_pais_id == '11') {
+                                $fecha_de_evento_id = 30817;
+                            }
+                        }
+
+                    }
+
 
                     if (substr($celular, 0, 2) == '55' and strlen($celular) == 12) {
                         $celular = substr($celular, 0, 4).'9'.$celular = substr($celular, 4, 8);
@@ -852,7 +921,7 @@ class ExtController extends Controller
                 $clase_array = explode('#', $palabra_clave_array[2]);
                 $clase = $clase_array[1];
                 $clase = $this->limpiarCadena($clase);
-
+                $clase = $this->extraerNumeroDeClase($clase);
 
                 $sino = strtoupper(trim($callbacks['interactions'][0]['answer']));
 
@@ -890,7 +959,19 @@ class ExtController extends Controller
 
 
                 
-                $Solicitud = Solicitud::where('id', $aula)->get();
+                
+                $aulas = [$aula];
+
+                if ($aula == '7542') {
+                    $aulas = [7542, 24018, 4685];
+                }
+
+                if ($aula == '13781') {
+                    $aulas = [13781, 2000];
+                }
+
+                $Solicitud = Solicitud::whereIn('id', $aulas)->get();
+
                 
                 $error_flag = false;
                 $es_leccion_normal = true;
@@ -908,8 +989,25 @@ class ExtController extends Controller
                             $Leccion = Leccion::where('curso_id', $Solicitud[0]->curso_id)->where('codigo_de_la_leccion', $clase)->get();
                         }
                         
+                        /*
                         $Inscripciones = Inscripcion::where('solicitud_id', $Solicitud[0]->id)
                         ->whereRaw("(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".$celular."%' OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".$celular_sin_9."%')")
+                        ->get();
+                        */
+
+
+                        if (substr($celular, 0, 3) == '225') {
+                            $where_raw_inscripciones = "(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '225%' AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".substr($celular, -7)."')";
+
+                        }
+                        else {
+                            $where_raw_inscripciones = "(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".$celular."%' OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".$celular_sin_9."%')";
+                        }
+
+
+
+                        $Inscripciones = Inscripcion::whereIn('solicitud_id', $aulas)
+                        ->whereRaw($where_raw_inscripciones)
                         ->get();
 
                           
@@ -1336,6 +1434,263 @@ class ExtController extends Controller
         return response()->json($response); 
 
     }
+
+
+
+    public function procesarRegistrosEugenioAsistencia() {
+
+        $Registros = Registro_eugenio_asistencia::whereNull('procesado')->limit(20000)->get();
+        
+        //$Registros = Registro_eugenio_asistencia::where('primer_mensaje', 'like', '%gnosis_pre_fr a#7542 c#%')->whereNull('procesado')->limit(2000)->get();
+        //$Registros = Registro_eugenio_asistencia::where('caller_id', '22997035900')->whereNull('procesado')->get();
+        //$Registros = Registro_eugenio_asistencia::where('id', 36)->get();
+
+        $palabras_claves_autorizadas = [
+            'gnosis_pre',
+            'gnosis_pre_pt',
+            'gnosis_pre_en',
+            'gnosis_pre_fr'
+        ];
+
+        $cant_registros_procesados = 0;
+        $cant_asistencias_nuevas = 0;
+
+        foreach ($Registros as $Registro) {
+
+            $cant_registros_procesados++;
+        
+            $celular = trim($Registro->caller_id);
+            $startmsg = ltrim($Registro->primer_mensaje);
+
+            $palabra_clave_array = explode(' ', $startmsg);
+            $palabra_clave = $palabra_clave_array[0];
+            $asistencia_id = null;
+
+
+            $obs_de_proceso = null;
+
+            if (in_array($palabra_clave, $palabras_claves_autorizadas)) {     
+
+                if ($palabra_clave == 'gnosis_pre' or $palabra_clave == 'gnosis_pre_pt' or $palabra_clave == 'gnosis_pre_en' or $palabra_clave == 'gnosis_pre_fr') {
+                    
+                    //SI HAY INFO EN EL PRIMER MENSAJE
+                    if (count($palabra_clave_array) >= 3) {
+                        
+                        $aula_array = explode('#', $palabra_clave_array[1]);
+
+                        //SI HAY INFO DE AULA EN EL PRIMER MENSAJE
+                        if (count($aula_array) >= 2) {
+                            $aula = $aula_array[1];
+                            $aula = $this->limpiarCadena($aula);
+
+                            $clase_array = explode('#', $palabra_clave_array[2]);
+                            
+                            //SI HAY INFO DE CLASE EN EL PRIMER MENSAJE
+                            if (count($clase_array) >= 2) {
+                                $clase = $clase_array[1];
+                                $clase = $this->limpiarCadena($clase);
+                                $clase = $this->extraerNumeroDeClase($clase);
+
+
+
+                                $sino = strtoupper($Registro->pudo_confirmar_su_presencia);
+
+                                $celular_sin_9 = $celular;
+                                if (substr($celular, 2, 1) == 9 and substr($celular, 0, 2) == '54') {
+                                    $celular_sin_9 = substr($celular, 0, 2).substr($celular, 3);
+                                    //dd($celular_sin_9);
+                                }
+
+                                if (substr($celular, 2, 1) == 1 and substr($celular, 0, 2) == '52') {
+                                    $celular_sin_9 = substr($celular, 0, 2).substr($celular, 3);
+                                    //dd($celular_sin_9);
+                                }
+
+                                if (substr($celular, 0, 2) == '55') {
+                                    
+                                    $celular_12 = $celular;
+                                    $celular_13 = $celular;
+
+                                    if(strlen($celular) == 12) {
+                                        $celular_12 = $celular;
+                                        $celular_13 = substr($celular, 0, 4).'9'.$celular = substr($celular, 4, 8);
+                                    }
+                                    else {
+                                        if(strlen($celular) == 13) {
+                                            $celular_13 = $celular;
+                                            $celular_12 = substr($celular, 0, 4).$celular = substr($celular, 5, 8);
+                                        }
+                                    }
+
+                                    $celular = $celular_13;
+                                    $celular_sin_9 = $celular_12;
+
+                                }
+
+                                $aulas = [$aula];
+
+                                if ($aula == '7542') {
+                                    $aulas = [7542, 24018, 4685];
+                                }
+
+                                if ($aula == '13781') {
+                                    $aulas = [13781, 2000];
+                                }
+
+                                $Solicitud = Solicitud::whereIn('id', $aulas)->get();
+
+
+                                
+                                $error_flag = false;
+                                $es_leccion_normal = true;
+                                if ($Solicitud->count() > 0) {
+
+                                    if ( ($palabra_clave == 'gnosis_pre' and (strpos($sino, 'S') !== false)) or ($palabra_clave == 'gnosis_pre_pt' and (strpos($sino, 'S') !== false)) or ($palabra_clave == 'gnosis_pre_en' and (strpos($sino, 'Y') !== false)) or ($palabra_clave == 'gnosis_pre_fr' and (strpos($sino, 'OU') !== false)) ) {
+
+                                        $primera_letra_clase = substr($clase, 0, 1);
+                                        if ($primera_letra_clase == 'X') {
+                                            $es_leccion_normal = false;
+                                            $leccion_extra_id = substr($clase, 1);
+                                            $Leccion = Leccion_extra::where('id', $leccion_extra_id)->get();
+                                        }
+                                        else {                    
+                                            $Leccion = Leccion::where('curso_id', $Solicitud[0]->curso_id)->where('codigo_de_la_leccion', $clase)->get();
+                                        }
+
+                                        if (substr($celular, 0, 3) == '225') {
+                                            $where_raw_inscripciones = "(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '225%' AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".substr($celular, -7)."')";
+
+                                        }
+                                        else {
+                                            $where_raw_inscripciones = "(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".$celular."%' OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(celular,'#',''),')',''),'(',''),'-',''),' ',''),'+','') like '%".$celular_sin_9."%')";
+                                        }
+
+
+
+                                        $Inscripciones = Inscripcion::whereIn('solicitud_id', $aulas)
+                                        ->whereRaw($where_raw_inscripciones)
+                                        ->get();
+
+
+                                          
+                                        if ($Leccion->count() > 0) {
+                                            foreach ($Inscripciones as $Inscripcion) {
+
+                                                $cant_asistencias_registradas = 0;
+                                                if ($es_leccion_normal) {
+                                                    $cant_asistencias_registradas = Asistencia::where('leccion_id', $Leccion[0]->id)->where('inscripcion_id', $Inscripcion->id)->count();
+                                                }
+                                                else {
+                                                    $cant_asistencias_registradas = Asistencia::where('leccion_extra_id', $Leccion[0]->id)->where('inscripcion_id', $Inscripcion->id)->count();
+                                                }
+
+                                                if ($cant_asistencias_registradas == 0) {
+
+                                                    //REGISTRO LA ASISTENCIA
+                                                    $Asistencia = new Asistencia();
+                                                    if ($es_leccion_normal) {
+                                                        $Asistencia->leccion_id = $Leccion[0]->id;
+                                                    
+                                                        //ACTUALIZO LA ULTIMA LECCION VISTA
+                                                        $Inscripcion_1 = Inscripcion::find($Inscripcion->id);
+                                                        $Inscripcion_1->ultima_leccion_vista = $Leccion[0]->id;
+                                                        $Inscripcion_1->save();
+                                                    }
+                                                    else {
+                                                        $Asistencia->leccion_extra_id = $Leccion[0]->id;    
+                                                    }
+                                                    $Asistencia->inscripcion_id = $Inscripcion->id;
+                                                    $Asistencia->created_at = $Registro->fecha;
+                                                    $Asistencia->save();
+                                                    $cant_asistencias_nuevas++;
+                                                    $obs_de_proceso = 'ASISTENCIA REGISTRADA OK';
+                                                    $asistencia_id = $Asistencia->id;
+
+                                                }
+                                                else {
+                                                    if (!$asistencia_id) {
+                                                        $obs_de_proceso = 'Asistencia ya registrada';
+                                                    }
+                                                }
+
+
+
+
+                                            }
+                                        }
+                                        else {
+                                            $error_flag = true;
+                                            $obs_de_proceso = 'Leccion No Encontrada';
+                                        }              
+
+                                        if ($Inscripciones->count() == 0) {
+                                            $error_flag = true;
+                                            $obs_de_proceso = 'Inscripcion No Encontrada';
+                                        }
+
+                                    }
+                                    else {
+                                        $error_flag = true;
+                                        $obs_de_proceso = 'Respuesta Negativa';
+                                    }
+
+                                }
+                                else {
+                                    $error_flag = true;
+                                    $obs_de_proceso = 'Solicitud No Encontrada';
+                                }
+                            }
+                            else {
+                                $error_flag = true;
+                                $obs_de_proceso = '1er mensaje sin info de Clase';
+                            }
+                        }  
+                        else {
+                            $error_flag = true;
+                            $obs_de_proceso = '1er mensaje sin info de Aula';
+                        }
+                    }  
+                    else {
+                        $error_flag = true;
+                        $obs_de_proceso = '1er mensaje sin info de Aula y/o Clase';
+                    }
+
+                }
+            }
+            else {
+                $error_flag = true;
+                $obs_de_proceso = 'Palabra Clave No encontrada';
+            }        
+
+            $Registro->asistencia_id = $asistencia_id;
+            $Registro->procesado = 1;
+            $Registro->obs_de_proceso = $obs_de_proceso;
+            $Registro->save();
+
+        }
+
+        $status = 'ok <br> Cant registros procesados: '.$cant_registros_procesados.'<br> Cant asistencias nuevas registradas: '.$cant_asistencias_nuevas;
+
+        return $status;
+        
+
+    }
+
+    function extraerNumeroDeClase($string) {
+        // Verifica si la cadena comienza con un número
+        if (preg_match('/^\d+(\.\d+)?/', $string, $matches)) {
+            return $matches[0]; // Retorna el número con posible decimal
+        }
+
+        // Verifica si la cadena comienza con una letra y extrae hasta un espacio
+        if (preg_match('/^[a-zA-Z]+/', $string, $matches)) {
+            return $matches[0]; // Retorna el texto inicial
+        }
+
+        return ''; // Si no encuentra un patrón válido, retorna vacío
+    }
+
+
     
 
 }

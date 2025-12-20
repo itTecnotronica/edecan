@@ -463,6 +463,9 @@ public function nombre_de_dia($numero) {
         if ($cod_iso_idioma == 'ja') {
             $inicio = $mes.$dia.'日';
         }
+        if ($cod_iso_idioma == 'ro') {
+            $inicio = "$nombre_dia $dia $mes $hora";
+        }
 
         
         return  $inicio;

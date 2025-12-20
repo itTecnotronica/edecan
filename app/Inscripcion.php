@@ -154,7 +154,12 @@ class Inscripcion extends Model
         $celular_wa = trim($this->celular);
 
         if ($codigo_tel == null) {
-            $pais_id = $this->solicitud->id_pais();
+            if (property_exists($this, 'solicitud')) {
+                $pais_id = $this->solicitud->id_pais();
+            }
+            else {
+                $pais_id = $this->pais_id;
+            }
             $Pais = Pais::find($pais_id);
             if ($Pais <> null) {
               $codigo_tel = $Pais->codigo_tel;
@@ -248,7 +253,7 @@ class Inscripcion extends Model
 
 
         if ($sitio_web_y_redes <> '') {
-            $texto_final_sitio_web_y_redes = __('También lo invitamos visitar nuestro sitio web y redes sociales, donde encontrará mucho material acerca de este maravilloso conocimiento').':'."\n\n".$sitio_web_y_redes;
+            $texto_final_sitio_web_y_redes = __('Nuestro sitio web y redes sociales').':'."\n\n".$sitio_web_y_redes;
         }
 
         return $texto_final_sitio_web_y_redes;
@@ -342,12 +347,14 @@ class Inscripcion extends Model
             $tipo_de_evento = __($fecha_de_evento->solicitud->tipo_de_evento->tipo_de_evento);
         }
 
+        $titulo_del_curso = $this->solicitud->titulo_del_formulario_personalizado <> '' ? $this->solicitud->titulo_del_formulario_personalizado : $tipo_de_evento;
+
         if ($tipo_de_evento_id == 1 or $tipo_de_evento_id == 3) {
             if ($Idioma_por_pais->pais_id == 6) {
                 $txt_tipo_de_evento = "O ".$tipo_de_evento;
             }
             else {
-                $txt_tipo_de_evento = __("el")." ".$tipo_de_evento;
+                $txt_tipo_de_evento = __("el")." ".$titulo_del_curso;
             }
         }
         else {
@@ -431,6 +438,9 @@ class Inscripcion extends Model
         $codigo_del_alumno = $this->codigo_alumno;
         $url_sitio_web = $Idioma_por_pais->url_sitio_web;
         $url_certificado = $this->url_certificado();
+        $nombre_del_solicitante = $this->solicitud->nombre_del_solicitante;
+        $celular_del_solicitante = $this->solicitud->celular_del_solicitante;
+
 
         // pedido_de_confirmacion_curso
         $patrones = array();
@@ -464,6 +474,9 @@ class Inscripcion extends Model
         $patrones[27] = '/url_video_motivacion/';
         $patrones[28] = '/texto_final_sitio_web_y_redes/';
         $patrones[29] = '/url_autoregistrar_asistencia/';
+        $patrones[30] = '/titulo_del_curso/';
+        $patrones[31] = '/nombre_del_solicitante/';
+        $patrones[32] = '/celular_del_solicitante/';
 
         $sustituciones = array();
         $sustituciones[0] = $nombre_de_la_institucion;
@@ -496,6 +509,11 @@ class Inscripcion extends Model
         $sustituciones[27] = $url_video_motivacion;
         $sustituciones[28] = $texto_final_sitio_web_y_redes;
         $sustituciones[29] = $url_autoregistrar_asistencia;
+        $sustituciones[30] = $titulo_del_curso;
+        $sustituciones[31] = $nombre_del_solicitante;
+        $sustituciones[32] = $celular_del_solicitante;
+        
+
 
 
         if ($tipo_de_evento_id == 1) {
@@ -681,6 +699,7 @@ class Inscripcion extends Model
             'envio_de_certificado' => $envio_de_certificado,
             'sms_envio_de_certificado' => str_replace($entities, $replacements, $sms_envio_de_certificado),
             'mail_envio_de_certificado' => $mail_envio_de_certificado,
+            'mail_envio_de_texto_encuesta_satisfaccion' => $mail_envio_de_texto_encuesta_satisfaccion
 
 
         ];
@@ -1027,6 +1046,40 @@ class Inscripcion extends Model
     }
 
 
+    public function url_whatsapp_contenidos_avanzados($Solicitud, $Idioma_por_pais)
+    {
+
+        $nombre_de_la_institucion = '';
+        $patrones = array();
+        $patrones[0] = '/nombre_de_la_institucion/';
+        $patrones[1] = '/buenos_dias_tardes_noches/';
+
+        $sustituciones = array();
+        $sustituciones[0] = $nombre_de_la_institucion;
+        $sustituciones[1] = $nombre_de_la_institucion;
+
+
+        $pedido_de_confirmacion = $Idioma_por_pais->idioma->mensaje_invitacion_a_curso_de_contenidos_avanzandos; 
+       
+        $pedido_de_confirmacion = preg_replace($patrones, $sustituciones, $pedido_de_confirmacion);
+        $mail_pedido_de_confirmacion = $pedido_de_confirmacion;
+        $urlencode_pedido_de_confirmacion = $this->CodificarURL($pedido_de_confirmacion, $Idioma_por_pais);
+        $pedido_de_confirmacion = 'https://api.whatsapp.com/send?phone='.$this->celular_wa().'&text='.$urlencode_pedido_de_confirmacion;
+        $sms_pedido_de_confirmacion = 'sms:'.$this->celular_wa().'?body='.$urlencode_pedido_de_confirmacion;
+
+
+        $entities = array('%2A', '_');
+        $replacements = array('', '');
+
+        $url_whatsapp = [
+            'pedido_de_confirmacion' => $pedido_de_confirmacion,
+            'sms_pedido_de_confirmacion' => str_replace($entities, $replacements, $sms_pedido_de_confirmacion),
+            'mail_pedido_de_confirmacion' => $mail_pedido_de_confirmacion,
+
+        ];
+
+        return $url_whatsapp;
+    }
 
     public function url_whatsapp_modelo_mensaje_curso($modelo_del_mensaje = null, $Idioma_por_pais = null, $nombre_responsable_inscripcion, $Solicitud, $Curso, $orden_de_leccion, $proximaLeccion_id, $codigo_de_la_leccion)
     {
@@ -1136,7 +1189,16 @@ class Inscripcion extends Model
 
             }
 
-            
+            //Arabe
+            if ($Curso->idioma_id == 12) {
+                $enlace_tp_1 = 'https://docs.google.com/forms/d/e/1FAIpQLScxoGbFktkCKBTlAo1iCBPbdLpqyNCNjssy-3f2SLx9GEV2lA/viewform?usp=pp_url&entry.717885317='.$nombre_y_apellido_url.'&entry.900255810='.$this->id;
+                
+                $enlace_tp_2 = 'https://docs.google.com/forms/d/e/1FAIpQLSc7bJEF9wWYPRx7awapHl8QwlRRGQaFIZlshZAqpeM8SGj1zg/viewform?usp=pp_url&entry.717885317='.$nombre_y_apellido_url.'&entry.1431311979='.$this->id;
+
+                $enlace_tp_3 = 'https://docs.google.com/forms/d/e/1FAIpQLSdvRWGJcYU7Y_9vLhE7j0W0JD5kt7znZt6FuG69KcAR5T5RiA/viewform?usp=pp_url&entry.717885317='.$nombre_y_apellido_url.'&entry.1286000777='.$this->id;
+
+            }
+
             $codigo_del_alumno = $this->codigo_alumno;
 
             // pedido_de_confirmacion_curso
@@ -1166,11 +1228,15 @@ class Inscripcion extends Model
 
 
             $modelo_del_mensaje = preg_replace($patrones, $sustituciones, $modelo_del_mensaje);
+            $mensaje_solo_texto = $modelo_del_mensaje;
             $urlencode_modelo_del_mensaje = $this->CodificarURL($modelo_del_mensaje, $Idioma_por_pais);
             $modelo_del_mensaje = 'https://api.whatsapp.com/send?phone='.$this->celular_wa($codigo_tel).'&text='.$urlencode_modelo_del_mensaje;
         }
 
-        return $modelo_del_mensaje;
+        return [
+            'modelo_del_mensaje' => $modelo_del_mensaje,
+            'mensaje_solo_texto' => $mensaje_solo_texto
+        ];
         
     }
 
@@ -1575,6 +1641,11 @@ class Inscripcion extends Model
     public function canal_de_recepcion_del_curso()
     {
         return $this->belongsTo('App\Canal_de_recepcion_del_curso');
+    }
+
+    public function hash()
+    {
+        return md5($this->id);
     }
 
     protected $table = 'inscripciones';  

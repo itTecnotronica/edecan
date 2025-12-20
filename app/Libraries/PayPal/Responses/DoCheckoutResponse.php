@@ -17,7 +17,9 @@ class DoCheckoutResponse
         $this->Build = $body["BUILD"];
 
         $this->SuccessPageRedirectRequested = (bool)($body["SUCCESSPAGEREDIRECTREQUESTED"]);
-        $this->InsuranceOptionSelected =(bool)($body["INSURANCEOPTIONSELECTED"]);
+        // Deshabilito por error notificado por Christiano Brasil
+        //$this->InsuranceOptionSelected =(bool)($body["INSURANCEOPTIONSELECTED"]);
+        $this->InsuranceOptionSelected =false;
         $this->ShippingOptionDefault =(bool)($body["SHIPPINGOPTIONISDEFAULT"]);
 
         $this->TransactionId = $body["PAYMENTINFO_0_TRANSACTIONID"];
@@ -25,9 +27,12 @@ class DoCheckoutResponse
         $this->PaymentType = $body["PAYMENTINFO_0_PAYMENTTYPE"];
         $this->OrderTime = Parser::getDateTimeFromPayPal($body["PAYMENTINFO_0_ORDERTIME"]);
         $this->Amount = (float)($body["PAYMENTINFO_0_AMT"]);
-        $this->FeeAmount = (float)($body["PAYMENTINFO_0_FEEAMT"]);
+        //$this->FeeAmount = (float)($body["PAYMENTINFO_0_FEEAMT"]);
+        $this->FeeAmount = null;
         $this->SellerPayPalAccountId = $body["PAYMENTINFO_0_SELLERPAYPALACCOUNTID"];
-        $this->TaxAmount = (float)($body["PAYMENTINFO_0_TAXAMT"]);
+        // Deshabilito por error notificado por Christiano Brasil
+        //$this->TaxAmount = (float)($body["PAYMENTINFO_0_TAXAMT"]);
+        $this->TaxAmount = 0;
         $this->CurrencyCode = $body["PAYMENTINFO_0_CURRENCYCODE"];
         $this->PaymentStatus = $body["PAYMENTINFO_0_PAYMENTSTATUS"];
         $this->PedingReason = $body["PAYMENTINFO_0_PENDINGREASON"];

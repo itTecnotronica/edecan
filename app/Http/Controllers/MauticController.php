@@ -110,15 +110,17 @@ class MauticController extends Controller
         $institucion_id = $Solicitud->institucion_id;
         $Idioma_por_pais = $Solicitud->idioma_por_pais();
         $Pais = $Solicitud->pais_de_solicitud();
+        $sino_federacion = '';
 
         $enviar_mailing_pais = false;
         if ($Pais <> null) {
+            $sino_federacion = $Pais->sino_federacion;
             if ($Pais->sino_enviar_mailing_por_apertura_de_nuevo_curso_online_en_pais == 'SI') {
-                $enviar_mailing_pais = true;
+                $enviar_mailing_pais = true;                
             }
         }
 
-        $excepcion_ids = [13454, 13502, 16277];
+        $excepcion_ids = [13454, 13502, 16277, 12958];
         
         $excepcion = in_array($solicitud_id, $excepcion_ids);
         
@@ -133,7 +135,6 @@ class MauticController extends Controller
             
 
 
-
             if ($Solicitud->tipo_de_evento_id <> 3 or ($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 4) or ($Solicitud->tipo_de_evento_id == 3 and in_array($Solicitud->tipo_de_curso_online_id, [2,3,5]) and $Solicitud->fecha_de_inicio_del_curso_online <> '')) {
 
 
@@ -141,8 +142,9 @@ class MauticController extends Controller
 
                     // Detecto la primera fecha de Inicio para programar el envio de mautic 7 dias antes de esa fecha
                     $fechas_de_evento_ordenadas = $Solicitud->fechas_de_evento->sortBy('fecha_de_inicio');
+
                     $fechas_de_evento_ordenadas = $fechas_de_evento_ordenadas->values()->all();      
-                    
+
                     $fecha_de_inicio = $fechas_de_evento_ordenadas[0]->fecha_de_inicio;
                 }          
                 else {
@@ -247,7 +249,7 @@ class MauticController extends Controller
                             $tipo = 'html';
                             $con_inicio = true;
                             $Idioma_por_pais = $Idioma_por_pais;
-                            $idioma = $Idioma_por_pais->idioma; 
+                            $idioma = $Idioma_por_pais->idioma->mnemo; 
                             $ver_mapa = true;
                             $con_dir_inicio_distinto = true;
 
@@ -263,9 +265,7 @@ class MauticController extends Controller
                     $contenido_difusion_por_mail = $resumen.$texto.$detalle_horarios_y_lugar;
                 }
 
-
-                $email_template = '<table align="center" border="0" cellpadding="0" cellspacing="0" class="shrinker" style="width: 100%; max-width:550px;" width="100%"><tbody><tr><td height="45" style="font-size: 45px; line-height: 45px;">&nbsp;</td></tr><tr class="header-split left"><td align="left" style="text-align: left;" valign="center"></td></tr><tr class="header-split right"><td align="right" style="text-align: left" valign="center"><p style="text-align: left; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:16px; line-height:30px; font-weight:400; color:#b2b2b2; padding: 0; margin: 0;"><br></p></td></tr><tr><td height="15" style="font-size: 15px; line-height: 15px;">&nbsp;</td></tr></tbody></table><table align="center" border="0" cellpadding="0" cellspacing="0" style="max-width:550px; background: #ffffff" width="100%"><tbody><tr><td align="center" style="padding: 0; text-align: center;" valign="top"><img src="https://ac.gnosis.is/img/sol-de-acuario-chico-isologo.png" style="width: 100%; height: auto;" alt="Placeholder" class="fr-fic fr-dii" width="100%" height="auto"><img src="'.$imagen.'" style="width: 100%; height: auto;" alt="Placeholder" class="fr-fic fr-dii" width="100%" height="auto"></td></tr><tr><td height="30" style="font-size: 30px; line-height: 30px;">&nbsp;</td></tr><tr><td align="center" style="padding: 0 30px; text-align: center;" valign="top"><h2 style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:24px; line-height:24px; font-weight:700; color:#212121; padding:0; margin:0;">'.$hola.' {contactfield=firstname}</h2><br><h2 style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:15px; line-height:20px; font-weight:700; color:#212121; padding:0; margin:0;">'.$txt_invita.'</h2><br>
-                <h2 style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:24px; line-height:24px; font-weight:700; color:#212121; padding:0; margin:0;">'.$descripcion_sin_estado.'</h2><br style="line-height: 18px; height: 18px; font-size: 18px;"><p style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:16px; line-height:30px; font-weight:400; color:#212121; padding: 0; margin: 0;">'.$contenido_difusion_por_mail.'</p><br style="line-height: 18px; height: 18px; font-size: 18px;"></td></tr><tr><td align="center"><table align="center" border="0" cellpadding="0" cellspacing="0"><tbody><tr><td><table align="center" border="0" cellpadding="0" cellspacing="0"><tbody><tr><td align="left" bgcolor="#00bf9a" class="body-text" style="-webkit-border-radius: 25px; -moz-border-radius: 25px; border-radius: 25px;mso-hide:all;"><a href="'.$url_click.'" style="font-size: 12px; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; color: #ffffff; text-decoration: none; text-decoration: none; border-radius: 25px; padding: 16px 25px; display: inline-block; text-transform:uppercase; font-weight: bold; letter-spacing: 1px;" target="_blank">&nbsp;'.$txt_click.'&nbsp;</a></td><!-- Alternate Button for Outlook 2013, 2016--><!--[if mso]><td align="center" valign="top" style="text-align: center;">    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com🏢word" href="'.$url_click.'" style="height:50px;v-text-anchor:middle;width:150px;" arcsize="25px" strokecolor="#00bf9a" fillcolor="#00bf9a"><w:anchorlock></w:anchorlock><center style="text-transform: uppercase; color:#ffffff;font-family:Helvetica, Arial,sans-serif;font-size:16px;">'.$txt_click_aqui.'</center></v:roundrect></td><![endif]--><!-- End Alternate Button --></tr></tbody></table></td></tr></tbody></table></td></tr><tr><td height="45" style="font-size: 45px; line-height: 45px;">&nbsp;</td></tr><tr><td style="text-align: center;"><hr><span style="font-size: 14px;">'.$txt_no_responder.'</span><hr></td></tr><tr><td style="text-align: center;"><span style="color: rgb(250, 197, 28);"><span style="font-size: 18px;"><strong><span style="font-family: Tahoma,Geneva,sans-serif;"><a class="fr-green fr-strong" href="https://gnosis.is" rel="noopener noreferrer" target="_blank">www.gnosis.is</a></span></strong>&nbsp;</span>&nbsp;</span><br><br></td></tr></tbody></table><br>'.$txt_pie.'<br><br><a href="https://gnosis.is/" style="font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:10px; line-height:20px; color:#212121; text-transform: uppercase; text-decoration:underline;" target="_blank">www.gnosis.is</a><span style="font-family:arial, sans-serif; font-size:10px; line-height:20px; color:#dddddd;">&nbsp;|&nbsp;</span><a href="{unsubscribe_url}" style="font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:10px; line-height:20px; color:#212121; text-transform: uppercase; text-decoration:underline;" target="_blank">Unsubscribe</a><br><br><p style="font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:12px; line-height:18px; color:#212121; text-transform: uppercase; padding:0; margin:0;"><span style="font-size:9px;">© 2017 Mautic - All Rights Reserved.</span><br><span style="font-size:9px;">10 Cabot Road | Medford, MA | 02155</span></p><br style="line-height: 18px; height: 18px; font-size: 18px;"><br><br>';
+                $email_template = $this->makeEmailTemplate($imagen, $hola, $txt_invita, $descripcion_sin_estado, $contenido_difusion_por_mail, $url_click, $txt_click, $txt_click_aqui, $txt_no_responder, $txt_pie);
 
                 //INICIO MAUTIC
 
@@ -284,20 +284,12 @@ class MauticController extends Controller
 
                     //dd($newCampaign);
 
+                    $descripcion_sin_estado = mb_substr($descripcion_sin_estado, 0, 60, "UTF-8");
+
+
                     $title = 'GNOSIS '.$descripcion_sin_estado;
-                    if (strlen($title) >= 80) {
-                        $title = substr('GNOSIS '.$descripcion_sin_estado, 0,80).'...';
-                    }
-
                     $name = 'AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado;
-                    if (strlen($name) >= 80) {
-                        $name = substr('AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado, 0,80).'...';
-                    }
-
                     $subject = 'GNOSIS '.$descripcion_sin_estado;
-                    if (strlen($subject) >= 80) {
-                        $subject = substr('GNOSIS '.$descripcion_sin_estado, 0,80).'...';
-                    }
 
                     $data = array(
                         'title' => $title,
@@ -311,6 +303,16 @@ class MauticController extends Controller
                     );
                     $email = $emailApi->create($data);
                     //dd($email);
+
+                    if (!isset($email['email'])) {
+                        //SI DIO ERROR POR EL CONTENIDO DEL TEXTO PERSONALIZADO VUELVO A CREAR EL MAIL SIN EL CONTENIDO
+                        $email_template = $this->makeEmailTemplate($imagen, $hola, $txt_invita, $descripcion_sin_estado, '', $url_click, $txt_click, $txt_click_aqui, $txt_no_responder, $txt_pie);
+
+                        $data['customHtml'] = $email_template;
+                        $email = $emailApi->create($data);
+
+                    }
+
 
                     $email_id = $email['email']['id'];
                     //dd($email_id);
@@ -337,14 +339,40 @@ class MauticController extends Controller
 
                     $where_raw = "mautic_contact_id IS NOT NULL and sino_notificar_proximos_eventos = 'SI'";
                     $where_raw .= " AND s.institucion_id = $institucion_id";
-                    if ($localidad_id <> '') {
+                    $para_todos_en_el_pais = '';
+
+                    if ($localidad_id <> '') {                        
+                        //Si es un pais fuera de la federacion invito a todos de ese pais
+                        if ($sino_federacion <> 'SI' and $Pais <> null) {
+                            $para_todos_en_el_pais = 'OR (i.pais_id = '.$Pais->id.')';
+                        }
+
+                        //Si el idioma del formulario es arabe invito a todos estos paises
+                        if ($Idioma_por_pais->idioma->id == 12) {
+                            $para_todos_en_el_pais = 'OR (i.pais_id in (40, 41, 48, 68, 75, 86, 87, 119, 124, 129, 133, 135, 149, 153, 172, 176, 181, 203, 204, 208, 223, 236, 71, 88, 118, 122, 226, 41, 68, 135, 149, 208, 223))';
+                        }
+ 
                         $pais_id = $Solicitud->localidad->provincia->pais_id;
                         $localidad = $Solicitud->localidad->localidad;                        
-                        $where_raw .= " AND (s.localidad_id = $localidad_id OR (i.pais_id = $pais_id AND LOWER(i.ciudad) = LOWER('$localidad')))";
+                        $where_raw .= " AND (s.localidad_id = $localidad_id OR (i.pais_id = $pais_id AND LOWER(i.ciudad) = LOWER('$localidad')) $para_todos_en_el_pais)";
+                        
+                        //SI LA LOCALIDAD ES MIAMI EVITO INCLUIR LOS CONTACTOS HISTORICOS DE NORTH MIAMI 
+                        if ($localidad_id == 638) {
+                            $where_raw .= " AND i.email_correo NOT IN (SELECT DISTINCT i2.email_correo 
+                                FROM inscripciones i2
+                                JOIN solicitudes s2 ON s2.id = i2.solicitud_id
+                                WHERE s2.localidad_id IN (1497, 1560))";
+                        }
                     }
                     else {
+
+                        //Si el idioma del formulario es arabe invito a todos estos paises
+                        if ($Idioma_por_pais->idioma->id == 12) {
+                            $para_todos_en_el_pais = 'OR (i.pais_id in (40,41,48,68,71,75,86,87,88,118,119,122,124,129,133,135,149,153,172,176,181,203,204,208,223,226,236,237))';
+                        }
+
                         $pais_id = $Solicitud->pais_id;
-                        $where_raw .= " AND (s.pais_id = $pais_id OR (i.pais_id = $pais_id))";
+                        $where_raw .= " AND (s.pais_id = $pais_id OR (i.pais_id = $pais_id) $para_todos_en_el_pais)";
                     }
                     
                     $Inscripciones = DB::table('solicitudes as s')
@@ -524,7 +552,7 @@ class MauticController extends Controller
                 $provincia = '';
                 if ($Solicitud->tipo_de_evento_id <> 3) {
                     if ($Solicitud->tipo_de_evento_id == 4) {
-                        $provincia = $Localidad->provincia->provincia;
+                        $provincia = $Solicitud->localidad->provincia->provincia;
                     }
                     else {
                         $provincia = $Solicitud->localidad->provincia->provincia;
@@ -753,6 +781,15 @@ class MauticController extends Controller
 
         return $mensaje_envio;
 
+    }
+
+
+    public function makeEmailTemplate($imagen, $hola, $txt_invita, $descripcion_sin_estado, $contenido_difusion_por_mail, $url_click, $txt_click, $txt_click_aqui, $txt_no_responder, $txt_pie) {
+
+        $email_template = '<table align="center" border="0" cellpadding="0" cellspacing="0" class="shrinker" style="width: 100%; max-width:550px;" width="100%"><tbody><tr><td height="45" style="font-size: 45px; line-height: 45px;">&nbsp;</td></tr><tr class="header-split left"><td align="left" style="text-align: left;" valign="center"></td></tr><tr class="header-split right"><td align="right" style="text-align: left" valign="center"><p style="text-align: left; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:16px; line-height:30px; font-weight:400; color:#b2b2b2; padding: 0; margin: 0;"><br></p></td></tr><tr><td height="15" style="font-size: 15px; line-height: 15px;">&nbsp;</td></tr></tbody></table><table align="center" border="0" cellpadding="0" cellspacing="0" style="max-width:550px; background: #ffffff" width="100%"><tbody><tr><td align="center" style="padding: 0; text-align: center;" valign="top"><img src="https://ac.gnosis.is/img/sol-de-acuario-chico-isologo.png" style="width: 100%; height: auto;" alt="Placeholder" class="fr-fic fr-dii" width="100%" height="auto"><img src="'.$imagen.'" style="width: 100%; height: auto;" alt="Placeholder" class="fr-fic fr-dii" width="100%" height="auto"></td></tr><tr><td height="30" style="font-size: 30px; line-height: 30px;">&nbsp;</td></tr><tr><td align="center" style="padding: 0 30px; text-align: center;" valign="top"><h2 style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:24px; line-height:24px; font-weight:700; color:#212121; padding:0; margin:0;">'.$hola.' {contactfield=firstname}</h2><br><h2 style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:15px; line-height:20px; font-weight:700; color:#212121; padding:0; margin:0;">'.$txt_invita.'</h2><br>
+        <h2 style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:24px; line-height:24px; font-weight:700; color:#212121; padding:0; margin:0;">'.$descripcion_sin_estado.'</h2><br style="line-height: 18px; height: 18px; font-size: 18px;"><p style="text-align: center; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:16px; line-height:30px; font-weight:400; color:#212121; padding: 0; margin: 0;">'.$contenido_difusion_por_mail.'</p><br style="line-height: 18px; height: 18px; font-size: 18px;"></td></tr><tr><td align="center"><table align="center" border="0" cellpadding="0" cellspacing="0"><tbody><tr><td><table align="center" border="0" cellpadding="0" cellspacing="0"><tbody><tr><td align="left" bgcolor="#00bf9a" class="body-text" style="-webkit-border-radius: 25px; -moz-border-radius: 25px; border-radius: 25px;mso-hide:all;"><a href="'.$url_click.'" style="font-size: 12px; font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; color: #ffffff; text-decoration: none; text-decoration: none; border-radius: 25px; padding: 16px 25px; display: inline-block; text-transform:uppercase; font-weight: bold; letter-spacing: 1px;" target="_blank">&nbsp;'.$txt_click.'&nbsp;</a></td><!-- Alternate Button for Outlook 2013, 2016--><!--[if mso]><td align="center" valign="top" style="text-align: center;">    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com🏢word" href="'.$url_click.'" style="height:50px;v-text-anchor:middle;width:150px;" arcsize="25px" strokecolor="#00bf9a" fillcolor="#00bf9a"><w:anchorlock></w:anchorlock><center style="text-transform: uppercase; color:#ffffff;font-family:Helvetica, Arial,sans-serif;font-size:16px;">'.$txt_click_aqui.'</center></v:roundrect></td><![endif]--><!-- End Alternate Button --></tr></tbody></table></td></tr></tbody></table></td></tr><tr><td height="45" style="font-size: 45px; line-height: 45px;">&nbsp;</td></tr><tr><td style="text-align: center;"><hr><span style="font-size: 14px;">'.$txt_no_responder.'</span><hr></td></tr><tr><td style="text-align: center;"><span style="color: rgb(250, 197, 28);"><span style="font-size: 18px;"><strong><span style="font-family: Tahoma,Geneva,sans-serif;"><a class="fr-green fr-strong" href="https://gnosis.is" rel="noopener noreferrer" target="_blank">www.gnosis.is</a></span></strong>&nbsp;</span>&nbsp;</span><br><br></td></tr></tbody></table><br>'.$txt_pie.'<br><br><a href="https://gnosis.is/" style="font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:10px; line-height:20px; color:#212121; text-transform: uppercase; text-decoration:underline;" target="_blank">www.gnosis.is</a><span style="font-family:arial, sans-serif; font-size:10px; line-height:20px; color:#dddddd;">&nbsp;|&nbsp;</span><a href="{unsubscribe_url}" style="font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:10px; line-height:20px; color:#212121; text-transform: uppercase; text-decoration:underline;" target="_blank">Unsubscribe</a><br><br><p style="font-family: '."'".'Open Sans'."'".', Verdana, Arial, sans-serif; font-size:12px; line-height:18px; color:#212121; text-transform: uppercase; padding:0; margin:0;"><span style="font-size:9px;">© 2017 Mautic - All Rights Reserved.</span><br><span style="font-size:9px;">10 Cabot Road | Medford, MA | 02155</span></p><br style="line-height: 18px; height: 18px; font-size: 18px;"><br><br>';
+
+        return $email_template;
     }
 
 }

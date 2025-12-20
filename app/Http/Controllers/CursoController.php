@@ -56,11 +56,9 @@ class CursoController extends Controller
 
         if ($hash_ok == $hash) {   
         
-            echo '<h1>Proximamente... (vuelva atras)</h1>';
-
             $Fecha_de_evento = Fecha_de_evento::find($fecha_de_evento_id);
             $Solicitud = $Fecha_de_evento->Solicitud;
-            
+                
             return View('solicitudes/curso')
             ->with('Solicitud', $Solicitud)
             ->with('Fecha_de_evento', $Fecha_de_evento);

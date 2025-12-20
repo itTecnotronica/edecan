@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Auth;
 use DateTime;
 use App\Idioma_por_pais;
+use App\Idioma;
 use App\Pais;
 use App\Fecha_de_evento;
 use App\Texto_anuncios;
@@ -443,7 +444,7 @@ class Solicitud extends Model
 
     public function cant_inscriptos_unicos()
     {    
-        $cant = Inscripcion::where('solicitud_id', $this->id)->distinct('email_correo')->count('email_correo');
+        $cant = Inscripcion::where('solicitud_id', $this->id)->distinct('celular')->count('celular');
         return $cant;
     }
 
@@ -451,6 +452,13 @@ class Solicitud extends Model
     {    
         //$cant = Visualizacion_de_formulario::where('solicitud_id', $this->id)->whereRaw("(url_anterior  NOT like 'https://ac.gnosis.is%' or url_anterior = 'https://ac.gnosis.is/f/registrar-inscripcion')")->count();        
         $cant = Visualizacion_de_formulario::where('solicitud_id', $this->id)->count();        
+        return $cant;
+    }
+
+    public function cant_visualizaciones_sin_bots()
+    {    
+        //$cant = Visualizacion_de_formulario::where('solicitud_id', $this->id)->whereRaw("(url_anterior  NOT like 'https://ac.gnosis.is%' or url_anterior = 'https://ac.gnosis.is/f/registrar-inscripcion')")->count();        
+        $cant = Visualizacion_de_formulario::join('sesions as s', 's.id', '=', 'visualizaciones_de_formulario.sesion_id')->whereRaw("visualizaciones_de_formulario.solicitud_id = ".$this->id." AND s.es_un_bot = 'NO'")->count();        
         return $cant;
     }
 
@@ -492,37 +500,59 @@ class Solicitud extends Model
         $pais_id = $this->id_pais();
 
         //busco el equipo y los paises que dependen de equipo
-        $Equipos = Equipo::where('pais_id', $pais_id)->where('sino_es_un_equipo_de_ejecutivos_de_campanias', 'SI')->get();
-        if (count($Equipos) >= 1) {
-            $equipo_id = $Equipos[0]->id;
-            $asignar_ejecutivos = $Equipos[0]->sino_asignacion_de_ejecutivos_automatica;
-            $coordinador_user_id = $Equipos[0]->coordinador_user_id;
-        }
-        else {
-            $Paises_por_equipo = Pais_por_equipo::where('pais_id', $pais_id)->get();
-            if (count($Paises_por_equipo) > 0) {
-                $equipo_id = $Paises_por_equipo[0]->equipo_id;
-                $asignar_ejecutivos = $Paises_por_equipo[0]->equipo->sino_asignacion_de_ejecutivos_automatica;
-                $coordinador_user_id = $Paises_por_equipo[0]->equipo->coordinador_user_id;
+        $Pais = Pais::find($pais_id);
+        $equipo_id = null;
+
+        if ($Pais->sino_hay_diferentes_equipos_de_campanias == 'SI') {
+            if ($this->localidad_id > 0) {
+                if ($this->localidad->equipo_id > 0) {
+                    $equipo_id = $this->localidad->equipo_id;
+                }
+                else {
+                    if ($this->localidad->provincia->equipo_id > 0) {
+                        $equipo_id = $this->localidad->provincia->equipo_id;
+                    }   
+                }
             }
-            else {
-                $Equipos = Equipo::whereNull('pais_id')->where('sino_es_un_equipo_de_ejecutivos_de_campanias', 'SI')->get();
+        }
+        if (!$equipo_id) {
+            $Equipos = Equipo::where('pais_id', $pais_id)->where('sino_es_un_equipo_de_ejecutivos_de_campanias', 'SI')->get();
+            if (count($Equipos) >= 1) {
                 $equipo_id = $Equipos[0]->id;
                 $asignar_ejecutivos = $Equipos[0]->sino_asignacion_de_ejecutivos_automatica;
                 $coordinador_user_id = $Equipos[0]->coordinador_user_id;
-                if ($this->id == 15478 or $this->id == 15491) {
-                    //dd($Equipos[0]->equipo);
-                }
             }
+            else {
+                $Paises_por_equipo = Pais_por_equipo::where('pais_id', $pais_id)->get();
+                if (count($Paises_por_equipo) > 0) {
+                    $equipo_id = $Paises_por_equipo[0]->equipo_id;
+                    $asignar_ejecutivos = $Paises_por_equipo[0]->equipo->sino_asignacion_de_ejecutivos_automatica;
+                    $coordinador_user_id = $Paises_por_equipo[0]->equipo->coordinador_user_id;
+                }
+                else {
+                    $Equipos = Equipo::whereNull('pais_id')->where('sino_es_un_equipo_de_ejecutivos_de_campanias', 'SI')->get();
+                    $equipo_id = $Equipos[0]->id;
+                    $asignar_ejecutivos = $Equipos[0]->sino_asignacion_de_ejecutivos_automatica;
+                    $coordinador_user_id = $Equipos[0]->coordinador_user_id;
+                    if ($this->id == 15478 or $this->id == 15491) {
+                        //dd($Equipos[0]->equipo);
+                    }
+                }
 
+            }
+        }
+        else {
+            $Equipo = Equipo::find($equipo_id);
+            $asignar_ejecutivos = $Equipo->sino_asignacion_de_ejecutivos_automatica;
+            $coordinador_user_id = $Equipo->coordinador_user_id;
         }
         
         $SolicitudController = new SolicitudController();
         $paisesDelEquipo = $SolicitudController->paisesDelEquipo($equipo_id);
         $in_paises = $paisesDelEquipo['in_paises'];
 
-        if ($this->id == 15478 or $this->id == 15491) {
-            //dd(222);
+        if ($this->id == 18776) {
+            //dd($coordinador_user_id);
         }
 
         if ($this->ejecutivo == '') {
@@ -535,16 +565,27 @@ class Solicitud extends Model
                 ->max('id');
 
 
+                $whereRawEjecutivos = 'u.sino_activo IS NULL OR u.sino_activo = "SI"';
+                //Para Brasil las campañás serán asignadas solamente a los usuarios que tengan un email que empiecen con: campanhas+equipe
+                if ($pais_id == 6) {
+                    $whereRawEjecutivos .= ' AND u.email like "campanhas+%"';
+                }
+                $whereRawEjecutivos = '('.$whereRawEjecutivos.')';
+
                 $Ejecutivos = DB::table('usuarios_por_equipo as ue')
                 ->select(DB::raw('DISTINCT u.*'))
                 ->join('users as u', 'u.id', '=', 'ue.user_id')
-                ->leftjoin('roles_extra as re', 'u.id', '=', 're.user_id')
-                ->whereRaw('(u.rol_de_usuario_id = 3 or re.rol_de_usuario_id = 3)')
+                //->leftjoin('roles_extra as re', 'u.id', '=', 're.user_id')
+                //->whereRaw('(u.rol_de_usuario_id = 3 or re.rol_de_usuario_id = 3)')
                 ->where('ue.equipo_id', $equipo_id)
-                ->whereRaw('(u.sino_activo IS NULL OR u.sino_activo = "SI")')
+                ->where('sino_activo', 'SI')
+                ->whereRaw($whereRawEjecutivos)
                 ->orderBy('id')
                 ->get();
 
+                if ($this->id == 18776) {
+                    //dd($Ejecutivos);
+                }
                 
                 /*
                 else {
@@ -562,7 +603,6 @@ class Solicitud extends Model
                 if ($ult_solicitud <> null) {
                     $ult_ejecutivo_id = $ult_solicitud->ejecutivo;
                 
-
                     $prox = 'N';
                     if ($ult_ejecutivo_id <> '') {
                         foreach ($Ejecutivos as $Ejecutivo) {
@@ -677,7 +717,7 @@ class Solicitud extends Model
 
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'fc/'.$this->id.'/'.$this->hash.'/217';
+        $url = env('PATH_PUBLIC').'fc/'.$this->id.'/'.$this->hash.'/217';
         return $url;
     }
 
@@ -685,7 +725,7 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'fc/'.$this->id.'/'.$this->hash.'/'.$campania_id;
+        $url = env('PATH_PUBLIC').'fc/'.$this->id.'/'.$this->hash.'/'.$campania_id;
         return $url;
     }
 
@@ -693,7 +733,9 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/i/'.$this->id.'/'.$this->hash;
+        $hash_nuevo = md5(strval($this->id).strval($this->hash).strval($this->id));
+
+        $url = env('PATH_PUBLIC').'f/i/'.$this->id.'/'.$hash_nuevo;
         return $url;
     }
 
@@ -701,7 +743,7 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/x/'.$this->id.'/'.$this->hash.'/'.$fecha_de_evento_id;
+        $url = env('PATH_PUBLIC').'f/x/'.$this->id.'/'.$this->hash.'/'.$fecha_de_evento_id;
         return $url;
     }
 
@@ -710,10 +752,10 @@ class Solicitud extends Model
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
         if ($grupo === null) {
-            $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/a/'.$this->id.'/'.$this->hash;
+            $url = env('PATH_PUBLIC').'f/a/'.$this->id.'/'.$this->hash;
         }
         else {
-            $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/agrupo/'.$this->id.'/'.$this->hash.'/'.$grupo;    
+            $url = env('PATH_PUBLIC').'f/agrupo/'.$this->id.'/'.$this->hash.'/'.$grupo;    
         }
         return $url;
     }
@@ -723,7 +765,8 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/h/'.$this->id.'/'.$this->hash;
+        $hash_nuevo = md5(strval($this->id).strval($this->hash).strval($this->id));
+        $url = env('PATH_PUBLIC').'f/h/'.$this->id.'/'.$hash_nuevo;
         return $url;
     }
 
@@ -731,7 +774,7 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/raw/'.$this->id.'/'.$this->hash;
+        $url = env('PATH_PUBLIC').'f/raw/'.$this->id.'/'.$this->hash;
         return $url;
     }
 
@@ -739,7 +782,7 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'reportes/encuesta-satisfaccion/1/'.$this->id;
+        $url = env('PATH_PUBLIC').'reportes/encuesta-satisfaccion/1/'.$this->id;
         return $url;
     }
 
@@ -747,7 +790,7 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = $this->dominioPublico($Idioma_por_pais, $dominio_publico).'f/igrupo/'.$this->id.'/'.$this->hash.'/'.$grupo_id;
+        $url = env('PATH_PUBLIC').'f/igrupo/'.$this->id.'/'.$this->hash.'/'.$grupo_id;
         return $url;
     }
 
@@ -770,14 +813,16 @@ class Solicitud extends Model
         $url_form = $this->url_form_inscripcion();
         $tel_responsable_inscripcion = $this->celular_responsable_de_inscripciones;
         $url_whatsapp = $this->url_contacto_whatsapp_anuncio();
+        $idioma = $this->idioma->mnemo;
 
-        $detalle_horarios_y_lugar = 'HORARIOS: '."\n"."-------"."\n\n";
+        $locale = App::getLocale();
+        App::setLocale($idioma);
+        $detalle_horarios_y_lugar = __('HORARIOS').': '."\n"."-------"."\n\n";
         foreach ($this->fechas_de_evento as $Fecha_de_evento) {
             $tipo = 'whatsapp';
             $con_inicio = true;
-            $Idioma_por_pais = null;
-            $Solicitud = null; 
-            $idioma = null; 
+            $Idioma_por_pais = $this->idioma_por_pais();
+            $Solicitud = null;
             $ver_mapa = false;
             $con_dir_inicio_distinto = true;
 
@@ -788,6 +833,9 @@ class Solicitud extends Model
             //$detalle_horarios_y_lugar .= $Fecha_de_evento->dias_y_horarios()."\n";
             
         }
+
+        App::setLocale($locale);
+
 
         // pedido_de_confirmacion_curso
         $patrones = array();
@@ -960,6 +1008,7 @@ class Solicitud extends Model
             }
 
             $texto = preg_replace($patrones, $sustituciones, $envio_de_leccion);
+            $texto_de_mensaje = $texto;
             $fxc = new FxC();
             $texto_codificado = $fxc->CodificarURL($texto);
 
@@ -972,7 +1021,8 @@ class Solicitud extends Model
                 'codigo_de_la_leccion' => $codigo_de_la_leccion,
                 'nombre_de_la_leccion' => $nombre_de_la_leccion,
                 'fecha_de_envio' => $fecha_de_envio,
-                'url_whatsapp_texto' => $url_whatsapp.'&text='.$texto_codificado
+                'url_whatsapp_texto' => $url_whatsapp.'&text='.$texto_codificado,
+                'texto_de_mensaje' => $texto_de_mensaje
             ];
 
 
@@ -1068,11 +1118,15 @@ class Solicitud extends Model
         $sustituciones[9] = $explicacion_modalidad_notificacion_de_asistencia;
 
         $texto = preg_replace($patrones, $sustituciones, $Modelo_de_mensaje_curso->modelo_del_mensaje);
+        $texto_modelo_del_mensaje_del_curso = $texto;
         $fxc = new FxC();
         $texto_codificado = $fxc->CodificarURL($texto);
         $url_texto_modelo_del_mensaje_del_curso = $url_whatsapp.'&text='.$texto_codificado;
 
-        return $url_texto_modelo_del_mensaje_del_curso;
+        return [
+            'url_texto_modelo_del_mensaje_del_curso' => $url_texto_modelo_del_mensaje_del_curso,
+            'texto_modelo_del_mensaje_del_curso' => $texto_modelo_del_mensaje_del_curso
+        ];
     }
     
     public function comoVas($Fechas_de_evento)
@@ -1103,7 +1157,7 @@ class Solicitud extends Model
         //->whereNotNull('s.fecha_de_solicitud')
         //->whereRaw('s.id NOT IN (6, 9)')
         ->where('s.id', $this->id)
-        ->whereRaw("(i.sino_cancelo IS NULL or i.sino_cancelo = 'NO')")
+        ->whereRaw("(NOT (i.sino_cancelo = 'SI') OR i.sino_cancelo IS NULL)")
         //->whereRaw("((sino_cancelada IS NULL OR sino_cancelada = 'NO' OR (sino_cancelada = 'SI' AND (SELECT COUNT(i.id) FROM inscripciones i WHERE i.solicitud_id = s.id) > 10)))")
         //->whereRaw($where_filtros)       
         ->groupBy('s.id') 
@@ -1114,7 +1168,7 @@ class Solicitud extends Model
         $select = 'f.id, ';
         $select .= "DATEDIFF(fecha_de_inicio, NOW()) dif_fecha_de_inicio, ";
         $select .= 'COUNT(DISTINCT i.id) cant_inscriptos, ';
-        $select .= "SUM(CASE WHEN i.sino_confirmo = 'SI' THEN 1 ELSE 0 END) cant_confirmo, ";
+        $select .= "SUM(CASE WHEN i.sino_confirmo = 'SI' AND i.created_at <= f.fecha_de_inicio  THEN 1 ELSE 0 END) cant_confirmo, ";
         $select .= "SUM(CASE WHEN i.sino_envio_voucher = 'SI' THEN 1 ELSE 0 END) cant_voucher, ";
         $select .= "SUM(CASE WHEN i.sino_envio_recordatorio = 'SI' THEN 1 ELSE 0 END) cant_recordatorio, ";
         $select .= "SUM(CASE WHEN i.sino_asistio = 'SI' THEN 1 ELSE 0 END) cant_asistio, ";
@@ -1126,7 +1180,7 @@ class Solicitud extends Model
         ->select(DB::Raw($select))
         ->join('inscripciones as i', 'i.fecha_de_evento_id', '=', 'f.id')
         ->where('f.solicitud_id', $this->id)
-        ->whereRaw("(i.sino_cancelo IS NULL or i.sino_cancelo = 'NO')")
+        ->whereRaw("(NOT (i.sino_cancelo = 'SI') OR i.sino_cancelo IS NULL)")
         ->groupBy('f.id') 
         ->get();
         //dd(DB::getQueryLog());
@@ -1180,7 +1234,7 @@ class Solicitud extends Model
                     $mensajes[] = '<strong>'.__("Asistencia Registrada").' '.$porc_asistencia_f.'%. '.'</strong> -> '.$detalleFechas.'<p class="info_mensaje">'.__('el porcentaje siempre debería estar por encima del 50% del total de inscriptos').'. '.__('Los porcentajes bajos de asistencia pueden deberse a distintos factores, enumeramos a los mas comunes para que en función de esto se analicen las campañas con rendimientos bajos de asistencia y se tomen las acciones necesarias para su correción. 1) No se enviaron los recordatorios, o se enviaron tarde. 2) No se registro la asistencia en el Sistema AC, es decir no se leyo el codigo QR del voucher ni tampoco se utilizó la lista de asistencias del sistema para registrar los asistentes. 3) Condiciones climáticas desfavorables el día del evento. 4) El evento se ha realizado en un lugar de dificil acceso o no apropiado para la asistencia masiva').'</p>';
                 }
 
-                if ($cant_confirmo_f > $cant_recordatorio_prox_f and $dif_fecha_de_inicio <= -7 ) {
+                if ($cant_confirmo_f > $cant_recordatorio_prox_f and $dif_fecha_de_inicio <= -7 and $this->tipo_de_evento_id == 1) {
                     $mensajes[] = '<strong>'.$resta_cant_recordatorio_prox_clase_f.' '.__('Envio de Recordatorio a Próxima clase').' '.__('sin enviar').'</strong>. ('.$detalleFechas.') <p class="info_mensaje">'.__('Es muy importante que a toda persona que ha confirmado su asistencia se le envie el mensaje recordatorio para las clases siguientes, la persona normalmente al no tener incorporada en su rutina el curso, no recuerda muchas veces que debe asistir a la próxima clase, por eso es muy importante que el responsable de inscripción envie a todas las personas confirmadas un recordatorio posterior al inicio de los cursos. Una posible solución a esto es revisar las campañas que han tenido bajo porcentaje de envio de recordatorio a la próxima clase, y solicitar al responsable de inscripción que no descuide esta acción en próximas inscripciones.').'</p>';
                 }
 
@@ -1194,7 +1248,7 @@ class Solicitud extends Model
             $cant_recordatorio = $Inscripciones->cant_recordatorio;
             $cant_asistio = $Inscripciones->cant_asistio;
             $cant_recordatorio_prox = $Inscripciones->cant_recordatorio_prox;
-            $cant_cancelo = $Inscripciones->cant_cancelo;
+            //$cant_cancelo = $Inscripciones->cant_cancelo;
             
             $porc_contactados = $cant_contactados * 100 / $cant_inscriptos;
 
@@ -1230,10 +1284,10 @@ class Solicitud extends Model
                 */
             }
             else {            
-                $resta_contactar = $cant_inscriptos-($cant_contactados + $cant_cancelo);
+                $resta_contactar = $cant_inscriptos - $cant_contactados;
                 
                 if ($resta_contactar > 0) {
-                    $mensajes[] = '<strong>'.__('Resta contactar a').' '.$resta_contactar.'    ('.$cant_inscriptos.' '.__('Inscriptos').' | '.$cant_contactados.' '.__('contactados').' | '.$cant_cancelo.' '.__('Cancelados').')</strong>. <p class="info_mensaje">'.__('No deben quedar inscriptos (no cancelados) sin contactar').'</p>';
+                    $mensajes[] = '<strong>'.__('Resta contactar a').' '.$resta_contactar.'    ('.$cant_inscriptos.' '.__('Inscriptos').' | '.$cant_contactados.' '.__('contactados').' '.__('Cancelados').')</strong>. <p class="info_mensaje">'.__('No deben quedar inscriptos (no cancelados) sin contactar').'</p>';
                 }
 
             }
@@ -1264,15 +1318,21 @@ class Solicitud extends Model
         $a_estado = $this->estado();
         $letra_estado = $a_estado['letra_estado'];
         $mensaje_redireccion = '';
+        $count_form_curso_online = Idioma::where('id_form_curso_online', $this->id)->count();
 
-        if ($this->institucion_id == 1) {
+
+
+
+        if ($this->institucion_id == 1 and $count_form_curso_online == 0) {
+            
+            $idioma_por_pais = $this->idioma_por_pais();
+            
             if ($this->idioma_id <> '') {
                 $idioma = $this->idioma->mnemo;           
                 $locale_vee_validate = $this->idioma->locale_vee_validate;             
                 App::setLocale($idioma);  
             }
             else {
-                $idioma_por_pais = $this->idioma_por_pais();
                 if ($idioma_por_pais->idioma_id <> '') {
                     $idioma = $idioma_por_pais->idioma->mnemo;    
                     $locale_vee_validate = $idioma_por_pais->idioma->locale_vee_validate;                    
@@ -1280,28 +1340,52 @@ class Solicitud extends Model
                 }
             }
 
+            $url_redireccion = $this->idioma->url_form_curso_online;
 
-            if ($letra_estado <> 'a') {
-                $mensaje_redireccion = __('Este formulario se encuentra desactivado para inscripciones, para poder inscribirse a nuestros cursos activos diríjase a').':<br><br><strong><a href="'.$this->idioma->url_form_curso_online.'">'.$this->idioma->url_form_curso_online.'</strong></a>';
+            // SI LA SOLICITUD TIENE UN ENLACE PARA REDIRECCION USO ESE
+            if ($this->url_enlace_para_formulario_inactivo <> '') {
+                $url_redireccion = $this->url_enlace_para_formulario_inactivo;
             }
             else {
-                $fecha_hoy = new DateTime("now");
-
-                $fecha_de_solicitud = new DateTime(date('Y-m-d', strtotime($this->fecha_de_solicitud)));
-                $interval_1 = date_diff($fecha_hoy, $fecha_de_solicitud);
-                $cant_dias_fecha_de_solicitud = $interval_1->format('%a');
-
-                if ($this->ultimo_acceso_planilla_inscripcion <> '') {
-                    $ultimo_acceso_planilla_inscripcion = new DateTime(date('Y-m-d', strtotime($this->ultimo_acceso_planilla_inscripcion)));
-                    $interval_2 = date_diff($fecha_hoy, $ultimo_acceso_planilla_inscripcion);   
-                    $cant_dias_ultimo_acceso_planilla_inscripcion = $interval_2->format('%a');
+                //SI NO, VEO SI LA LOCALIDAD LO TIENE
+                if ($this->localidad_id <> '' and $this->localidad->url_enlace_para_formulario_inactivo <> '') {
+                    $url_redireccion = $this->localidad->url_enlace_para_formulario_inactivo;
                 }
                 else {
-                    $cant_dias_ultimo_acceso_planilla_inscripcion = 9999999;
-                }           
+                    //SI NO, VEO SI EL PAIS POR IDIOMA LO TIENE
+                    if ($idioma_por_pais->url_form_curso_online <> '') {
+                        $url_redireccion = $idioma_por_pais->url_form_curso_online;
+                    }
+                    else {
+                        //SI NO, USO EL FORMULARIO GENERAL DEL IDIOMA
+                        $this->idioma->url_form_curso_online;
+                    }                       
+                }                
+            }
 
-                if ($cant_dias_fecha_de_solicitud > 60 and $cant_dias_ultimo_acceso_planilla_inscripcion > 15) {
-                    $mensaje_redireccion = __('Este formulario no esta recibiendo atención por parte de nuestro personal, para poder inscribirse a nuestros cursos activos diríjase a').':<br><br><strong><a href="'.$this->idioma->url_form_curso_online.'">'.$this->idioma->url_form_curso_online.'</strong></a>';
+            if ($letra_estado <> 'a') {
+                $mensaje_redireccion = __('Este formulario se encuentra desactivado para inscripciones, para poder inscribirse a nuestros cursos activos diríjase a').':<br><br><strong><a href="'.$url_redireccion.'">'.$url_redireccion.'</strong></a>';
+            }
+            else {
+                if ($this->tipo_de_evento_id <> 4) {
+                    $fecha_hoy = new DateTime("now");
+
+                    $fecha_de_solicitud = new DateTime(date('Y-m-d', strtotime($this->fecha_de_solicitud)));
+                    $interval_1 = date_diff($fecha_hoy, $fecha_de_solicitud);
+                    $cant_dias_fecha_de_solicitud = $interval_1->format('%a');
+
+                    if ($this->ultimo_acceso_planilla_inscripcion <> '') {
+                        $ultimo_acceso_planilla_inscripcion = new DateTime(date('Y-m-d', strtotime($this->ultimo_acceso_planilla_inscripcion)));
+                        $interval_2 = date_diff($fecha_hoy, $ultimo_acceso_planilla_inscripcion);   
+                        $cant_dias_ultimo_acceso_planilla_inscripcion = $interval_2->format('%a');
+                    }
+                    else {
+                        $cant_dias_ultimo_acceso_planilla_inscripcion = 9999999;
+                    }           
+
+                    if ($cant_dias_fecha_de_solicitud > 60 and $cant_dias_ultimo_acceso_planilla_inscripcion > 15) {
+                        $mensaje_redireccion = __('Este formulario no esta recibiendo atención por parte de nuestro personal, para poder inscribirse a nuestros cursos activos diríjase a').':<br><br><strong><a href="'.$url_redireccion.'">'.$url_redireccion.'</strong></a>';
+                    }
                 }
 
             }
@@ -1314,37 +1398,43 @@ class Solicitud extends Model
 
     public function emailsMauticCampaign()
     {
-        $Campaign = Campaign::find($this->campania_mautic_id);
+        if (Campaign::isDatabaseAvailable()) {
 
-        $Campaign_leads = DB::connection('mautic')
-        ->table('campaign_leads as cl')
-        ->join('leads as l', 'l.id', '=', 'cl.lead_id')
-        ->select(DB::Raw('cl.lead_id, l.firstname, l.lastname, l.email'))
-        ->where('cl.campaign_id', $this->campania_mautic_id)
-        ->get();
+            $Campaign = Campaign::find($this->campania_mautic_id);
 
-        $Email_stats = DB::connection('mautic')
-        ->table('email_stats')
-        ->select(DB::Raw('COUNT(id) as enviados, SUM(is_read) as leidos'))
-        ->where('email_id', $this->mautic_email_id)
-        ->get();        
+            $Campaign_leads = DB::connection('mautic')
+            ->table('campaign_leads as cl')
+            ->join('leads as l', 'l.id', '=', 'cl.lead_id')
+            ->select(DB::Raw('cl.lead_id, l.firstname, l.lastname, l.email'))
+            ->where('cl.campaign_id', $this->campania_mautic_id)
+            ->get();
 
-        $cant_inscriptos = Inscripcion::where('campania_id', 244)->where('solicitud_id', $this->id)->count();        
+            $Email_stats = DB::connection('mautic')
+            ->table('email_stats')
+            ->select(DB::Raw('COUNT(id) as enviados, SUM(is_read) as leidos'))
+            ->where('email_id', $this->mautic_email_id)
+            ->get();        
 
-        if ($Email_stats[0]->enviados > 0) {
-          $modificar = 'NO';
+            $cant_inscriptos = Inscripcion::where('campania_id', 244)->where('solicitud_id', $this->id)->distinct('celular')->count('celular');        
+
+            if ($Email_stats[0]->enviados > 0) {
+              $modificar = 'NO';
+            }
+            else {
+              $modificar = 'SI';
+            }
+
+            $emailsMauticCampaign = [
+                'Campaign' => $Campaign,
+                'Campaign_leads' => $Campaign_leads,
+                'Email_stats' => $Email_stats[0],
+                'cant_inscriptos' => $cant_inscriptos,
+                'modificar' => $modificar
+            ];
         }
         else {
-          $modificar = 'SI';
+            $emailsMauticCampaign = null;
         }
-
-        $emailsMauticCampaign = [
-            'Campaign' => $Campaign,
-            'Campaign_leads' => $Campaign_leads,
-            'Email_stats' => $Email_stats[0],
-            'cant_inscriptos' => $cant_inscriptos,
-            'modificar' => $modificar
-        ];
 
 
         return $emailsMauticCampaign;

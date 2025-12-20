@@ -8,6 +8,7 @@ use App\App_registro;
 use App\Instancia_de_seguimiento;
 use App\Alumno_avanzado;
 use App\Persona;
+use App\Sede;
 use App\Inscripcion_Evento;
 use App\Debito;
 use App\Carnet;
@@ -18,12 +19,23 @@ use App\Localidad;
 use App\Solicitud;
 use App\Fecha_de_evento;
 use Carbon\Carbon;
+use App\Miembros_observacion;
+use App\MiembroAportes;
+use App\Miembros_temporales;
+use App\Miembros;
+use App\Movimientos_Contables;
+use App\Pregunta;
+use App\Respuesta;
+use App\Encuesta;
+use App\Miembros_pases;
+use App\Http\Controllers\GenericController;
 
 use Auth;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Date;
-
+ 
 
 
 class AppController extends Controller
@@ -394,6 +406,19 @@ class AppController extends Controller
         $mensaje_salida = $resultado = json_encode('Guardado Registro');
         return response($mensaje_salida,200);
     } 
+    public function log($modulo,$texto )
+    {
+        $now = new \DateTime();
+        DB::table('app_registros')->insert(
+            array(  
+                    'modulo' => $modulo, 
+                    'dato' => $texto, 
+                    'fecha' => $now 
+                )
+            );    
+        $mensaje_salida = $resultado = json_encode('Guardado Registro');
+        return response($mensaje_salida,200);
+    } 
 
 
 
@@ -538,7 +563,7 @@ class AppController extends Controller
             ->leftjoin('sedes as tSed', 'tPar.sede_id', '=', 'tSed.id')
             ->leftjoin('tb_centros as tcen', 'tPar.tb_centro_id', '=', 'tcen.id') 
             ->leftjoin('tb_provincias as tProv', 'tLoc.tb_provincia_id', '=', 'tProv.id') 
-            ->where('tb_personas.numero_de_documento', $documento)  
+            ->whereRaw("trim(REPLACE(tb_personas.numero_de_documento),'.','') = ? ",[trim($documento)]) 
             ->orderBy('tb_personas.numero_de_documento', 'desc')
             ->get(); 
             $resultado = json_encode($Personas);
@@ -618,11 +643,14 @@ class AppController extends Controller
     public function getEventos($pais_id, $token) {
 
         if ($token == 'gapp') {
+            $whereRaw = "  (tEv.fecha_fin > NOW() )"; 
+
             $Personas = DB::table('app_eventos AS tEv')    
             ->select(DB::Raw('tEv.id Id,  
                                 CONCAT(tte.tipo_de_evento," - ", tEv.evento) Evento, 
                                 tEv.fecha_inicio Fecha'))   
             ->leftjoin('app_tipos_de_eventos AS tTe', 'tEv.tb_tipo_de_evento_id', '=', 'tTe.id')   
+             ->whereRaw($whereRaw)  
             ->get(); 
             $resultado = json_encode($Personas);
         }
@@ -658,31 +686,121 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
-    public function saveInscripcion($id, $tb_evento_id,  $tb_persona_id, $token )
+    public function getInscriptosAlEvento($pais_id, $id_evento, $token) {
+
+        if ($token == 'gapp') {
+            $Personas = DB::table('app_inscripciones_en_eventos AS ins')    
+            ->select(DB::Raw('ins.id, 
+                                ins.fecha_inscripcion, 
+                                tTe.tipo_de_evento, 
+                                tEv.evento, 
+                                ins.numero, 
+                                tEv.fecha_inicio,
+                                tEv.fecha_fin,
+                                mbr.name nombre,
+                                ins.notas,
+                                lumi.name Lumisial,
+                                lumi.uuid Id,
+                                lumi.city Ciudad,
+                                pro.description Provincia 
+                                ')) 
+            ->leftjoin('app_eventos AS tEv', 'ins.tb_evento_id', '=', 'tEv.id')
+            ->leftjoin('app_tipos_de_eventos AS tTe', 'tEv.tb_tipo_de_evento_id', '=', 'tTe.id') 
+            ->leftjoin('app_miembros AS mbr', 'mbr.registration', '=', 'ins.tb_persona_id') 
+            ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mbr.lumisialUuid')
+            ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
+            ->where('ins.tb_evento_id', $id_evento)   
+            ->orderBy('ins.numero', 'desc')
+            ->get(); 
+            $resultado = json_encode($Personas);
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+
+        return response($resultado,200);
+    }
+
+    public function getInscriptoAlEvento($pais_id, $id_evento, $id_cliente, $token) {
+
+        if ($token == 'gapp') {
+            $Personas = DB::table('app_inscripciones_en_eventos AS ins')    
+            ->select(DB::Raw('ins.id, 
+                                ins.fecha_inscripcion, 
+                                tTe.tipo_de_evento, 
+                                tEv.evento, 
+                                ins.numero, 
+                                tEv.fecha_inicio,
+                                tEv.fecha_fin,
+                                mbr.name nombre 
+                                ')) 
+            ->leftjoin('app_eventos AS tEv', 'ins.tb_evento_id', '=', 'tEv.id')
+            ->leftjoin('app_tipos_de_eventos AS tTe', 'tEv.tb_tipo_de_evento_id', '=', 'tTe.id') 
+            ->leftjoin('app_miembros AS mbr', 'mbr.registration', '=', 'ins.tb_persona_id') 
+            ->where('ins.tb_evento_id', $id_evento)   
+            ->where('ins.tb_persona_id', $id_cliente)   
+            ->get(); 
+            $resultado = json_encode($Personas);
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+
+        return response($resultado,200);
+    }
+
+    public function saveInscripcion($id, $tb_evento_id,  $tb_persona_id, $notas, $token )
+ 
     {
             if ($token == 'gapp') {
-                $now = new \DateTime();
-                $cant_persona_evento = Inscripcion_Evento::where('tb_evento_id', $tb_evento_id)->count();
+                $now = new \DateTime(); 
+                $cant_persona_evento = Inscripcion_Evento::where('tb_evento_id', $tb_evento_id)->count(); 
+                $ya_estoy_registrado = Inscripcion_Evento::where('tb_evento_id', $tb_evento_id)
+                ->where('tb_persona_id', $tb_persona_id)
+                ->count();  
                 $cant_persona = Inscripcion_Evento::where('id', $id)->count();
                 try { 
-
-                    if ($cant_persona > 0) {
-                        $Inscripcion = Inscripcion_Evento::find($id);
-                        $Inscripcion->tb_evento_id = $tb_evento_id;
-                        $Inscripcion->tb_persona_id = $tb_persona_id;  
-                        $Inscripcion->save();  
+                    if ($ya_estoy_registrado > 0) {
+                        $mensaje_salida = json_encode('Evento ya registrado');
                     }
                     else {
-                        $Inscripcion = New Inscripcion_Evento;
-                        $Inscripcion->tb_evento_id = $tb_evento_id;
-                        $Inscripcion->tb_persona_id = $tb_persona_id;
-                        $Inscripcion->numero = $cant_persona_evento;
-                        $Inscripcion->fecha_inscripcion = $now;
-                        $Inscripcion->save(); 
+                        if ($cant_persona > 0) {
+                            $Inscripcion = Inscripcion_Evento::find($id);
+                            $Inscripcion->tb_evento_id = $tb_evento_id;
+                            $Inscripcion->tb_persona_id = $tb_persona_id;  
+                            $Inscripcion->save();  
+                        }
+                        else {
+                            $Inscripcion = New Inscripcion_Evento;
+                            $Inscripcion->tb_evento_id = $tb_evento_id;
+                            $Inscripcion->tb_persona_id = $tb_persona_id;
+                            $Inscripcion->numero = $cant_persona_evento;
+                            $Inscripcion->notas = $notas;
+                            $Inscripcion->fecha_inscripcion = $now;
+                            $Inscripcion->save(); 
+                        }
+                        $mensaje_salida = json_encode('Evento guardado ' . $Inscripcion->id);
                     }
-                $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                   
                 } catch(\Illuminate\Database\QueryException $ex){ 
 
+                $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+    public function deleteInscripcion($id, $token )
+    {
+            if ($token == 'gapp') { 
+                
+                try { 
+                    $cant_persona = Inscripcion_Evento::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
                 $mensaje_salida = $ex->getMessage();
                 }
             }
@@ -696,7 +814,7 @@ class AppController extends Controller
 
         if ($token == 'gapp') {
             $Personas = DB::table('app_debitos AS deb')    
-            ->select(DB::Raw('deb.id, 
+            ->select(DB::Raw('deb.id,  
                                 deb.confeccionado, 
                                 tTar.tarjeta, 
                                 tTta.tipo_de_tarjeta, 
@@ -706,7 +824,10 @@ class AppController extends Controller
                                 deb.fecha_de_inicio_de_debito, 
                                 deb.fecha_de_fin_de_debito, 
                                 deb.observaciones, 
-                                tTde.tipo_de_debito')) 
+                                tTde.tipo_de_debito,
+                                deb.updated_at,
+                                deb.preapproval_id estado,
+                                fecha_de_fin_de_debito fechaVto')) 
             ->leftjoin('app_tarjetas AS tTar', 'deb.tb_tarjeta_id', '=', 'tTar.id')
             ->leftjoin('app_tipos_de_tarjetas AS tTta', 'deb.tb_tipo_de_tarjeta_id', '=', 'tTta.id') 
             ->leftjoin('app_tipos_de_debitos AS tTde', 'deb.tb_tipo_de_debito_id', '=', 'tTde.id') 
@@ -720,7 +841,45 @@ class AppController extends Controller
 
         return response($resultado,200);
     }
-    public function saveDebito($id, $tb_tarjeta_id, $tb_tipo_de_tarjeta_id,  $tb_persona_id, $numero_de_tarjeta,$monto, $observaciones, $token )
+
+   public function getDebitos($pais_id, $tb_tipo_de_debito_id, $token) {
+
+        if ($token == 'gapp') {
+            $Personas = DB::table('app_debitos AS deb')    
+            ->select(DB::Raw('deb.id, 
+                                mbr.name nombre, 
+                                mbr.documentNumber documento, 
+                                deb.confeccionado, 
+                                tTar.tarjeta, 
+                                tTta.tipo_de_tarjeta, 
+                                deb.numero_de_tarjeta, 
+                                deb.debitando, 
+                                deb.monto, 
+                                deb.fecha_de_inicio_de_debito, 
+                                deb.fecha_de_fin_de_debito, 
+                                deb.observaciones, 
+                                tTde.tipo_de_debito,
+                                deb.updated_at,
+                                deb.preapproval_id estado,
+                                fecha_de_fin_de_debito fechaVto,
+                                mbr.phoneNumber ,
+                                mbr.img_imagen ')) 
+            ->leftjoin('app_tarjetas AS tTar', 'deb.tb_tarjeta_id', '=', 'tTar.id')
+            ->leftjoin('app_tipos_de_tarjetas AS tTta', 'deb.tb_tipo_de_tarjeta_id', '=', 'tTta.id') 
+            ->leftjoin('app_tipos_de_debitos AS tTde', 'deb.tb_tipo_de_debito_id', '=', 'tTde.id')  
+            ->leftjoin('app_miembros AS mbr', 'mbr.registration', '=', 'deb.tb_persona_id') 
+            ->where('tTde.id', $tb_tipo_de_debito_id)   
+            ->get(); 
+            $resultado = json_encode($Personas);
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+
+        return response($resultado,200);
+    }
+
+    public function saveDebito($id, $tb_tarjeta_id, $tb_tipo_de_tarjeta_id,  $tb_persona_id, $numero_de_tarjeta,$monto, $observaciones, $fechaVto, $tb_tipo_de_debito_id,$token )
     {
             if ($token == 'gapp') { 
                 $cant_persona = Debito::where('id', $id)->count();
@@ -731,10 +890,12 @@ class AppController extends Controller
                         $enDebito->tb_persona_id = $tb_persona_id;
                         $enDebito->tb_tarjeta_id = $tb_tarjeta_id;
                         $enDebito->tb_tipo_de_tarjeta_id = $tb_tipo_de_tarjeta_id;
+                        $enDebito->tb_tipo_de_debito_id = $tb_tipo_de_debito_id;
                         $enDebito->numero_de_tarjeta = $numero_de_tarjeta;
                         $enDebito->debitando = 'NO';
                         $enDebito->monto = $monto;
-                        $enDebito->observaciones = $observaciones;                        
+                        $enDebito->observaciones = $observaciones; 
+                        $enDebito->fecha_de_fin_de_debito = $fechaVto;  
                         // 
                         $enDebito->save();  
                     }
@@ -743,16 +904,61 @@ class AppController extends Controller
                         $enDebito->tb_persona_id = $tb_persona_id;
                         $enDebito->tb_tarjeta_id = $tb_tarjeta_id;
                         $enDebito->tb_tipo_de_tarjeta_id = $tb_tipo_de_tarjeta_id;
+                        $enDebito->tb_tipo_de_debito_id = $tb_tipo_de_debito_id;
                         $enDebito->numero_de_tarjeta = $numero_de_tarjeta;
                         $enDebito->debitando = 'NO';
                         $enDebito->monto = $monto;
                         $enDebito->observaciones = $observaciones;
+                        $enDebito->fecha_de_fin_de_debito = $fechaVto; 
                         //
                         $enDebito->save(); 
                     }
                     $mensaje_salida = json_encode('Guardado. Id ' . $id);
                 } catch(\Illuminate\Database\QueryException $ex){  
                     $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+    public function updateDebitoEstado($id, $estado, $token )
+    {
+            if ($token == 'gapp') { 
+                $cant_persona = Debito::where('id', $id)->count();
+                try { 
+
+                    if ($cant_persona > 0) {
+                        $enDebito = Debito::find($id);
+                        $enDebito->preapproval_id = $estado;                  
+                        // 
+                        $enDebito->save();  
+                        $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                    }
+                    else {
+                        $mensaje_salida = json_encode('Usuario no encontrato. Id ' . $id);
+                    }
+                   
+                } catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+ public function deleteDebito($id, $token )
+    {
+            if ($token == 'gapp') { 
+                
+                try { 
+                    $cant_persona = Debito::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                $mensaje_salida = $ex->getMessage();
                 }
             }
             else {
@@ -789,23 +995,69 @@ class AppController extends Controller
 
         return response($resultado,200);
     }
-    public function getCarnet($pais_id, $id, $token) {
+    public function getCarnet($pais_id, $busqueda, $opcion , $token) {
 
         if ($token == 'gapp') {
+            $whereRaw = "1=1";
+            if ($busqueda != '-') {
+                $whereRaw =  " (mb.documentNumber like '%$busqueda%' OR mb.name like '%$busqueda%') " ;
+            }
+           else
+           {
+            $whereRaw =  " (fecha_envio is null) " ;
+            if ($opcion=='created_at'){
+                $whereRaw =  " (estado=1) " ;
+            }
+            if ($opcion=='fecha_visto'){
+                $whereRaw =  " (estado=6) " ;
+            }
+            if ($opcion=='fecha_autorizado'){
+                $whereRaw =  " (estado=5) " ;
+            }
+            if ($opcion=='fecha_de_pago'){
+                $whereRaw =  " (estado=2) " ;
+            }
+            if ($opcion=='fecha_de_confeccion'){
+                $whereRaw =  " (estado=3) " ;
+            }
+            if ($opcion=='fecha_envio'){
+                $whereRaw =  " (estado=4) " ;
+            }
+            
+           }  
+            
             $Personas = DB::table('app_carnets AS car')    
-            ->select(DB::Raw('tTip.tipo_de_carnet, 
+            ->select(DB::Raw('tTip.tipo_de_carnet,
+                                tTip.id id_tipo_de_carnet, 
                                 car.id, 
                                 car.confeccionado, 
                                 car.pagado, 
                                 car.fecha_de_pago, 
                                 car.importe_pagado, 
                                 car.fecha_de_confeccion, 
-                                car.fecha_de_vencimiento, 
+                                car.fecha_envio,
+                                car.fecha_visto,
+                                car.fecha_autorizado,
                                 car.autorizado, 
                                 car.created_at, 
-                                car.envio ')) 
-            ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id') 
-            ->where('car.tb_persona_id', $id)   
+                                car.envio,
+                                car.estado,
+                                mb.documentNumber,
+                                mb.`name` Nombre,
+                                car.tb_persona_id persona_id,
+                                mb.phoneNumber,
+                                lum.`name` Lumisial,
+                                lum.city Ciudad,
+                                pro.description Provincia,
+                                mb.img_imagen,
+                                car.img_comprobante,
+                                mb.id id_federacion  ')) 
+            ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id')  
+            ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.registration')  
+            ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'mb.lumisialUuid') 
+            ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lum.stateUuid')
+            ->whereRaw($whereRaw)   
+            ->orderBy('car.created_at', 'desc')
             ->get(); 
             $resultado = json_encode($Personas);
         }
@@ -815,16 +1067,78 @@ class AppController extends Controller
 
         return response($resultado,200);
     }
+    public function getCarnetById($pais_id, $id , $token) {
+
+        if ($token == 'gapp') { 
+            
+            $Personas = DB::table('app_carnets AS car')    
+            ->select(DB::Raw('tTip.tipo_de_carnet,
+                                tTip.id id_tipo_de_carnet, 
+                                car.id, 
+                                car.confeccionado, 
+                                car.pagado, 
+                                car.fecha_de_pago, 
+                                car.importe_pagado, 
+                                car.fecha_de_confeccion, 
+                                car.fecha_envio,
+                                car.fecha_visto,
+                                car.fecha_autorizado,
+                                car.autorizado, 
+                                car.created_at, 
+                                car.envio,
+                                car.estado,
+                                mb.documentNumber,
+                                mb.`name` Nombre,
+                                car.tb_persona_id persona_id,
+                                mb.phoneNumber,
+                                lum.`name` Lumisial,
+                                lum.city Ciudad,
+                                pro.description Provincia,
+                                mb.img_imagen,
+                                car.img_comprobante  ')) 
+            ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id')  
+            ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.registration')  
+            ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'mb.lumisialUuid') 
+            ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lum.stateUuid')
+            ->where('car.tb_persona_id', $id )    
+            ->orderBy('car.created_at', 'desc')
+            ->get(); 
+            $resultado = json_encode($Personas);
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+
+        return response($resultado,200);
+    }
+    public function deleteCarnet($id, $token )
+    {
+            if ($token == 'gapp') {  
+                try { 
+                    Carnet::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
     public function saveCarnet($id, $tb_tipo_de_carnet_id,  $tb_persona_id, $token )
     {
             if ($token == 'gapp') { 
+                
                 $enCarnet = Carnet::where('id', $id)->count(); 
                 try { 
-
+                   
                     if ($enCarnet > 0) { 
                         $enCarnet->tb_tipo_de_carnet_id = $tb_tipo_de_carnet_id;
                         $enCarnet->tb_persona_id = $tb_persona_id;
                         $enCarnet->tb_cara_de_carnet_id = 1; 
+                        $enCarnet->estado = 1;        
                         // 
                         $enCarnet->save();  
                     }
@@ -832,6 +1146,7 @@ class AppController extends Controller
                         $enCarnet = New Carnet;
                         $enCarnet->tb_tipo_de_carnet_id = $tb_tipo_de_carnet_id;
                         $enCarnet->tb_persona_id = $tb_persona_id;
+                        $enCarnet->estado = 1;
                         $enCarnet->tb_cara_de_carnet_id = 1;
                         $enCarnet->confeccionado = "No";
                         $enCarnet->pagado = "No";
@@ -848,6 +1163,142 @@ class AppController extends Controller
             }        
             return response($mensaje_salida,200);
     } 
+    public function saveCarnetEstadoPagado($id,  $token )
+    {
+            $now = new \DateTime();  
+            if ($token == 'gapp') {  
+                try {  
+                    $enCarnet = Carnet::find($id);
+                    $enCarnet->estado = 2;
+                    $enCarnet->fecha_de_pago = $now;         
+                    // 
+                    $enCarnet->save();  
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
+    public function saveCarnetEstadoConfeccion($id,  $token )
+    {
+            $now = new \DateTime();  
+            if ($token == 'gapp') {  
+                try {   
+                    $enCarnet = Carnet::find($id);
+                    $enCarnet->estado = 3; 
+                    $enCarnet->fecha_de_confeccion = $now;   
+                    // 
+                    $enCarnet->save();  
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
+    public function saveCarnetEstadoEnviado($id, $token )
+    {
+            $now = new \DateTime();  
+            if ($token == 'gapp') {  
+                try {   
+                    $enCarnet = Carnet::find($id);
+                    $enCarnet->estado = 4; 
+                    $enCarnet->fecha_envio = $now;         
+                    // 
+                    $enCarnet->save();  
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
+    public function saveCarnetEstadoVisto($id, $token )
+    {
+            $now = new \DateTime();  
+            if ($token == 'gapp') {  
+                try {   
+                    $enCarnet = Carnet::find($id);
+                    $enCarnet->estado = 6; 
+                    $enCarnet->fecha_visto = $now;         
+                    // 
+                    $enCarnet->save();  
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
+    public function saveCarnetEstadoAutorizado($id, $token )
+    {
+            $now = new \DateTime();  
+            if ($token == 'gapp') {  
+                try {   
+                    $enCarnet = Carnet::find($id);
+                    $enCarnet->estado = 5; 
+                    $enCarnet->fecha_autorizado = $now;
+                    // 
+                    $enCarnet->save();  
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
+    public function saveCarnetEstadoLimpiar($id, $token )
+    {
+            $now = new \DateTime();  
+            if ($token == 'gapp') {  
+                try {   
+                    $enCarnet = Carnet::find($id);
+                    $enCarnet->estado = 1;  
+                    $enCarnet->fecha_de_pago = null;      
+                    $enCarnet->fecha_de_confeccion = null; 
+                    $enCarnet->fecha_envio = null;
+                    $enCarnet->fecha_visto = null; 
+                    $enCarnet->fecha_autorizado = null;           
+                    // 
+                    $enCarnet->save();  
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
     public function getTipoCarnet($pais_id, $token) {
 
         if ($token == 'gapp') {
@@ -864,11 +1315,35 @@ class AppController extends Controller
 
         return response($resultado,200);
     }
+    public function uploadPagoCarnet(Request $request) {
+        $now = new \DateTime();  
+        $file = $request->file('file');
+       $id_carnet = $request->input('id_carnet');
 
-    public function getMaterialesSearch($idioma_id, $token, $value) {
+       // Lógica para guardar el archivo en el servidor con el ID
+       $fileName = "file_{$id_carnet}.jpg";
 
-        if ($token == 'gapp') {
-            $Personas = DB::table('materiales as mat')    
+       $path = $request->file('file')->getRealPath();    
+       $logo = file_get_contents($path);
+       $img_comp = base64_encode($logo);
+
+       //$file->move(storage_path('app/public/uploads'), $fileName);
+
+       $carnetComprobante = Carnet::find($id_carnet);
+       $carnetComprobante->img_comprobante = $img_comp; 
+       $carnetComprobante->estado = 2;
+       $carnetComprobante->fecha_de_pago = $now;         
+       $carnetComprobante->save();  
+
+       return response()->json(['message' => 'Archivo subido con éxito '  ]);
+       
+   }
+    public function getMaterialesSearch($idioma_id, $token, $value, $publico) {
+            $whereRaw1 = " (mat.titulo like '%$value%' OR mat.descripcion like '%$value%') "; 
+            if ($publico == 1){
+                $whereRaw1 = $whereRaw1 . " and (mat.sino_es_un_material_publico = 'SI')";  
+            }
+            $Personas1 = DB::table('materiales as mat')    
             ->select(DB::Raw('aut.autor , 
                                 mat.titulo, 
                                 mat.descripcion, 
@@ -882,22 +1357,67 @@ class AppController extends Controller
             ->join('idiomas AS idi', 'mat.idioma_id', '=', 'idi.id')
             ->join('tipos_de_materiales AS tip', 'mat.tipo_de_material_id', '=', 'tip.id')
             ->where('mat.idioma_id', $idioma_id )  
-            ->where('mat.sino_autorizado', 'SI' )   
-            ->where('mat.titulo','like', '%'.$value.'%')    
+            ->where('mat.sino_autorizado', 'SI' )    
+            ->where('mat.app_id', '1' )  
+            ->whereRaw($whereRaw1)   
            ->orderBy('mat.titulo', 'desc')
-            ->get(); 
-            $resultado = json_encode($Personas);
+            ->get();  
+            //
+            $whereRaw2 = " (par.text like '%$value%' ) "; 
+                if ($publico == 1){
+                    $whereRaw2 = $whereRaw2 . " and (mat.sino_es_un_material_publico = 'SI')";  
+                }
+                $Personas2 = DB::table('materiales as mat')    
+                ->select(DB::Raw('aut.autor , 
+                                    mat.titulo, 
+                                    par.text descripcion, 
+                                    mat.url_link, 
+                                    mat.url_imagen, 
+                                    mat.anio, 
+                                    mat.created_at, 
+                                    idi.idioma, 
+                                    tip.tipo_de_material,
+                                    mat.playlist'))  
+                ->join('autores AS aut', 'mat.autor_id', '=', 'aut.id')
+                ->join('idiomas AS idi', 'mat.idioma_id', '=', 'idi.id')
+                ->join('tipos_de_materiales AS tip', 'mat.tipo_de_material_id', '=', 'tip.id')
+                ->join('materiales_chapters AS cha', 'cha.title', '=', 'mat.id')
+                ->join('materiales_paragraphs AS par', 'par.chapter_id', '=', 'cha.id')
+                ->where('mat.idioma_id', $idioma_id )  
+                ->where('mat.sino_autorizado', 'SI' )    
+                ->where('mat.app_id', '1' )  
+                ->whereRaw($whereRaw2)   
+                 ->orderBy('mat.titulo', 'desc')
+                ->get(); 
+                
+
+        if ($token == 'gapp') {
+           $resultado = json_encode($Personas1);
         }
         else {
-            $resultado = 'ERROR';
+            if ($token == 'biblioteca') { 
+                $combinado = $Personas1->merge($Personas2);
+              $resultado = json_encode($combinado);
+            }
+            else {
+                $resultado = 'ERROR';
+            }
         }
-
         return response($resultado,200);
     }
 
-    public function getAllMateriales($idioma_id, $token, $tipo, $cant, $autor) {
+    public function getAllMateriales($idioma_id, $token, $tipo, $cant, $autor, $publico) {
 
         if ($token == 'gapp') {
+            $whereRaw = " 1=1 "; 
+            if ($publico == 1){
+                $whereRaw = "(mat.sino_es_un_material_publico = 'SI')";  
+            } 
+            $whereRaw2 = " 1=1 "; 
+            if ($autor != 0){
+                $whereRaw2 = "(mat.autor_id = ". $autor .")";  
+            } 
+
             $Personas = DB::table('materiales as mat')    
             ->select(DB::Raw('  mat.id id_material,
                                 aut.autor , 
@@ -908,14 +1428,17 @@ class AppController extends Controller
                                 mat.anio, 
                                 mat.created_at, 
                                 idi.idioma, 
-                                tip.tipo_de_material'))  
+                                tip.tipo_de_material,
+                                mat.playlist '))  
             ->join('autores AS aut', 'mat.autor_id', '=', 'aut.id')
             ->join('idiomas AS idi', 'mat.idioma_id', '=', 'idi.id')
             ->join('tipos_de_materiales AS tip', 'mat.tipo_de_material_id', '=', 'tip.id')
             ->where('mat.tipo_de_material_id', $tipo )   
-            ->where('mat.autor_id', $autor )   
+            ->whereRaw($whereRaw2)   
             ->where('mat.idioma_id', $idioma_id ) 
-            ->where('mat.sino_autorizado', 'SI' )   
+            ->where('mat.sino_autorizado', 'SI' ) 
+            ->where('mat.app_id', '1' ) 
+            ->whereRaw($whereRaw)   
             ->limit($cant)
             ->orderBy('mat.titulo', 'asc')
             ->get(); 
@@ -927,9 +1450,13 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
-        public function getAllMaterialesRandom($idioma_id, $token, $cant) {
+        public function getAllMaterialesRandom($idioma_id, $token, $cant, $publico) {
 
         if ($token == 'gapp') {
+            $whereRaw = " 1=1 "; 
+            if ($publico == 1){
+                $whereRaw = "(mat.sino_es_un_material_publico = 'SI')";  
+            } 
             $Personas = DB::table('materiales as mat')    
             ->select(DB::Raw('  mat.id id_material,
                                 aut.autor , 
@@ -946,6 +1473,8 @@ class AppController extends Controller
             ->join('tipos_de_materiales AS tip', 'mat.tipo_de_material_id', '=', 'tip.id')  
             ->where('mat.idioma_id', $idioma_id )    
             ->where('mat.sino_autorizado', 'SI' ) 
+            ->where('mat.app_id', '1' ) 
+            ->whereRaw($whereRaw)   
             ->limit($cant)
             ->orderBy('random_number', 'asc')
             ->get(); 
@@ -961,7 +1490,8 @@ class AppController extends Controller
 
         if ($token == 'gapp') {
             $Miembros = DB::table('app_miembros AS mbr')    
-            ->select(DB::Raw('  mbr.country, 
+            ->select(DB::Raw('  mbr.id,
+                                mbr.country, 
                                 mbr.birth, 
                                 mbr.consecration, 
                                 mbr.documentNumber, 
@@ -996,8 +1526,20 @@ class AppController extends Controller
                                 mbr.missionaryInternationalCoursePlace, 
                                 mbr.missionaryInternationalCourseYear, 
                                 mbr.instructorRegionalCourseYear,
-                                mbr.img_imagen'))   
+                                mbr.img_imagen,
+                                mbr.phoneNumber,
+                                mbr.responsable,
+                                lum.name as Lumisial,
+                                dio.name as Zona,
+                                mbr.firma,
+                                mbr.cargoPrincipal,
+                                mbr.sino_esEditor ')) 
+            ->join('app_miembros_lumisial AS lum', 'lum.uuid', '=', 'mbr.lumisialUuid')  
+             ->join('app_miembros_diocesis as dio', function($join) {
+                $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
+            })
             ->where('mbr.documentNumber', $documento )    
+            ->where('mbr.sino_isActive','SI' )    
             ->get(); 
             $resultado = json_encode($Miembros);
         }
@@ -1006,7 +1548,42 @@ class AppController extends Controller
         }
         return response($resultado,200);
     }
+    public function updateMiembroFoto(Request $request) {
+        
+        $file = $request->file('file');
+        $id_miembro = $request->input('id'); 
+        // 
+        $fileName = "file_{$id_miembro}.jpg";
+        //
+        $path = $request->file('file')->getRealPath();    
+        $logo = file_get_contents($path);
+        $imagen = base64_encode($logo); 
+        //
+        $miembro = Miembros::find($id_miembro);
+        $miembro->img_imagen = 'data:image/jpeg;base64,' . $imagen; 
+        $miembro->save();  
 
+        return response()->json(['message' => 'Se actualiza imagen']);
+        
+    }
+        public function updateMiembroFirma(Request $request) {
+        
+        $file = $request->file('file');
+        $id_miembro = $request->input('id'); 
+        // 
+        $fileName = "file_{$id_miembro}.jpg";
+        //
+        $path = $request->file('file')->getRealPath();    
+        $logo = file_get_contents($path);
+        $imagen = base64_encode($logo); 
+        //
+        $miembro = Miembros::find($id_miembro);
+        $miembro->firma = 'data:image/jpeg;base64,' . $imagen; 
+        $miembro->save();  
+
+        return response()->json(['message' => 'Se actualiza imagen']);
+        
+    }
     //FIN-GAPP
 
     public function getListAA($pais_id, $token) {
@@ -1085,6 +1662,44 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
+    public function getListInscriptosBR($solicitud_id, $token) {
+        
+        $hash = md5('GNOSIS'.$solicitud_id);
+
+        if ($token == $hash) {
+
+            if ($solicitud_id <> "") {
+                $whereRaw = "i.solicitud_id = $solicitud_id";
+            }
+
+            //DB::enableQueryLog();
+            $Inscripciones = DB::table('inscripciones as i') 
+            ->select(DB::Raw('
+                i.id, 
+                i.nombre, 
+                i.apellido, 
+                i.celular, 
+                i.email_correo, 
+                i.fecha_de_evento_id, 
+                i.consulta, 
+                i.sino_confirmo,
+                i.sino_cancelo,
+                i.sino_envio_voucher
+                '))
+            ->whereRaw($whereRaw)
+            ->orderBy('i.id', 'asc')
+            ->get(); 
+
+            $resultado = json_encode($Inscripciones);
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+
+        return response($resultado,200);
+    }
+
+
     public function actualizarEstadoAlumno($inscripcion_id, $estado_de_seguimiento_id, $observaciones, $user_id, $token) {
 
         if ($token == 'mauricio') {
@@ -1160,6 +1775,25 @@ class AppController extends Controller
 
         app()->setLocale($Idioma->mnemo);
 
+        $where_raw = " p.id = $pais_id";
+        
+        /*
+        $where_raw = "(";
+        $where_raw .= " p.id = $pais_id";
+        $where_raw .= " AND s.sino_aprobado_administracion = 'SI'";
+        $where_raw .= " AND (
+                            (s.tipo_de_evento_id in (1, 2) AND DATEDIFF(NOW(), fe.fecha_de_inicio)  <= 15) or 
+                            (s.tipo_de_evento_id = 3 AND DATEDIFF(NOW(), s.fecha_de_inicio_del_curso_online)  <= 15) or 
+                            DATEDIFF(NOW(), s.created_at)  <= 15
+                            )";
+        $where_raw .= " AND (s.sino_es_campania_de_capacitacion IS NULL OR s.sino_es_campania_de_capacitacion = 'NO')";
+        $where_raw .= " AND (s.sino_aprobado_finalizada IS NULL OR s.sino_aprobado_finalizada = 'NO')";
+        $where_raw .= ")";
+        $where_raw .= "OR (";
+        $where_raw .= " p.id = $pais_id";
+        $where_raw .= " AND CHAR_LENGTH(TRIM(l.url_enlace_para_formulario_inactivo)) > 5";
+        $where_raw .= ")";
+        */
 
         $Localidades = DB::table('paises as p')
             //->select(DB::Raw("l.id, l.localidad as city, pr.provincia as region, p.pais as country, s.id as solicitud_id, CONCAT('https://ac.gnosis.is/fc/', s.id, '/', s.hash,'/399') as url_form_solicitud"))
@@ -1168,11 +1802,9 @@ class AppController extends Controller
             ->leftjoin('localidades as l', 'pr.id', '=', 'l.provincia_id')
             ->leftjoin('solicitudes as s', 's.localidad_id', '=', 'l.id')
             ->leftjoin('fechas_de_evento as fe', 's.id', '=', 'fe.solicitud_id')
-            ->where('p.id', $pais_id)
-            ->where('s.sino_aprobado_administracion', 'SI')
-            ->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2022-10-15") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2022-10-15") or s.created_at >= "2022-10-15")')
-            ->whereRaw("(s.sino_es_campania_de_capacitacion IS NULL OR s.sino_es_campania_de_capacitacion = 'NO')")
-            ->whereRaw("(s.sino_aprobado_finalizada IS NULL OR s.sino_aprobado_finalizada = 'NO')")
+            //->where('p.id', $pais_id)
+            ->whereRaw($where_raw)
+            ->orderBy('l.localidad')
             ->get();
 
 
@@ -1251,9 +1883,25 @@ class AppController extends Controller
                 ->where('l.id', $localidad_id)
                 //->where('s.id', 4367)            
                 ->where('s.sino_aprobado_administracion', 'SI')
-                ->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2022-10-15") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2022-10-15") or s.created_at >= "2022-10-15")')
-                ->whereRaw("(s.sino_es_campania_de_capacitacion IS NULL OR s.sino_es_campania_de_capacitacion = 'NO')")
-                ->whereRaw("(s.sino_aprobado_finalizada IS NULL OR s.sino_aprobado_finalizada = 'NO')")
+                //->whereRaw('((s.tipo_de_evento_id in (1, 2) AND fe.fecha_de_inicio >= "2023-02-20") or (s.tipo_de_evento_id = 3 AND s.fecha_de_inicio_del_curso_online >= "2023-02-20") or s.created_at >= "2023-02-20")')
+                ->whereRaw('(
+                    (s.tipo_de_evento_id in (1, 2) AND DATEDIFF(NOW(), fe.fecha_de_inicio)  <= 15) or 
+                    (s.tipo_de_evento_id = 3 AND DATEDIFF(NOW(), s.fecha_de_inicio_del_curso_online)  <= 15) or 
+                    DATEDIFF(NOW(), s.created_at)  <= 15
+                )')
+                ->whereRaw("(
+                    s.sino_es_campania_de_capacitacion IS NULL OR 
+                    s.sino_es_campania_de_capacitacion = '' OR 
+                    s.sino_es_campania_de_capacitacion = 'NO'
+                )")
+                ->whereRaw("(
+                    s.sino_aprobado_finalizada IS NULL OR 
+                    s.sino_aprobado_finalizada = '' OR 
+                    s.sino_aprobado_finalizada = 'NO'
+                )")
+                ->whereRaw("(
+                    s.id not in (23035, 23034, 22998, 22996, 23152, 23123, 23122, 23109, 23108, 23107, 23210, 23182, 23181, 23165, 23160, 23230, 23229, 23228, 23216, 23436, 23098, 23067, 23036, 23307, 23291, 23406, 23311, 23310, 23309, 23247, 23232)
+                )")
                 ->get();
 
 
@@ -1344,6 +1992,76 @@ class AppController extends Controller
             $Eventos->all();
         }
 
+
+        // SI LA LOCALIDAD TIENE UN SITIO WEB O URL (url_enlace_para_formulario_inactivo)
+        // LA SUMO A LOS EVENTOS
+        	if ($localidad_id <> -1) {
+	            $Localidad = DB::table('localidades as l')
+	                ->select('url_enlace_para_formulario_inactivo')
+	                ->where('l.id', $localidad_id)
+	                ->first();
+                if ($Localidad->url_enlace_para_formulario_inactivo) {
+    	            $html = '<strong>VISITA NUESTRA PAGINA WEB LOCAL</strong><br><a href="'.$Localidad->url_enlace_para_formulario_inactivo.'">'.$Localidad->url_enlace_para_formulario_inactivo.'</a>';
+    	            $opcion_otra = [
+    	                'id_form_solicitud' => NULL,
+    	                'url_form_solicitud' => $Localidad->url_enlace_para_formulario_inactivo,
+    	                'evento' => [
+    	                    'fecha_de_evento_id' => null,
+    	                    'html' => $html,
+    	                    'titulo' => NULL,
+    	                    'fecha_de_inicio' => NULL,
+    	                    'hora_de_inicio' => NULL,
+    	                    'lugar' => NULL
+    	                ]
+    	            ];
+
+    	            $Eventos->push($opcion_otra);
+                }
+                    
+	        }
+
+        // TRAIGO LOS DATOS DE LA SEDE DE LA LOCALIDAD SI EXISTE
+        // LA SUMO A LOS EVENTOS
+            if ($localidad_id <> -1) {
+                $GenericController = new GenericController();
+                $Sedes = Sede::where('localidad_id', $localidad_id)->where('sino_activa', 'SI')->get();
+
+                foreach ($Sedes as $Sede) {
+
+                    $html = '<strong>SEDE: </strong>'.$Sede->ciudad.'<br>';
+                    $html .= $Sede->direccion.'<br>';
+                    $html .= '<a href="'.$Sede->url_enlace_a_google_maps.'">Ubicación Google Maps</a><br>';
+                    $html .= $Sede->direccion.'<br>';
+                    $html .= 'Tel: '.$Sede->telefono_con_whatsapp.'<br>';
+                    $html .= 'Email: '.$Sede->email_correo.'<br>';
+                    $html .= $Sede->informacion_adicional.'<br>';
+
+                    /*
+                    $numero =  $Sede->telefono_con_whatsapp;
+                    $codigo_tel = '';
+                    $btn_enviar_wa = $GenericController->btn_enviar_wa($numero, $codigo_tel);
+                    $html .= __('WahtsApp').': '.$Sede->telefono_con_whatsapp.' -> '.$btn_enviar_wa;
+                    */
+
+                    $opcion_otra = [
+                        'id_form_solicitud' => NULL,
+                        'url_form_solicitud' => $Sede->url_enlace_a_google_maps,
+                        'evento' => [
+                            'fecha_de_evento_id' => null,
+                            'html' => $html,
+                            'titulo' => NULL,
+                            'fecha_de_inicio' => NULL,
+                            'hora_de_inicio' => NULL,
+                            'lugar' => NULL
+                        ]
+                    ];
+
+                    $Eventos->push($opcion_otra);
+                       
+                }
+            }
+
+
         // SI NO HAY EVENTOS REGISTRADOS VOY A BUSCAR EVENTOS EXTRA ONLINE
         if ($Eventos->count() == 0 and !in_array($pais_id, [11, 9]) ) {
             // SI EL IDIOMA POR PAIS TIENE UN FORM ONLINE POR DEFECTO 
@@ -1361,24 +2079,27 @@ class AppController extends Controller
 
                 // ESPAÑOL
                 if ($idioma_id == 1) {
-                    $ids_extra = [7536, 7545, 7547, 7549];
+                    $ids_extra = [7536];
+                    //$ids_extra = [7536, 7545, 7547, 7549];
                 }
 
                 // FRANCES
                 if ($idioma_id == 3) {
-                    $ids_extra = [7542, 7546, 7883];
+                    $ids_extra = [7542];
+                    //$ids_extra = [7542, 7546, 7883];
                 }
 
                 // INGLES
                 if ($idioma_id == 2) {
-                    $ids_extra = [7544, 7878, 7886];
+                    $ids_extra = [7544];
+                    //$ids_extra = [7544, 7878, 7886];
                 }
 
                 // PORTUGUES
                 if ($idioma_id == 5) {
-                    $ids_extra = [7543, 7879, 7884];
+                    $ids_extra = [7543];
+                    //$ids_extra = [7543, 7879, 7884];
                 }
-
 
                 if (count($ids_extra) == 0) {
                     $Idioma = Idioma::find($idioma_id);            
@@ -1404,16 +2125,24 @@ class AppController extends Controller
                     $hora_de_inicio = '';
                     $lugar = '';
 
-                    if ($Solicitud->tipo_de_evento_id == 3 and in_array($Solicitud->tipo_de_curso_online_id, [2,3,5])) {
+                    if ($Solicitud->tipo_de_evento_id == 3) {
+                        if (in_array($Solicitud->tipo_de_curso_online_id, [2,3,5])) {
                         $fecha_de_inicio = $Solicitud->fecha_de_inicio_del_curso_online;
                         if (in_array($Solicitud->tipo_de_curso_online_id, [3,5])) {
                             $hora_de_inicio = $Solicitud->hora_de_inicio_del_curso_online;
                         }
                     }
+                    if ($Solicitud->tipo_de_curso_online_id == 4) {                    
+                            if ($Solicitud->fechas_de_evento->count()>0) {
+                                $fecha_de_inicio = $Solicitud->fechas_de_evento[0]->fecha_de_inicio;
+                                $hora_de_inicio = $Solicitud->fechas_de_evento[0]->hora_de_inicio;
+                            }        
+                        }
+                    }
 
                     $opcion_otra = [
                         'id_form_solicitud' => $id_form_curso_online,
-                        'url_form_solicitud' => $Solicitud->url_form_inscripcion_con_campania_id(399),
+                        'url_form_solicitud' => $Solicitud->url_form_inscripcion_con_campania_id($id_form_curso_online),
                         'evento' => [
                             'fecha_de_evento_id' => null,
                             'html' => $info_evento,
@@ -1434,6 +2163,988 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
+    public function getMiembros($busqueda, $tipoMiembro, $token) {
 
-}
+        try { 
+            $whereRaw = "";
+            if ($tipoMiembro == 'M'){
+                $whereRaw = "(mie.sino_isMissionary = 'SI' or mie.sino_isMissionaryInternational='SI')"; 
+                if ($busqueda != '-') {
+                    $whereRaw =  $whereRaw . " AND (mie.documentNumber like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
+                } else {
+                        $whereRaw =  " 1=1"; 
+                    }
+            }             
+            if ($tipoMiembro == 'A'){ 
+                    if ($busqueda != '-') {
+                        $whereRaw =  " (mie.documentNumber like '%$busqueda%' OR mie.registration like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
+                    }
+                    else {
+                        $whereRaw =  " 1=1"; 
+                    }
+            }  
+            if ($tipoMiembro == 'L'){ 
+                    $whereRaw = "(lumi.uuid = '$busqueda')";  
+            }  
+            if ($token == 'gapp') {           
+                        $Miembros = DB::table('app_miembros AS mie')    
+                        ->select(DB::Raw('  mie.id, 
+                                            mie.registration, 
+                                            mie.name nombre,
+                                            mie.documentNumber documento,  
+                                            mie.email, 	 
+                                            mie.sino_isPriest ,
+                                            mie.sino_isInstructor,
+                                            mie.sino_isMissionary,
+                                            mie.sino_isActive,
+                                            pro.description Provincia,
+                                           lumi.name Lumisial,
+                                           lumi.uuid idLumisial,
+                                           mie.phoneNumber,
+                                           mie.img_imagen,
+                                           mie.sino_esEditor,
+                                           mie.sino_isBishop  '))   
+                        ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
+                        ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
+                        ->whereRaw($whereRaw)  
+                        ->orderBy('mie.name', 'asc')
+                        ->limit(200)
+                        ->get(); 
+                        $resultado = json_encode($Miembros);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    
+    public function getBusquedaMiembros($busqueda, $tipoMiembro, $token) {
+        try { 
+            $whereRaw = "";
+                       
+                if ($tipoMiembro == 'A'){ 
+                    if ($busqueda != '-') {
+                        $whereRaw =  " (mie.documentNumber like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
+                    }
+                    else {
+                        $whereRaw =  " 1=1"; 
+                    }
+                }  
+                       
+            if ($token == 'gapp') {           
+                        $Miembros = DB::table('app_miembros AS mie')    
+                        ->select(DB::Raw('  mie.id, 
+                                            mie.registration, 
+                                            mie.name nombre,
+                                            mie.documentNumber documento,  
+                                            mie.email, 	 
+                                            mie.sino_isPriest ,
+                                            mie.sino_isMissionActive'))  
+                        ->whereRaw($whereRaw)  
+                        ->orderBy('mie.name', 'asc')
+                        ->get(); 
+                        $resultado = json_encode($Miembros);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    
+    public function getMiembroId($id_usuario, $token) {
+
+        if ($token == 'gapp') {
+            $Miembros = DB::table('app_miembros AS mbr')    
+            ->select(DB::Raw('  mbr.country, 
+                                mbr.birth, 
+                                mbr.consecration, 
+                                mbr.documentNumber, 
+                                mbr.documentType, 
+                                mbr.email, 
+                                mbr.gender, 
+                                mbr.instructorCoursePlace, 
+                                mbr.instructorCourseYear, 
+                                mbr.sino_isActive isActive, 
+                                mbr.sino_isBishop isBishop, 
+                                mbr.sino_isInstructor isInstructor, 
+                                mbr.sino_isInstructorRegional isInstructorRegional, 
+                                mbr.sino_isMissionActive isMissionActive, 
+                                mbr.sino_isMissionary isMissionary, 
+                                mbr.sino_isMissionaryInternational isMissionaryInternational, 
+                                mbr.sino_isPriest isPriest, 
+                                mbr.sino_isPriestActive isPriestActive, 
+                                mbr.lumisialUuid, 
+                                mbr.missionaryAvailable, 
+                                mbr.missionaryCoursePlace, 
+                                mbr.`name`, 
+                                mbr.nationality, 
+                                mbr.priestConsecration, 
+                                mbr.priestType, 
+                                mbr.registration, 
+                                mbr.uuid, 
+                                mbr.valid, 
+                                mbr.missionaryCourseYear, 
+                                mbr.partnerUuid, 
+                                mbr.bishopConsecration, 
+                                mbr.instructorRegionalCoursePlace, 
+                                mbr.missionaryInternationalCoursePlace, 
+                                mbr.missionaryInternationalCourseYear, 
+                                mbr.instructorRegionalCourseYear,
+                                mbr.img_imagen,
+                                mbr.phoneNumber '))   
+            ->where('mbr.registration', $id_usuario )   
+            ->get(); 
+            $resultado = json_encode($Miembros);
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+        return response($resultado,200);
+    }
+
+    public function saveMiembroObservacion($id_usuario, $nota, $opcion, $token )
+    {
+            $now = new \DateTime();
+            if ($token == 'gapp') {  
+                try { 
+                    $observacion = New Miembros_observacion;
+                    $observacion->fecha = $now;
+                    $observacion->observacion = $nota;
+                    $observacion->miembro_id = $id_usuario; 
+                    $observacion->opcion = $opcion; 
+                    //
+                    $observacion->save(); 
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id_usuario);
+                } catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+
+    public function deleteMiembroObservacion($id, $token )
+    {
+            if ($token == 'gapp') {  
+                try { 
+                    $cant_persona = Miembros_observacion::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+    public function getMiembrosObservaciones( $token) {
+
+        try {  
+            
+            if ($token == 'gapp') {           
+                        $Notas = DB::table('app_miembros as mie')    
+                        ->select(DB::Raw('  mie.`name` nombre,
+                                            mie.registration,
+                                            mie.documentNumber,
+                                            mie.phoneNumber ')) 
+                                            ->leftjoin('app_miembros_observaciones AS obs', 'mie.registration', '=', 'obs.miembro_id')
+                                            ->leftjoin('app_respuestas AS res', 'res.respuesta', '=', 'mie.documentNumber')
+                                            ->where('mie.sino_isActive', 'SI')
+                                            ->where(function ($query) {
+                                                $query->whereNotNull('obs.observacion')
+                                                ->orWhereNotNull('res.respuesta');  
+                                            })
+                                            ->groupBy('mie.name')
+                                            ->groupBy('mie.registration')
+                                            ->groupBy('mie.phoneNumber')
+                        ->get(); 
+                        $resultado = json_encode($Notas);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function getMiembroObservaciones( $idMiembro, $token) {
+
+        try {  
+            
+            if ($token == 'gapp') {           
+                        $Notas = DB::table('app_miembros_observaciones AS mie')    
+                        ->select(DB::Raw('  mie.fecha, 
+                                            mie.opcion,
+                                            mie.observacion,
+                                            mie.miembro_id,
+                                            mie.id '))  
+                        ->where('mie.miembro_id', $idMiembro)
+                        ->get(); 
+                        $resultado = json_encode($Notas);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function getLumisiales($token) {
+
+        try {  
+            
+            if ($token == 'gapp') {           
+                        $Consulta = DB::table('app_miembros_lumisial as lum')    
+                        ->select(DB::Raw(' pro.description Provincia,
+                                           lum.city Ciudad,
+                                           lum.name Lumisial,
+                                           lum.uuid Id '))
+                        ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lum.stateUuid')
+                        ->orderBy('Lumisial', 'asc')
+                         ->get(); 
+                        $resultado = json_encode($Consulta);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function getMiembrosAportes( $idAporte, $lumisial, $year, $token) {
+
+        try {  
+            $whereRaw = "1=1";
+            if ($idAporte != '0')
+            {
+                $whereRaw =  $whereRaw . " and (apo.id='. $idAporte .')";  
+            }
+            if ($lumisial != '0')
+            {
+                $whereRaw = $whereRaw . " and (apo.id_lumisial='$lumisial')";
+            }
+            if ($year != '0')
+            {
+                $whereRaw = $whereRaw . " and (apo.ejercicio=$year)";  
+            }
+
+            if ($token == 'gapp') {           
+                        $Notas = DB::table('app_miembros_aportes as apo')    
+                        ->select(DB::Raw('  apo.id Id, 
+                                            mie.`name` Nombre, 
+                                            lum.`name` Lumisial,
+                                            apo.monto Monto , 
+                                            lum.city Ciudad,
+                                            apo.moneda Moneda,
+                                            apo.updated_at updated_at,
+                                            apo.nro_comprobante NroComprobante,
+                                            apo.ejercicio Ejercicio     '))  
+                        ->leftjoin('app_miembros as mie', 'mie.id', '=', 'apo.id_miembro')
+                        ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'apo.id_lumisial') 
+                        ->whereRaw($whereRaw) 
+                        ->orderBy('apo.updated_at', 'desc')
+                        ->get(); 
+                        $resultado = json_encode($Notas);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function getMiembroAporte( $id, $token) {
+
+        try {  
+             
+            if ($token == 'gapp') {           
+                        $Notas = DB::table('app_miembros_aportes as apo')    
+                        ->select(DB::Raw('  apo.id Id, 
+                                            mie.`name` Nombre, 
+                                            lum.`name` Lumisial,
+                                            apo.monto Monto ,
+                                            apo.img_comprobante Imagen,
+                                            lum.city Ciudad,
+                                            apo.moneda Moneda,
+                                            apo.updated_at updated_at,
+                                            apo.nro_comprobante NroComprobante,
+                                            apo.ejercicio Ejercicio     '))  
+                        ->leftjoin('app_miembros as mie', 'mie.id', '=', 'apo.id_miembro')
+                        ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'apo.id_lumisial') 
+                        ->where('apo.id', $id )   
+                        ->get(); 
+                        $resultado = json_encode($Notas);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function saveAporte($id_miembro, $id_lumisial, $monto , $moneda, $nro_comprobante, $ejercicio,$token )
+    {
+            $now = new \DateTime();
+            if ($token == 'gapp') {  
+                try { 
+                    $aporte = New MiembroAportes;
+                    $aporte->updated_at = $now;
+                    $aporte->id_miembro = $id_miembro;
+                    $aporte->id_lumisial = $id_lumisial; 
+                    $aporte->moneda = $moneda; 
+                    $aporte->monto = $monto; 
+                    $aporte->nro_comprobante = $nro_comprobante;
+                    $aporte->ejercicio = $ejercicio;
+                    //
+                    $aporte->save(); 
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id_miembro);
+                } catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+    public function uploadAporte(Request $request) {
+      
+         $file = $request->file('file');
+        $id_miembro_aporte = $request->input('id_miembro_aporte');
+
+        // Lógica para guardar el archivo en el servidor con el ID
+        $fileName = "file_{$id_miembro_aporte}.jpg";
+
+        $path = $request->file('file')->getRealPath();    
+        $logo = file_get_contents($path);
+        $img_comp = base64_encode($logo);
+
+        //$file->move(storage_path('app/public/uploads'), $fileName);
+ 
+        $miembroAporte = MiembroAportes::find($id_miembro_aporte);
+        $miembroAporte->img_comprobante = $img_comp; 
+        $miembroAporte->save();  
+
+        return response()->json(['message' => 'Archivo subido con éxito '  ]);
+        
+    }
+   
+    public function deleteAporte($id, $token )
+    {
+            if ($token == 'gapp') {  
+                try { 
+                   MiembroAportes::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+    public function addMiembroTemporal($documento, $nombre, $telefono, $token )
+    {
+        $maximo = Miembros::max('registration');
+        $maximo = $maximo+1;
+        $now = new \DateTime();
+        if ($token == 'gapp') {  
+            try {  
+                $temporal_count = Miembros::where('documentNumber', $documento)->count();
+                if($temporal_count>0)
+                {
+                    $mensaje_salida = json_encode('El documento yo esta cargado ' . $documento);
+                }
+                else
+                {
+                    $temporal = New Miembros;
+                    $temporal->documentNumber = $documento;
+                    $temporal->name = $nombre;
+                    $temporal->phoneNumber = $telefono;
+                    $temporal->created_at = $now;
+                    $temporal->registration = $maximo;
+                    $temporal->save(); 
+                    //
+                    $mensaje_salida = json_encode('Se documento registracion temporal ' . $maximo);
+                } 
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+            $mensaje_salida = $ex->getMessage();
+            }
+        }
+        else {
+            $mensaje_salida = 'ERROR';
+        }        
+        return response($mensaje_salida,200);
+    }
+    public function updateMiembroTelefono($registration, $telefono, $token )
+    { 
+        $now = new \DateTime();
+        if ($token == 'gapp') {  
+            try {  
+                $temporal_count = Miembros::where('registration', $registration)->count();
+                if($temporal_count>0)
+                {
+                    $temporal = Miembros::where('registration', $registration)->first();
+                    $temporal->phoneNumber = $telefono;
+                    $temporal->updated_at = $now; 
+                    $temporal->save(); 
+                    //
+                    $mensaje_salida = json_encode('Se actualizo el telefono ' . $telefono);
+                 }
+                else
+                {  
+                    $mensaje_salida = json_encode('NroRegistration incorrecto ' . $registration);
+                } 
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+            $mensaje_salida = $ex->getMessage();
+            }
+        }
+        else {
+            $mensaje_salida = 'ERROR';
+        }        
+        return response($mensaje_salida,200);
+    }   
+    public function updateMiembro($registration, $campo, $valor, $token )
+    { 
+        $now = new \DateTime();
+        if ($token == 'gapp') {  
+            try {  
+                $temporal_count = Miembros::where('registration', $registration)->count();
+                if($temporal_count>0)
+                {
+                    $temporal = Miembros::where('registration', $registration)->first();
+                    if ($campo == 'telefono') {                         
+                        $temporal->phoneNumber = $valor; 
+                    }
+                    if ($campo == 'email') {   
+                        $temporal->email = $valor; 
+                    }
+                    if ($campo == 'editor') {   
+                        $temporal->sino_esEditor = $valor; 
+                    }
+                    if ($campo == 'noeditor') {   
+                        $temporal->sino_esEditor = null; 
+                    }
+                    if ($campo == 'lumisial') {   
+                        $temporal->lumisialUuid = $valor; 
+                    }
+                    if ($campo == 'inactivo') {   
+                        $temporal->sino_isActive = 'NO'; 
+                    }
+                    if ($campo == 'activo') {   
+                        $temporal->sino_isActive = 'SI'; 
+                    }
+                     if ($campo == 'nombre') {   
+                        $temporal->name = $valor; 
+                    }
+                     if ($campo == 'nroDocumento') {   
+                        $temporal->documentNumber = $valor; 
+                    }
+                    $temporal->updated_at = $now; 
+                    $temporal->save(); 
+                    //
+                    $mensaje_salida = json_encode('Se actualizo valor ' . $valor);
+                 }
+                else
+                {  
+                    $mensaje_salida = json_encode('NroRegistration incorrecto ' . $registration);
+                } 
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+            $mensaje_salida = $ex->getMessage();
+            }
+        }
+        else {
+            $mensaje_salida = 'ERROR';
+        }        
+        return response($mensaje_salida,200);
+    }  
+    public function getMiembroLumisial(  $lumisial , $token) {
+
+        try {  
+            $whereRaw = "1=1"; 
+            if ($lumisial != '0')
+            {
+                $whereRaw = "  (mie.lumisialUuid='$lumisial')";
+            } 
+            if ($token == 'gapp') {           
+                        $lumisiales = DB::table('app_miembros as mie')    
+                        ->select(DB::Raw('  mie.name  , 
+                                            mie.registration  , 
+                                            mie.documentNumber     '))  
+                         ->whereRaw($whereRaw) 
+                         ->where('mie.sino_isActive', 'SI' )   
+                        ->orderBy('mie.name', 'asc')
+                        ->get(); 
+                        $resultado = json_encode($lumisiales);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function getAportesPorLumisial($year, $token) {
+
+        try {   
+            if ($token == 'gapp') {           
+                        $lumisiales = DB::table('app_miembros_aportes as apor')    
+                        ->select(DB::Raw(' lumi.`name` lumisial, 
+                                            COUNT(*) cantidad,
+                                            sum( monto) monto , 
+                                            apor.moneda,
+                                            apor.ejercicio        '))  
+                        ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'apor.id_lumisial')
+                        ->where('apor.ejercicio', $year ) 
+                        ->groupBy('lumi.name')
+                        ->groupBy('apor.moneda')
+                        ->groupBy('apor.ejercicio')
+                        ->orderBy('lumi.name', 'asc')
+                        ->get(); 
+                        $resultado = json_encode($lumisiales);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+            }
+            
+        return response($resultado,200);
+    }
+    public function updateMovimientosContables(Request $request){ 
+     
+        if ($request->input('id') == ''){
+            $id = 0;
+        }
+        else {
+            $id = $request->input('id');
+        }
+        if ($request->input('token') == 'gapp') {  
+            try {  
+                /* 
+                id: Identificador único de cada movimiento contable.
+                fecha: Fecha del movimiento.
+                numero_comprobante: Número del comprobante asociado al movimiento.
+                descripcion: Descripción del movimiento.
+                tipo_movimiento: Tipo de movimiento (por ejemplo, ingreso o egreso).
+                monto: Monto del movimiento.
+                cliente_proveedor: Nombre del cliente o proveedor asociado (puede ser nulo).
+                moneda: Moneda en la que se realizó el movimiento.
+                tipo_cambio: Tipo de cambio aplicable (puede ser nulo).
+                responsable: Persona responsable del movimiento.
+                notas_adicionales: Notas adicionales sobre el movimiento (puede ser nulo).
+                */
+                $contable_count = Movimientos_Contables::where('id',  $request->input('id'))->count();
+                if ($contable_count > 0) {
+                    $tb_movimiento = Movimientos_Contables::find( $request->input('id'));
+                    $tb_movimiento->fecha = $request->input('fecha');
+                    $tb_movimiento->numero_comprobante = $request->input('numero_comprobante');
+                    $tb_movimiento->descripcion = $request->input('descripcion');
+                    $tb_movimiento->tipo_movimiento = $request->input('tipo_movimiento');
+                    $tb_movimiento->monto = $request->input('monto');
+                    $tb_movimiento->cliente_proveedor = $request->input('cliente_proveedor');
+                    $tb_movimiento->moneda = $request->input('moneda');
+                    $tb_movimiento->tipo_cambio = $request->input('tipo_cambio'); 
+                    $tb_movimiento->responsable = $request->input('responsable');
+                    $tb_movimiento->notas_adicionales = $request->input('notas_adicionales'); 
+                    $tb_movimiento->save();  
+                    $mensaje_salida = 'Actualizo Id ' . $tb_movimiento->id;
+                }
+                else {
+                    $tb_movimiento = New Movimientos_Contables;
+                    $tb_movimiento->fecha = $request->input('fecha');
+                    $tb_movimiento->numero_comprobante = $request->input('numero_comprobante');
+                    $tb_movimiento->descripcion = $request->input('descripcion');
+                    $tb_movimiento->tipo_movimiento = $request->input('tipo_movimiento');
+                    $tb_movimiento->monto = $request->input('monto');
+                    $tb_movimiento->cliente_proveedor = $request->input('cliente_proveedor');
+                    $tb_movimiento->moneda = $request->input('moneda');
+                    $tb_movimiento->tipo_cambio = $request->input('tipo_cambio'); 
+                    $tb_movimiento->responsable = $request->input('responsable');
+                    $tb_movimiento->notas_adicionales = $request->input('notas_adicionales'); 
+                    $tb_movimiento->save(); 
+                    $mensaje_salida = 'Alta Id ' . $tb_movimiento->id;
+                } 
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+            $mensaje_salida = $ex->getMessage();
+            }
+        }
+        else {
+            $mensaje_salida = 'ERROR  '  ;
+        }        
+        return response()->json(['message' =>  $mensaje_salida  ]);
+    }
+    public function deleteMovimientosContables($id, $token )
+    {
+            if ($token == 'gapp') {  
+                try { 
+                    Movimientos_Contables::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+    public function uploadMovimientosContables(Request $request) {
+      
+        $file = $request->file('file');
+       $id_movimiento_contable = $request->input('id');
+
+       // Lógica para guardar el archivo en el servidor con el ID
+       $fileName = "file_{$id_movimiento_contable}.jpg";
+
+       $path = $request->file('file')->getRealPath();    
+       $logo = file_get_contents($path);
+       $img_comp = base64_encode($logo);
+
+       //$file->move(storage_path('app/public/uploads'), $fileName);
+
+       $movimiento_contable = Movimientos_Contables::find($id_movimiento_contable);
+       $movimiento_contable->img_comprobante = $img_comp; 
+       $movimiento_contable->save();  
+
+       return response()->json(['message' => 'Archivo subido con éxito '  ]);
+       
+    }
+    public function getMovimientosContables(  $responsable, $periodo , $token) {
+     try {  
+         $whereRaw = "  (YEAR(mc.fecha)= $periodo)";
+        if ($responsable != '-')
+        {
+            $whereRaw = $whereRaw . " and (mc.responsable='$responsable')";
+        }        
+        if ($token == 'gapp') {           
+                    $contable = DB::table('app_movimientos_contables AS mc')    
+                    ->select(DB::Raw('  mc.id,
+                                        mc.fecha,
+                                        YEAR(mc.fecha) periodo,
+                                        mc.numero_comprobante, 
+                                        mc.descripcion, 
+                                        mc.tipo_movimiento, 
+                                        mc.monto, 
+                                        mc.cliente_proveedor, 
+                                        mc.moneda, 
+                                        mc.tipo_cambio, 
+                                        mc.responsable, 
+                                        mc.notas_adicionales  '))  
+                     ->whereRaw($whereRaw) 
+                    ->orderBy('mc.fecha', 'asc')
+                    ->get(); 
+                    $resultado = json_encode($contable);            
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+     }
+     catch(\Illuminate\Database\QueryException $ex){  
+        $resultado = $ex->getMessage();
+        }        
+     return response($resultado,200);
+    }
+    public function getMovimientoContable(  $id , $token) {
+        try {               
+            if ($token == 'gapp') {           
+                        $contable = DB::table('app_movimientos_contables AS mc')    
+                        ->select(DB::Raw('  mc.id,
+                                            mc.fecha, 
+                                            mc.numero_comprobante, 
+                                            mc.descripcion, 
+                                            mc.tipo_movimiento, 
+                                            mc.monto, 
+                                            mc.cliente_proveedor, 
+                                            mc.moneda, 
+                                            mc.tipo_cambio, 
+                                            mc.responsable, 
+                                            mc.notas_adicionales,
+                                            mc.img_comprobante   '))  
+                        ->where('mc.id', $id )    
+                        ->get(); 
+                        $resultado = json_encode($contable);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+        }
+            
+        return response($resultado,200);
+    }
+
+    public function EncuestasIndex()
+    {
+        $encuestas = Encuesta::all(); 
+        return response()->json($encuestas, 200);
+    }
+
+    public function EncuestasShow($id)
+    {
+         $encuesta = Encuesta::with('preguntas')->find($id); 
+        
+        if (!$encuesta) {
+            return response()->json(['error' => 'Encuesta no encontrada'], 404);
+        }
+
+        return response()->json($encuesta, 200);
+        //return response()->json(['message' => 'Respuestas guardadas correctamente'], 201);
+    }
+
+    public function EncuestasStore(Request $request)
+    {
+        $request->validate([
+            'titulo' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'preguntas' => 'required|array|min:1',
+            'preguntas.*' => 'required|string|max:255',
+        ]);
+
+        try {
+            $encuesta = Encuesta::create($request->only(['titulo', 'descripcion']));
+
+            foreach ($request->preguntas as $index => $texto) {
+                $encuesta->preguntas()->create([
+                    'texto_pregunta' => $texto,
+                    'orden' => $index + 1,
+                ]);
+            }
+
+            return response()->json($encuesta, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al crear la encuesta'], 500);
+        }
+    }
+    public function EncuestasRespuestas(Request $request, $id )
+    {
+        //$request->validate([
+        //    'respuestas' => 'required|array|min:1',
+        //    'respuestas.*.id_pregunta' => 'required|integer|exists:preguntas,id_pregunta',
+        //    'respuestas.*.respuesta' => 'required|string',
+        //    'id_usuario' => 'required|integer',
+        //]);
+ 
+ 
+
+        try {
+            $respuestasData = array_map(function ($respuesta) use ($id, $request) {
+                return [
+                    'id_encuesta' => $id,
+                    'id_pregunta' => $respuesta['id_pregunta'],
+                    'respuesta' => $respuesta['respuesta'],
+                    'id_usuario' => $respuesta['id_usuario'],
+                ];
+            }, $request->respuestas);
+
+            Respuesta::insert($respuestasData);
+
+            return response()->json(['message' => 'Respuestas guardadas correctamente'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al guardar las respuestas' . $e->getMessage()], 500);
+        }
+    }
+
+
+    public function obtenerPreguntas($numeroEncuesta)
+    {
+        try {
+            $preguntas = Pregunta::where('id_encuenta', $numeroEncuesta)
+                ->orderBy('orden', 'asc')
+                ->get()
+                ->map(function ($pregunta) {
+                    // Si es dropdown, obtiene las opciones de la tabla asociada
+                    if ($pregunta->tipo_campo === 'dropdown' && $pregunta->tabla_dropdown) {
+                        $pregunta->opciones = DB::table($pregunta->tabla_dropdown)->get();
+                    } else {
+                        $pregunta->opciones = [];
+                    }
+                    return $pregunta;
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $preguntas,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener las preguntas: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    public function getResultados($id_encuesta)
+    {
+        try {
+         
+            // Ejecutar el Stored Procedure
+            $resultados = DB::select("CALL GetEncuestaResultados(?)", [$id_encuesta]);
+
+            // Retornar como JSON
+            return response()->json($resultados);
+        
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener las preguntas: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    public function getResultadosDni($dni)
+    {
+        try {
+         
+            // Ejecutar el Stored Procedure
+            $resultados = DB::select("CALL GetEncuestaResultadosByDni(?)", [$dni]);
+
+            // Retornar como JSON
+            return response()->json($resultados);
+        
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener las preguntas: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    //Pase y salvo
+     public function addPaseYSalvo($miembro_pase, $nombre_pase,  $id_lumisial_origen, $id_lumisial_destino, $miembro_id, $duracion,$motivo,$participacion,$token )
+    { 
+        $now = new \DateTime();
+        if ($token == 'gapp') {  
+            try {  
+            
+                    $temporal = New Miembros_pases;
+                    $temporal->fecha = $now;
+                    $temporal->miembro_pase = $miembro_pase;
+                    $temporal->nombre_pase = $nombre_pase;
+                    $temporal->duracion = $duracion;
+                    $temporal->motivo = $motivo;
+                    $temporal->participacion = $participacion; 
+                    $temporal->id_lumisial_origen = $id_lumisial_origen;
+                    $temporal->id_lumisial_destino = $id_lumisial_destino;
+                    $temporal->miembro_id = $miembro_id;
+                    $temporal->created_at = $now;  
+                    //
+                    $temporal->save(); 
+                    //
+                    $mensaje_salida = json_encode('Nuevo pase registrado para' . $miembro_pase); 
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+            $mensaje_salida = $ex->getMessage();
+            }
+        }
+        else {
+            $mensaje_salida = 'ERROR';
+        }        
+        return response($mensaje_salida,200);
+    }
+public function getPaseYSalvo(  $miembro_id , $token) {
+        try {               
+            if ($token == 'gapp') {           
+                        $contable = DB::table('app_miembros_pases AS pas')    
+                        ->select(DB::Raw('  pas.id, 
+                                            pas.fecha, 
+                                            pas.miembro_pase,
+                                            mie.documentNumber PaseNroDocumento, 
+                                            pas.nombre_pase PaseNombre, 
+                                            pas.duracion PaseDuracion, 
+                                            pas.motivo PaseMotivo, 
+                                            pas.participacion PaseParticipacion,
+                                            pas.id_lumisial_origen, 
+                                            pas.id_lumisial_destino,
+                                             ori.`name` PaseLumisialOrigenNombre, 
+                                            ori.city PaseLumisialOrigenCiudad,
+                                            oripro.`name` PaseLumisialOrigenProvincia,
+                                            des.`name` PaseLumisialDestinoNombre,
+                                            des.city PaseLumisialDestinoCiudad,
+                                            despro.`name` PaseLumisialDestinoProvincia, 
+                                            pas.miembro_id,
+                                            mie2.documentNumber NroDocumento,  
+                                            pas.updated_at, 
+                                            pas.created_at   ')) 
+                        ->leftjoin('app_miembros_lumisial as ori', 'ori.uuid', '=', 'pas.id_lumisial_origen')
+                        ->leftjoin('app_miembros_lumisial as des', 'des.uuid', '=', 'pas.id_lumisial_destino')
+                        ->leftjoin('app_miembros_provincia as oripro', 'oripro.uuid', '=', 'ori.stateUuid') 
+                        ->leftjoin('app_miembros_provincia as despro', 'despro.uuid', '=', 'des.stateUuid') 
+                        ->leftjoin('app_miembros as mie', 'mie.registration', '=', 'pas.miembro_pase') 
+                        ->leftjoin('app_miembros as mie2', 'mie2.registration', '=', 'pas.miembro_id') 
+                        ->where('pas.miembro_id', $miembro_id )
+                        ->orWhere('pas.miembro_pase', $miembro_id)   
+                        ->get(); 
+                        $resultado = json_encode($contable);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+        }
+            
+        return response($resultado,200);
+    }
+     public function deletePaseYSalvo($id, $token )
+    {
+            if ($token == 'gapp') {  
+                try { 
+                    Miembros_pases::where('id', $id)->delete(); 
+                    $mensaje_salida = json_encode('Se Borra Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+
+}//fin de archivo
 

@@ -10,6 +10,7 @@ use App\Fecha_de_evento;
 use App\Movimiento_contable;
 use App\Equipo;
 use App\Usuario_por_equipo;
+use App\Rol_de_usuario;
 
 use App\Http\Controllers\GenericController;
 use Illuminate\Http\Request;
@@ -89,12 +90,30 @@ class ParticularController extends Controller
         if($modelo == 'User') {
             if ($accion == 'm') {
 
+                $autorizado = false;
                 $rol_de_usuario_id = $request->rol_de_usuario_id;
 
-                if ($rol_de_usuario_id == '1' and Auth::user()->id <> 1) {
-                    $acc_ant_mensaje['error'] = true;
-                    $acc_ant_mensaje['detalle'] = 'No puede asignar a un usuario como Administrador';
-                    $acc_ant_mensaje['class'] = 'alert-danger';    
+                if ($rol_de_usuario_id > 0) {
+                    
+                    $usuario_con_rol_supervisor = in_array(2, Auth::user()->roles());
+                    if (($rol_de_usuario_id == 2 or $rol_de_usuario_id == 3 or $rol_de_usuario_id == 4) and $usuario_con_rol_supervisor) {
+                        $autorizado = true;
+                    }
+
+                    // Controlo que no este queriendo asignar un rol que solo pueda asignar el Administrador
+                    $Roles = Rol_de_usuario::select('id')->where('sino_solo_asigna_administrador', 'SI')->get();
+                    $ids_roles_asignados_solo_por_administrador = $Roles->pluck('id')->toArray();
+                    if (in_array($rol_de_usuario_id, $ids_roles_asignados_solo_por_administrador)) {
+                        $autorizado = true;                    
+                    }
+
+                    if (!$autorizado and Auth::user()->id <> 1) {
+                        $Rol = Rol_de_usuario::find($rol_de_usuario_id);
+                        $acc_ant_mensaje['error'] = true;
+                        $acc_ant_mensaje['detalle'] = 'No puede asignarle a un usuario el Rol de '.$Rol->rol_de_usuario;
+                        $acc_ant_mensaje['class'] = 'alert-danger';    
+                    }
+
                 }
 
             }
@@ -113,6 +132,8 @@ class ParticularController extends Controller
             }
         }
         // FIN Equipo
+
+
     
     return $acc_ant_mensaje;
 

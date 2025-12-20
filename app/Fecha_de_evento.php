@@ -3,6 +3,7 @@
 namespace App;
 
 use Auth;
+use App;
 use App\Misionero_por_evento;
 use Illuminate\Database\Eloquent\Model;
 use App\Encuesta_de_satisfaccion;
@@ -245,7 +246,7 @@ class Fecha_de_evento extends Model
             $inicio = "$nombre_dia, $dia. $mes $hora";
         } 
         if ($idioma == 'sv') {
-            $inicio = "$nombre_dia $mes $dia, $hora";
+            $inicio = "$nombre_dia $dia $mes, $hora";
         }
         if ($idioma == 'hu') {
             $inicio = "$nombre_dia $mes $dia, $hora";
@@ -255,6 +256,12 @@ class Fecha_de_evento extends Model
         }  
         if ($idioma == 'el') {
             $inicio = "$nombre_dia $dia $mes $hora";
+        }
+        if ($idioma == 'ja') {
+            $inicio = $mes.$dia.'日 '.$hora;
+        }
+        if ($idioma == 'ro') {
+            $inicio = $dia.' '.$mes.' '.$hora;
         }
         
         return  $inicio;
@@ -360,6 +367,7 @@ class Fecha_de_evento extends Model
 
         $formato24  = 'S';
         if ($Idioma_por_pais <> null) {
+            App::setLocale($Idioma_por_pais->idioma->mnemo);
             if ($Idioma_por_pais->formato_de_hora_id <> null) {
                 if ($Idioma_por_pais->formato_de_hora_id == 1) {
                 	$formato24  = 'S';
@@ -563,10 +571,10 @@ class Fecha_de_evento extends Model
 
         $detalle = '';
         if ($tipo == 'whatsapp') {
-            if (trim($url_fachada) <> '') {
-                $detalle .= "$url_fachada\n";
-            }
             $detalle .= __('Lugar').": $direccion\n".__('Ver Mapa').": $url_mapa\n";
+            if (trim($url_fachada) <> '') {
+                $detalle .= "\n Frente del lugar: $url_fachada\n";
+            }
         }
         else {
             $detalle = __('Lugar').": $direccion <br>".__('Ver Mapa').": <a href='$url_mapa' target='_blank'>$url_mapa</a><br>";
@@ -585,9 +593,15 @@ class Fecha_de_evento extends Model
 
     public function dias_y_horarios($Idioma_por_pais = null, $idioma = null) {
 
+
+
         if ($idioma == null) {
             $idioma = $this->solicitud->idioma->mnemo;
         }
+
+        $locale = App::getLocale();        
+        App::setLocale($idioma);
+
 
         $y = 'y';
 
@@ -617,6 +631,9 @@ class Fecha_de_evento extends Model
         }
         if ($idioma == 'el') {
             $y = 'και';
+        }
+        if ($idioma == 'da') {
+            $y = 'og';
         }
         
 
@@ -768,6 +785,8 @@ class Fecha_de_evento extends Model
         }
         //$detalle = utf8_decode(str_replace('é', 'é', $detalle));
         //dd($detalle);
+        App::setLocale($locale);
+        
         return $detalle;
 
 

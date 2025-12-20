@@ -24,9 +24,11 @@ use App\Causa_de_cambio_de_solicitud;
 use App\Evaluacion;
 use App\Curso;
 use App\Alumno_avanzado;
+use App\Gnosisargentina_wp_inscripto;
+use App\Gnosisargentina_wp_usermeta;
+use Illuminate\Support\Facades\Validator;
 
-
-
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -84,6 +86,9 @@ class FormController extends Controller
         if (count($array_hash) > 1) {
             if ($array_hash[1] == 'embebed') {
                 $modo = 'embebed';
+            }
+            if ($array_hash[1] == 'json') {
+                $modo = 'json';
             }
             $hash = $array_hash[0];
         }
@@ -221,10 +226,11 @@ class FormController extends Controller
                     if ($Solicitud->file_imagen_del_formulario_personalizada == '') {
                         if ($Solicitud->tipo_de_evento_id == 1 or $Solicitud->tipo_de_evento_id == 3) {
                             if ($idioma_por_pais->pais_id <> 1) {
-                                $imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'/templates/2/img/flamarion_original_rec.jpg">';
+                                $imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'/templates/2/img/gnosis-autoconocimiento.jpg">';
                             }
                             else {
-                                $imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'/templates/2/img/noscete-ipsum.jpg">';
+                                //$imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'/templates/2/img/noscete-ipsum.jpg">';
+                                $imagen = '<img class="img-ancho-total" src="'.env('PATH_PUBLIC').'/templates/2/img/gnosis-autoconocimiento.jpg">';
                             }
 
                         }
@@ -287,13 +293,20 @@ class FormController extends Controller
                 $formulario_id = null;
             }
             else {
-                $Formularios = Formulario::where('sino_habilitado', 'SI')->get();
-                $cant_forms = Formulario::where('sino_habilitado', 'SI')->count();
-                
-                $formulario_nro = rand(0, $cant_forms-1);
+                if ($Solicitud->tipo_de_evento_id == 1 and strlen($Solicitud->url_enlace_de_invitacion_al_grupo_de_whatsapp_del_aula_virtual) > 10 and $idioma_por_pais->idioma_id == 1) {
+                    $formulario_id = 3;
+                    $Formularios = Formulario::find($formulario_id);
+                    $blade_de_formulario = $Formularios->blade_de_formulario;
+                }
+                else {
+                    $Formularios = Formulario::where('sino_habilitado', 'SI')->get();
+                    $cant_forms = Formulario::where('sino_habilitado', 'SI')->count();
+                    
+                    $formulario_nro = rand(0, $cant_forms-1);   
+                    $formulario_id = $Formularios[$formulario_nro]->id;
+                    $blade_de_formulario = $Formularios[$formulario_nro]->blade_de_formulario;
+                }
 
-                $formulario_id = $Formularios[$formulario_nro]->id;
-                $blade_de_formulario = $Formularios[$formulario_nro]->blade_de_formulario;
             }
 
 
@@ -348,7 +361,22 @@ class FormController extends Controller
                     $css_template = env('PATH_PUBLIC').'templates/2/css/main-asoprovida.css';
                     $bgform = 'bg-asoprovida';
                 }
-                else  { 
+
+                if ($Solicitud->institucion_id == 4) {
+                    $imagen_top = env('PATH_PUBLIC').'img/logo-instituto-conocimiento-integral-form.png';
+                    $imagen_chica = env('PATH_PUBLIC').'img/logo-instituto-conocimiento-integral-chico.jpg';
+                    $css_template = env('PATH_PUBLIC').'templates/2/css/main.css';
+                    $bgform = 'bg-gra-02';
+                }
+
+                if ($Solicitud->institucion_id == 5) {
+                    $imagen_top = env('PATH_PUBLIC').'img/logo-juventudes-gnosticas-form.png';
+                    $imagen_chica = env('PATH_PUBLIC').'img/logo-juventudes-gnosticas-chico.jpg';
+                    $css_template = env('PATH_PUBLIC').'templates/2/css/main-juventudes-gnosticas.css';
+                    $bgform = 'bg-juventudes-gnosticas';
+                }
+
+                if ($Solicitud->institucion_id <> 2 and $Solicitud->institucion_id <> 4 and $Solicitud->institucion_id <> 5) {
                     $idioma_img_gnosis = 'es';
                     //dd($idioma_por_pais);
                     if ($idioma_por_pais <> null) {
@@ -377,38 +405,75 @@ class FormController extends Controller
                 
                 $Paises = Pais::all();
 
+                if ($modo == 'json') {
 
+                    $datos = [
+                        'Fechas_de_eventos' => $Fechas_de_eventos,
+                        'titulo' => $titulo,
+                        'titulo_fecha_inicio' => $titulo_fecha_inicio,
+                        'subtitulo' => $subtitulo,
+                        'imagen' => $imagen,
+                        'resumen' => $resumen,
+                        'texto' => $texto,
+                        //'mensaje_fecha_de_evento' => $mensaje_fecha_de_evento,
+                        //'deshabilitar_formulario' => $deshabilitar_formulario,
+                        //'cel_requerido_class' => $cel_requerido_class,
+                        //'cel_requerido_v_validate' => $cel_requerido_v_validate,
+                        //'cel_requerido_input' => $cel_requerido_input,
+                        //'mail_requerido_class' => $mail_requerido_class,
+                        //'mail_requerido_input' => $mail_requerido_input,
+                        //'acepto_politica_de_privacidad' => $acepto_politica_de_privacidad,
+                        //'politica_de_privacidad' => $politica_de_privacidad,
+                        //'Solicitud' => $Solicitud,
+                        //'url_redes' => $url_redes,
+                        //'style_body' => $style_body,
+                        'campania_id' => $campania_id,
+                        'app_usuario_id' => $app_usuario_id,
+                        'ciudad' => $ciudad,
+                        'imagen_top' => $imagen_top,
+                        'imagen_chica' => $imagen_chica,
+                        'bgform' => $bgform,
+                        //'nombre_institucion' => $nombre_institucion,
+                        //'dominio_publico' => $Solicitud->dominioPublico(),
+                        //'Paises' => $Paises,
+                        'mensaje_redireccion' => $mensaje_redireccion
+                    ];
+                    
+                    return response()->json($datos);
+                }
+                else {
 
-                return View('forms/'.$blade_de_formulario)        
-                ->with('Fechas_de_eventos', $Fechas_de_eventos)
-                ->with('titulo', $titulo)
-                ->with('titulo_fecha_inicio', $titulo_fecha_inicio)
-                ->with('subtitulo', $subtitulo)
-                ->with('imagen', $imagen)              
-                ->with('resumen', $resumen)
-                ->with('texto', $texto)
-                ->with('mensaje_fecha_de_evento', $mensaje_fecha_de_evento)
-                ->with('deshabilitar_formulario', $deshabilitar_formulario) 
-                ->with('cel_requerido_class', $cel_requerido_class)     
-                ->with('cel_requerido_v_validate', $cel_requerido_v_validate)     
-                ->with('cel_requerido_input', $cel_requerido_input) 
-                ->with('mail_requerido_class', $mail_requerido_class)        
-                ->with('mail_requerido_input', $mail_requerido_input)      
-                ->with('acepto_politica_de_privacidad', $acepto_politica_de_privacidad)      
-                ->with('politica_de_privacidad', $politica_de_privacidad)
-                ->with('Solicitud', $Solicitud)
-                ->with('url_redes', $url_redes)
-                ->with('style_body', $style_body)
-                ->with('campania_id', $campania_id)
-                ->with('app_usuario_id', $app_usuario_id)
-                ->with('ciudad', $ciudad)
-                ->with('imagen_top', $imagen_top)
-                ->with('imagen_chica', $imagen_chica)
-                ->with('bgform', $bgform)
-                ->with('nombre_institucion', $nombre_institucion)
-                ->with('dominio_publico', $Solicitud->dominioPublico())
-                ->with('Paises', $Paises)
-                ->with('mensaje_redireccion', $mensaje_redireccion);
+                    return View('forms/'.$blade_de_formulario)        
+                    ->with('Fechas_de_eventos', $Fechas_de_eventos)
+                    ->with('titulo', $titulo)
+                    ->with('titulo_fecha_inicio', $titulo_fecha_inicio)
+                    ->with('subtitulo', $subtitulo)
+                    ->with('imagen', $imagen)              
+                    ->with('resumen', $resumen)
+                    ->with('texto', $texto)
+                    ->with('mensaje_fecha_de_evento', $mensaje_fecha_de_evento)
+                    ->with('deshabilitar_formulario', $deshabilitar_formulario) 
+                    ->with('cel_requerido_class', $cel_requerido_class)     
+                    ->with('cel_requerido_v_validate', $cel_requerido_v_validate)     
+                    ->with('cel_requerido_input', $cel_requerido_input) 
+                    ->with('mail_requerido_class', $mail_requerido_class)        
+                    ->with('mail_requerido_input', $mail_requerido_input)      
+                    ->with('acepto_politica_de_privacidad', $acepto_politica_de_privacidad)      
+                    ->with('politica_de_privacidad', $politica_de_privacidad)
+                    ->with('Solicitud', $Solicitud)
+                    ->with('url_redes', $url_redes)
+                    ->with('style_body', $style_body)
+                    ->with('campania_id', $campania_id)
+                    ->with('app_usuario_id', $app_usuario_id)
+                    ->with('ciudad', $ciudad)
+                    ->with('imagen_top', $imagen_top)
+                    ->with('imagen_chica', $imagen_chica)
+                    ->with('bgform', $bgform)
+                    ->with('nombre_institucion', $nombre_institucion)
+                    ->with('dominio_publico', $Solicitud->dominioPublico())
+                    ->with('Paises', $Paises)
+                    ->with('mensaje_redireccion', $mensaje_redireccion);
+                }
             }
             else {
                 echo 'ERROR! Esta url no es válida';
@@ -447,6 +512,20 @@ class FormController extends Controller
         
     }
     
+    public function chequearPost($nombre_variable) {
+        
+        $valor = null;
+
+        if (isset($_POST[$nombre_variable])) {
+            if ($_POST[$nombre_variable] <> '') {
+                $valor = $_POST[$nombre_variable];
+            }
+        } 
+
+        return $valor;
+    }
+
+
     public function limpiarCadena($cadena) {
         $cadena_limpia = trim($cadena);
         $cadena_limpia = str_replace("'", "’", $cadena);
@@ -454,12 +533,110 @@ class FormController extends Controller
         return $cadena_limpia;
         }
 
+
+    public function RegistrarInscripcionAPI(Request $request) {
+    
+
+
+        $solicitud_id = $request->input('solicitud_id');
+
+        // TRAIGO LAS REGLAS PARA VALIDAR
+        $reglas = $this->reglasInscripcion($solicitud_id);
+        $reglas['hash_url'] = 'required|string';
+
+        // VALIDO LOS CAMPOS QUE VIENEN
+        $validator = Validator::make($request->all(), $reglas);
+
+        if ($validator->fails()) {
+
+            // Podés seguir ejecutando lógica si querés
+            // o devolver tu propia respuesta API
+
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'Error de validación',
+                'errores' => $validator->errors()
+            ], 422);
+        }
+        else {
+            
+            $hash_url = $request->input('hash_url');
+            $Solicitud = Solicitud::find($solicitud_id);
+            if ($Solicitud->hash == $hash_url) {
+                try {
+                    
+                    //PROCESO LA INSCRIPCION
+                    $data = $this->prepararDataInscripcion($solicitud_id);
+
+                    return response()->json($data, 201);
+
+                } catch (\Exception $e) {
+                    $respuesta_error = [
+                        'procesado' => false,
+                        'mensaje_box' => 'Error al registrar la inscripcion',
+                    ];
+
+                    return response()->json($respuesta_error, 500);
+                }                
+            }
+            else {
+                //ERROR DEL HASH URL
+                $respuesta_error = [
+                    'procesado' => false,
+                    'mensaje_box' => 'Error! El Hash es incorrecto',
+                ];
+
+                return response()->json($respuesta_error, 500);
+            }
+
+            
+        }
+        
+
+    }
+
+
+
     public function RegistrarInscripcion(Request $request) {
+    
+
+        $solicitud_id = $this->limpiarCadena($_POST['solicitud_id']);
+
+        // TRAIGO LAS REGLAS PARA VALIDAR
+        $reglas = $this->reglasInscripcion($solicitud_id);
+
+        // VALIDO LOS CAMPOS QUE VIENEN
+        //$validator = Validator::make($request->all(), $reglas);
+        //dd($validator->errors());
+
+        // VALIDO LOS CAMPOS QUE VIENEN
+        $this->validate($request, $reglas);
+        
+        $data = $this->prepararDataInscripcion($solicitud_id);
+
+        return View($data['blade_de_formulario'])          
+        ->with('Solicitud', $data['Solicitud'])
+        ->with('inscripcion_id', $data['inscripcion_id'])
+        ->with('titulo', $data['titulo'])
+        ->with('mensaje_box', $data['mensaje_box'])
+        ->with('url_invitacion_grupo_whatsapp', $data['url_invitacion_grupo_whatsapp'])
+        ->with('url_invitacion_grupo_facebook', $data['url_invitacion_grupo_facebook'])
+        ->with('url_redireccionar_automaticamente_al_enlace', $data['url_redireccionar_automaticamente_al_enlace'])
+        ->with('url_fanpage', $data['url_fanpage'])
+        ->with('url_youtube', $data['url_youtube'])
+        ->with('mnemo_face', $data['mnemo_face'])
+        ->with('url_form_inscripcion', $data['url_form_inscripcion'])
+        ->with('nombre_de_la_institucion', $data['nombre_de_la_institucion'])
+        ->with('dominio_publico', $data['dominio_publico']);
+
+
+    }
 
 
 
-        $error_inscripcion = false;
-        $solicitud_id = $_POST['solicitud_id'];
+
+    public function reglasInscripcion($solicitud_id) {
+
         $Solicitud = Solicitud::find($solicitud_id);
             
         $cel_requerido = 'required|';
@@ -468,8 +645,7 @@ class FormController extends Controller
         $pais_id_requerido = '';
         $ciudad_requerido = '';
         $localidad_id_requerido = '';
-        $mensaje_box_fecha_de_evento = '';
-    
+
         if ($Solicitud->idioma_por_pais() <> null) {
             $idioma_por_pais = $Solicitud->idioma_por_pais(); 
             if ($idioma_por_pais->sino_cel_obligatorio == 'NO') {
@@ -482,10 +658,6 @@ class FormController extends Controller
                 $mail_requerido = 'required|';
             }
 
-            $institucion_id = $idioma_por_pais->institucion_id;
-        }
-        else {
-            $institucion_id = 1;
         }
 
         if ($Solicitud->tipo_de_evento_id == 3) { 
@@ -493,80 +665,55 @@ class FormController extends Controller
             $ciudad_requerido = 'required|';
         }
 
-        /*
-        if (($Solicitud->sino_habilitar_pedido_de_canal_de_recepcion_del_curso == 'SI' and $Solicitud->tipo_de_evento_id == 3) or $Solicitud->id == 6 ) {
-            $canal_de_recepcion_del_curso_id_requerido = 'required|';
-        }
-        */
-
         if ($Solicitud->tipo_de_evento_id == 4 and $Solicitud->pais_id <> '' and in_array($Solicitud->id, array(3747, 4033, 4034, 4035, 4036, 4037)) ) {
             $localidad_id_requerido = 'required|';
         }
 
-        $this->validate($request, [
+        // VALIDO LOS CAMPOS QUE VIENEN
+        $reglas = [
+            'solicitud_id' => 'required|numeric|min:0',
+            //'campania_id' => 'numeric|min:0',
+            //'app_usuario_id' => 'numeric|min:0',
+            //'embebed' => 'string',
             'nombre' => 'required|max:45',
-            'apellido' => 'required|max:45',
+            'apellido' => 'max:45',
             'celular' => $cel_requerido.'max:45',
-            'email_correo' => $mail_requerido.'max:80',
-            'canal_de_recepcion_del_curso_id' => $canal_de_recepcion_del_curso_id_requerido,
-            'pais_id' => $pais_id_requerido,
-            'ciudad' => $ciudad_requerido.'max:50',
-            'localidad_id' => $localidad_id_requerido,
-            'consulta' => 'max:300'
-        ]);
+            //'celular_completo' => 'string|max:45',
+            'email_correo' => $mail_requerido.'max:80|email',
+            'fecha_de_evento_id' => 'numeric|min:0',
+            //'canal_de_recepcion_del_curso_id' => $canal_de_recepcion_del_curso_id_requerido,
+            'consulta' => 'max:2000',
+            'pais_id' => $pais_id_requerido.'numeric|min:0',
+            'ciudad' => $ciudad_requerido.'string|max:60',
+            'localidad_id' => $localidad_id_requerido.'numeric|min:0',
+            'sino_notificar_proximos_eventos' => 'string',
+            'acepto_politica_de_privacidad' => 'string',
+        ];
+
+        return $reglas;
 
 
+    }
 
+    public function prepararDataInscripcion($solicitud_id) {
 
-        $campania_id = null;
-        $app_usuario_id = null;
-        if (isset($_POST['campania_id'])) {
-            $campania_id = $_POST['campania_id'];
-            if ($campania_id == '' or $campania_id == 0) {
-                $campania_id = null;
+        $campania_id = $this->limpiarCadena($this->chequearPost('campania_id'));
+        $app_usuario_id = $this->limpiarCadena($this->chequearPost('app_usuario_id'));
+        $embebed = $this->limpiarCadena($this->chequearPost('embebed'));
+        $nombre = $this->limpiarCadena($this->chequearPost('nombre'));
+        $apellido = $this->limpiarCadena($this->chequearPost('apellido'));
 
-                if (isset($_POST['app_usuario_id'])) {
-                    if ($_POST['app_usuario_id'] > 0) {
-                        $app_usuario_id = $_POST['app_usuario_id'];
-                    }
-                }
-
-            }
-        }
-
-        $embebed = '';
-        if (isset($_POST['embebed'])) {
-            $embebed = $_POST['embebed'];
-        }
-
-        $url_invitacion_grupo_facebook = '';
-
-        $idioma = $Solicitud->idioma->mnemo;
-        App::setLocale($idioma);    
-               
-        $apellido = $this->limpiarCadena($_POST['apellido']);
-        $nombre = $this->limpiarCadena($_POST['nombre']);
-        //$nombre = '444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444';
-        $celular = $this->limpiarCadena($_POST['celular']);
-        if (isset($_POST['celular_completo'])) {
-            $celular_completo = $this->limpiarCadena($_POST['celular_completo']);
-            if ($celular_completo <> '') {
-                $celular = $celular_completo;
-            }
-        }
+        $celular = $this->limpiarCadena($this->chequearPost('celular'));
+        $celular_completo = $this->limpiarCadena($this->chequearPost('celular_completo'));
+        $celular = $celular_completo <> '' ? $celular_completo : $celular;
         
-        $canal_de_recepcion_del_curso_id = null;
-        if (isset($_POST['canal_de_recepcion_del_curso_id'])) {
-            $canal_de_recepcion_del_curso_id = $this->limpiarCadena($_POST['canal_de_recepcion_del_curso_id']);
-        }
-        $email_correo = $this->limpiarCadena($_POST['email_correo']);
-        $email_correo = str_replace(' ', '', $email_correo);
-        if ($Solicitud->tipo_de_evento_id == 4) {
-            $consulta = '';
-        }
-        else {
-            $consulta = $this->limpiarCadena($_POST['consulta']);
-        }
+        $email_correo = $this->limpiarCadena($this->chequearPost('email_correo'));
+        $fecha_de_evento_id = $this->limpiarCadena($this->chequearPost('fecha_de_evento_id'));
+        $canal_de_recepcion_del_curso_id = $this->limpiarCadena($this->chequearPost('canal_de_recepcion_del_curso_id'));
+        $consulta = $this->limpiarCadena($this->chequearPost('consulta'));
+        $pais_id = $this->limpiarCadena($this->chequearPost('pais_id'));
+        $ciudad = $this->limpiarCadena($this->chequearPost('ciudad'));
+        $localidad_id = $this->limpiarCadena($this->chequearPost('localidad_id'));
 
         if (isset($_POST['sino_notificar_proximos_eventos'])) {
             $notificar_proximos_eventos = 'SI';
@@ -575,17 +722,58 @@ class FormController extends Controller
             $notificar_proximos_eventos = 'NO';
         }
 
-        $pais = '';
-        $ciudad = '';
-
-        if (isset($_POST['fecha_de_evento_id'])) {
-            $fecha_de_evento_id = $_POST['fecha_de_evento_id'];
-        } 
+        if (isset($_POST['acepto_politica_de_privacidad'])) {
+            $acepto_politica_de_privacidad = 'SI';
+        }
         else {
-            $fecha_de_evento_id = '';
-        }       
+            $acepto_politica_de_privacidad = NULL;
+        }
+
+        $fecha_de_evento_ids = [];
+        $Fechas_de_evento = Fecha_de_evento::where('solicitud_id', $solicitud_id)->get();
+        foreach ($Fechas_de_evento as $Fecha_de_evento) {
+            if (isset($_POST['fecha_de_evento_id_'.$Fecha_de_evento->id])) {
+                $fecha_de_evento_ids[] = $_POST['fecha_de_evento_id_'.$Fecha_de_evento->id];
+            }
+        }
 
 
+        $data = $this->RegistrarInscripcionProceso($solicitud_id, $campania_id, $app_usuario_id, $embebed, $nombre, $apellido, $celular, $celular_completo, $canal_de_recepcion_del_curso_id, $email_correo, $consulta, $fecha_de_evento_id, $fecha_de_evento_ids, $pais_id, $ciudad, $localidad_id, $notificar_proximos_eventos, $acepto_politica_de_privacidad);
+
+        return $data;
+
+    }
+    public function RegistrarInscripcionProceso($solicitud_id, $campania_id, $app_usuario_id, $embebed, $nombre, $apellido, $celular, $celular_completo, $canal_de_recepcion_del_curso_id, $email_correo, $consulta, $fecha_de_evento_id, $fecha_de_evento_ids, $pais_id, $ciudad, $localidad_id, $notificar_proximos_eventos, $acepto_politica_de_privacidad) {
+
+
+        $error_inscripcion = false;
+        $inscripcion_id = null;
+        $Solicitud = Solicitud::find($solicitud_id);
+            
+        $mensaje_box_fecha_de_evento = '';
+
+        $GrupoAsignado = $this->asignarGrupo($Solicitud);
+        $nro_de_grupo = $GrupoAsignado['nro_de_grupo'];
+        $url_redireccionar_automaticamente_al_enlace = null;
+        
+        if ($Solicitud->idioma_por_pais() <> null) {
+            $idioma_por_pais = $Solicitud->idioma_por_pais(); 
+            $institucion_id = $idioma_por_pais->institucion_id;
+        }
+        else {
+            $institucion_id = 1;
+        }
+
+
+        $url_invitacion_grupo_facebook = '';
+
+        $idioma = $Solicitud->idioma->mnemo;
+        App::setLocale($idioma);    
+
+        
+        if ($Solicitud->tipo_de_evento_id == 4) {
+            $consulta = '';
+        }
 
         $se_registro_alguna_inscripcion = 'N';
         $inscripcion_ya_registrada = 'N';
@@ -598,13 +786,10 @@ class FormController extends Controller
         if (($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id <> 4) or $Solicitud->tipo_de_evento_id == 4) {
 
             if ($Solicitud->tipo_de_evento_id == 3 or ($Solicitud->tipo_de_evento_id == 4 and $Solicitud->pais_id == '') or ($Solicitud->tipo_de_evento_id == 4 and  !in_array($Solicitud->id, array(3747, 4033, 4034, 4035, 4036, 4037)) ) ) {
-                $pais_id = $this->limpiarCadena($_POST['pais_id']);
-                $ciudad = $this->limpiarCadena($_POST['ciudad']);
             }
 
             if ($Solicitud->tipo_de_evento_id == 4 and $Solicitud->pais_id <> '' and in_array($Solicitud->id, array(3747, 4033, 4034, 4035, 4036, 4037))) {
                 $pais_id = $Solicitud->pais_id;
-                $localidad_id = $this->limpiarCadena($_POST['localidad_id']);
                 $Localidad = Localidad::find($localidad_id);
                 $ciudad = $Localidad->localidad; 
             }
@@ -655,21 +840,24 @@ class FormController extends Controller
                 $Inscripcion->consulta = $consulta;
                 $Inscripcion->pais_id = $pais_id;
                 $Inscripcion->ciudad = $ciudad;
-                $Inscripcion->campania_id = $campania_id;
-                $Inscripcion->app_usuario_id = $app_usuario_id;
-                $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;
+                if ($campania_id > 0) {
+                    $Inscripcion->campania_id = $campania_id;
+                }
+                if ($app_usuario_id > 0) {
+                    $Inscripcion->app_usuario_id = $app_usuario_id;
+                }
+                if ($canal_de_recepcion_del_curso_id > 0) {
+                    $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;
+                }
                 $Inscripcion->codigo_alumno = $Inscripcion->codigo_del_alumno();
+                $Inscripcion->grupo = $nro_de_grupo;
 
                 if ($fecha_de_evento_id <> '') {
                     $Inscripcion->fecha_de_evento_id = $fecha_de_evento_id;
                 }
 
-                if (isset($_POST['sino_notificar_proximos_eventos'])) {
-                    $Inscripcion->sino_notificar_proximos_eventos = 'SI';
-                }
-                if (isset($_POST['acepto_politica_de_privacidad'])) {
-                    $Inscripcion->sino_acepto_politica_de_privacidad = 'SI';
-                }
+                $Inscripcion->sino_notificar_proximos_eventos = $notificar_proximos_eventos;
+                $Inscripcion->sino_acepto_politica_de_privacidad = $acepto_politica_de_privacidad;
 
                 try { 
                     $Inscripcion->save(); 
@@ -699,10 +887,6 @@ class FormController extends Controller
 
             $inscripcion_id = NULL;
 
-            if ($Solicitud->tipo_de_evento_id == 3) {
-                $pais_id = $this->limpiarCadena($_POST['pais_id']);
-                $ciudad = $this->limpiarCadena($_POST['ciudad']);
-            }
 
             if ($Solicitud->Tipo_de_evento->id == 2) {
                 $Fecha_de_evento = Fecha_de_evento::where('solicitud_id', $Solicitud->id)->get();
@@ -762,18 +946,20 @@ class FormController extends Controller
                     $Inscripcion->fecha_de_evento_id = $fecha_de_evento_id;
                 }
 
-
-                if (isset($_POST['sino_notificar_proximos_eventos'])) {
-                    $Inscripcion->sino_notificar_proximos_eventos = 'SI';
+                $Inscripcion->sino_notificar_proximos_eventos = $notificar_proximos_eventos;
+                $Inscripcion->sino_acepto_politica_de_privacidad = $acepto_politica_de_privacidad;
+                if ($campania_id > 0) {
+                    $Inscripcion->campania_id = $campania_id;
                 }
-                if (isset($_POST['acepto_politica_de_privacidad'])) {
-                    $Inscripcion->sino_acepto_politica_de_privacidad = 'SI';
+                if ($app_usuario_id > 0) {
+                    $Inscripcion->app_usuario_id = $app_usuario_id;
                 }
-                $Inscripcion->campania_id = $campania_id;
-                $Inscripcion->app_usuario_id = $app_usuario_id;
-                $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;                
+                if ($canal_de_recepcion_del_curso_id > 0) {
+                    $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;
+                }              
                 $Inscripcion->codigo_alumno = $Inscripcion->codigo_del_alumno();
-                
+                $Inscripcion->grupo = $nro_de_grupo;
+
                 if ($Solicitud->tipo_de_evento_id == 3) {
                     $Inscripcion->pais_id = $pais_id;
                     $Inscripcion->ciudad = $ciudad;
@@ -830,67 +1016,67 @@ class FormController extends Controller
             if ($Solicitud->tipo_de_evento_id <> 3) {
                 // Cargo por cada Conferencia del ciclo de conferencias una inscripcion
                 $Fechas_de_evento = Fecha_de_evento::where('solicitud_id', $solicitud_id)->get();
-                foreach ($Fechas_de_evento as $Fecha_de_evento) {
-                    if (isset($_POST['fecha_de_evento_id_'.$Fecha_de_evento->id])) {
+                foreach ($fecha_de_evento_ids as $fecha_de_evento_id) {
+                    $Fecha_de_evento = Fecha_de_evento::find($fecha_de_evento_id);
+                    $date_of_interest = $Fecha_de_evento->fecha_de_inicio; 
+                    array_push($tags_mautic, $Fecha_de_evento->titulo_de_conferencia_publica);
 
-                        $date_of_interest = $Fecha_de_evento->fecha_de_inicio; 
-                        $fecha_de_evento_id = $_POST['fecha_de_evento_id_'.$Fecha_de_evento->id];
-                        array_push($tags_mautic, $Fecha_de_evento->titulo_de_conferencia_publica);
+                    $Inscripcion_previa = Inscripcion::where('apellido', $apellido)
+                        ->where('nombre', $nombre)
+                        ->where('celular', $celular)
+                        ->whereRaw("((email_correo = '$email_correo') OR (email_correo IS NULL AND '$email_correo' = ''))")
+                        ->where('fecha_de_evento_id', $fecha_de_evento_id)
+                        ->get();
 
-                        $Inscripcion_previa = Inscripcion::where('apellido', $apellido)
-                            ->where('nombre', $nombre)
-                            ->where('celular', $celular)
-                            ->whereRaw("((email_correo = '$email_correo') OR (email_correo IS NULL AND '$email_correo' = ''))")
-                            ->where('fecha_de_evento_id', $fecha_de_evento_id)
-                            ->get();
+                    if ($Inscripcion_previa->count() == 0) {
 
-                        if ($Inscripcion_previa->count() == 0) {
+                        $se_registro_alguna_inscripcion = 'S';
 
-                            $se_registro_alguna_inscripcion = 'S';
+                        $Inscripcion = new Inscripcion;
+                        $Inscripcion->solicitud_id = $solicitud_id;
+                        $Inscripcion->apellido = $apellido;
+                        $Inscripcion->nombre = $nombre;
+                        if ($celular <> '') {
+                            $Inscripcion->celular = $celular;
+                        }
+                        if ($email_correo <> '') {
+                            $Inscripcion->email_correo = $email_correo;
+                        }
+                        $Inscripcion->consulta = $consulta;      
 
-                            $Inscripcion = new Inscripcion;
-                            $Inscripcion->solicitud_id = $solicitud_id;
-                            $Inscripcion->apellido = $apellido;
-                            $Inscripcion->nombre = $nombre;
-                            if ($celular <> '') {
-                                $Inscripcion->celular = $celular;
-                            }
-                            if ($email_correo <> '') {
-                                $Inscripcion->email_correo = $email_correo;
-                            }
-                            $Inscripcion->consulta = $consulta;      
+                        $Inscripcion->fecha_de_evento_id = $fecha_de_evento_id;
 
-                            $Inscripcion->fecha_de_evento_id = $fecha_de_evento_id;
-
-                            if (isset($_POST['sino_notificar_proximos_eventos'])) {
-                                $Inscripcion->sino_notificar_proximos_eventos = 'SI';
-                            }
-                            if (isset($_POST['acepto_politica_de_privacidad'])) {
-                                $Inscripcion->sino_acepto_politica_de_privacidad = 'SI';
-                            }
+                        $Inscripcion->sino_notificar_proximos_eventos = $notificar_proximos_eventos;
+                        $Inscripcion->sino_acepto_politica_de_privacidad = $acepto_politica_de_privacidad;
+                        if ($campania_id > 0) {
                             $Inscripcion->campania_id = $campania_id;
+                        }
+                        if ($app_usuario_id > 0) {
                             $Inscripcion->app_usuario_id = $app_usuario_id;
+                        }
+                        if ($canal_de_recepcion_del_curso_id > 0) {
                             $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;
-                            $Inscripcion->codigo_alumno = $Inscripcion->codigo_del_alumno();
+                        }
+                        $Inscripcion->codigo_alumno = $Inscripcion->codigo_del_alumno();
+                        $Inscripcion->grupo = $nro_de_grupo;
 
-                            try { 
-                                $Inscripcion->save(); 
-                                $inscripcion_id = $Inscripcion->id;
-                                $detalle_fecha = $Inscripcion->fecha_de_evento->armarDetalleFechasDeEventos('html', true, null, $Solicitud, null);
-                                $mensaje_box_fecha_de_evento .= '<br><br><span style="color: #a19b91">'.$detalle_fecha.'</span>';
-                            } catch(\Illuminate\Database\QueryException $ex){ 
-                                $detalle_de_origen = 'Registracion de Inscripcion (Cargo por cada Conferencia del ciclo de conferencias una inscripcion): '.URL::previous();
-                                $Registro_de_error = new Registro_de_error;
-                                $Registro_de_error->registro_de_error = $ex->getMessage();
-                                $Registro_de_error->detalle_de_origen = $detalle_de_origen;
-                                $Registro_de_error->save();              
-                                $error_inscripcion = true;
-                            }                        
-                        }
-                        else {                        
-                            $inscripcion_ya_registrada = 'S';
-                            $inscripcion_id = $Inscripcion_previa[0]->id;
-                        }
+                        try { 
+                            $Inscripcion->save(); 
+                            $inscripcion_id = $Inscripcion->id;
+                            $detalle_fecha = $Inscripcion->fecha_de_evento->armarDetalleFechasDeEventos('html', true, null, $Solicitud, null);
+                            $mensaje_box_fecha_de_evento .= '<br><br><span style="color: #a19b91">'.$detalle_fecha.'</span>';
+                        } catch(\Illuminate\Database\QueryException $ex){ 
+                            $detalle_de_origen = 'Registracion de Inscripcion (Cargo por cada Conferencia del ciclo de conferencias una inscripcion): '.URL::previous();
+                            $Registro_de_error = new Registro_de_error;
+                            $Registro_de_error->registro_de_error = $ex->getMessage();
+                            $Registro_de_error->detalle_de_origen = $detalle_de_origen;
+                            $Registro_de_error->save();              
+                            $error_inscripcion = true;
+                        }                        
+                    }
+                    else {                        
+                        $inscripcion_ya_registrada = 'S';
+                        $inscripcion_id = $Inscripcion_previa[0]->id;
                     }
                 }
                 // si no se registro ninguna inscripcion
@@ -922,16 +1108,19 @@ class FormController extends Controller
                         $Inscripcion->email_correo = $email_correo;
                         $Inscripcion->consulta = $consulta;      
 
-                        if (isset($_POST['sino_notificar_proximos_eventos'])) {
-                            $Inscripcion->sino_notificar_proximos_eventos = 'SI';
+                        $Inscripcion->sino_notificar_proximos_eventos = $notificar_proximos_eventos;
+                        $Inscripcion->sino_acepto_politica_de_privacidad = $acepto_politica_de_privacidad;
+                        if ($campania_id > 0) {
+                            $Inscripcion->campania_id = $campania_id;
                         }
-                        if (isset($_POST['acepto_politica_de_privacidad'])) {
-                            $Inscripcion->sino_acepto_politica_de_privacidad = 'SI';
+                        if ($app_usuario_id > 0) {
+                            $Inscripcion->app_usuario_id = $app_usuario_id;
                         }
-                        $Inscripcion->campania_id = $campania_id;
-                        $Inscripcion->app_usuario_id = $app_usuario_id;
-                        $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;
+                        if ($canal_de_recepcion_del_curso_id > 0) {
+                            $Inscripcion->canal_de_recepcion_del_curso_id = $canal_de_recepcion_del_curso_id;
+                        }
                         $Inscripcion->codigo_alumno = $Inscripcion->codigo_del_alumno();
+                        $Inscripcion->grupo = $nro_de_grupo;
 
                         try { 
                             $Inscripcion->save(); 
@@ -958,6 +1147,7 @@ class FormController extends Controller
         
 
         //INICIO MAUTIC
+        //QUITAR COMENTARIOS CUANDO EL SERVIDOR DE MAUTIC ESTE NUEVAMENTE RESTAURADO
             if (ENV('APP_ENV') <> 'development') {
                 if (($email_correo <> '' and $solicitud_id <> 7805 and $solicitud_id <> 8443) or $institucion_id <> 1) {
                     $settings = array(
@@ -1034,76 +1224,78 @@ class FormController extends Controller
 
                     $last_active = date("Y-m-d H:i:s");
 
-                    if ($contacts['total'] == "0") {
 
-                        //dd($contacts['total']);
-                        //$id = 759;
-                        //$response = $contactApi->get($id);
-                        //$contact = $response[$contactApi->itemName()];
-                        //$response = $contactApi->getList('', 0, 1);
-                        $systemsource = 'gnosis-incripcion-sistemaAC';
+                    if (!isset($contacts['errors'])) {
+                        if ($contacts['total'] == "0") {
 
-                        if ($fecha_de_evento_id == 'MO') {
-                            $fecha_de_evento_id = null;
+                            //dd($contacts['total']);
+                            //$id = 759;
+                            //$response = $contactApi->get($id);
+                            //$contact = $response[$contactApi->itemName()];
+                            //$response = $contactApi->getList('', 0, 1);
+                            $systemsource = 'gnosis-incripcion-sistemaAC';
+
+                            if ($fecha_de_evento_id == 'MO') {
+                                $fecha_de_evento_id = null;
+                            }
+
+                            $data = array(
+                                "email" => $email_correo,
+                                "firstname" => $nombre,
+                                "lastname" => $apellido,
+                                "mobile" => $celular,
+                                "themeofinterest" => $themeofinterest,
+                                //"description" => $themeofinterest,
+                                "countrystateregionlocal" => $countrystateregionlocal,
+                                "pais" => $pais,
+                                "provincia" => $provincia,
+                                "ciudad" => $localidad,
+                                "campaign_id" => $Solicitud->id,
+                                "eventid" => $fecha_de_evento_id,
+                                "systemsource" => $systemsource,
+                                "date_of_interest" => $date_of_interest,
+                                "last_active" => $last_active,
+                                "notificar_proximos_evento" => $notificar_proximos_eventos,                    
+                                "tags" => $tags_mautic,
+                            );
+
+
+                            $asset = $contactApi->create($data);
+
+                            if (isset($Inscripcion)) {
+                                $Inscripcion->mautic_contact_id = $asset['contact']['id'];
+                                $Inscripcion->save(); 
+                            }
+                            
                         }
+                        else {
+                            $contactId = key($contacts['contacts']);
 
-                        $data = array(
-                            "email" => $email_correo,
-                            "firstname" => $nombre,
-                            "lastname" => $apellido,
-                            "mobile" => $celular,
-                            "themeofinterest" => $themeofinterest,
-                            //"description" => $themeofinterest,
-                            "countrystateregionlocal" => $countrystateregionlocal,
-                            "pais" => $pais,
-                            "provincia" => $provincia,
-                            "ciudad" => $localidad,
-                            "campaign_id" => $Solicitud->id,
-                            "eventid" => $fecha_de_evento_id,
-                            "systemsource" => $systemsource,
-                            "date_of_interest" => $date_of_interest,
-                            "last_active" => $last_active,
-                            "notificar_proximos_evento" => $notificar_proximos_eventos,                    
-                            "tags" => $tags_mautic,
-                        );
+                            $data = array(
+                                'tags' => $tags_mautic,
+                                'last_active' => $last_active,
+                                "notificar_proximos_evento" => $notificar_proximos_eventos,  
+                                "info_log_actualizacion" => 'FormController Actualizacion de Contacto'.'inscripcion_id: '.$inscripcion_id.' - '.$email_correo.' - '.rand(0,1000),
 
 
-                        $asset = $contactApi->create($data);
+                            );
 
-                        if (isset($Inscripcion)) {
-                            $Inscripcion->mautic_contact_id = $asset['contact']['id'];
-                            $Inscripcion->save(); 
+                            $createIfNotFound = false;
+
+                            $contact = $contactApi->edit($contactId, $data, $createIfNotFound);
+                            //dd($contactId);
+
+
+                            if (isset($Inscripcion)) {
+                                $Inscripcion->mautic_contact_id = $contactId;
+                                $Inscripcion->save(); 
+                            }
+
                         }
-                        
-                    }
-                    else {
-                        $contactId = key($contacts['contacts']);
-
-                        $data = array(
-                            'tags' => $tags_mautic,
-                            'last_active' => $last_active,
-                            "notificar_proximos_evento" => $notificar_proximos_eventos,  
-                            "info_log_actualizacion" => 'FormController Actualizacion de Contacto'.'inscripcion_id: '.$inscripcion_id.' - '.$email_correo.' - '.rand(0,1000),
-
-
-                        );
-
-                        $createIfNotFound = false;
-
-                        $contact = $contactApi->edit($contactId, $data, $createIfNotFound);
-                        //dd($contactId);
-
-
-                        if (isset($Inscripcion)) {
-                            $Inscripcion->mautic_contact_id = $contactId;
-                            $Inscripcion->save(); 
-                        }
-
                     }
 
                 }            
             }
-
         //FIN MAUTIC    
         
         if ($Solicitud->id == 12958) {
@@ -1306,7 +1498,13 @@ class FormController extends Controller
             $blade_de_formulario = 'registracion-ok-embebed';
         }
         else {
-            $blade_de_formulario = 'registracion-ok';
+            
+            if ($Solicitud->tipo_de_evento_id == 1 and strlen($Solicitud->url_enlace_de_invitacion_al_grupo_de_whatsapp_del_aula_virtual) > 10 and $idioma_por_pais->idioma_id == 1) {
+                $blade_de_formulario = 'template_3_registracion-ok';
+            }
+            else {
+                $blade_de_formulario = 'registracion-ok';
+            }
         }
 
         $url_form_inscripcion = '';
@@ -1321,25 +1519,41 @@ class FormController extends Controller
         $url_invitacion_grupo_facebook = $this->agregarHttp($url_invitacion_grupo_facebook);
         $url_fanpage = $this->agregarHttp($url_fanpage);
         $url_youtube = $this->agregarHttp($url_youtube);
-        $url_redireccionar_automaticamente_al_enlace = $this->agregarHttp($Solicitud->url_redireccionar_automaticamente_al_enlace);
 
-        return View('forms/'.$blade_de_formulario)          
-        ->with('Solicitud', $Solicitud)            
-        ->with('titulo', $titulo)          
-        ->with('mensaje_box', $mensaje_box)         
-        ->with('url_invitacion_grupo_whatsapp', $url_invitacion_grupo_whatsapp)
-        ->with('url_invitacion_grupo_facebook', $url_invitacion_grupo_facebook)
-        ->with('url_redireccionar_automaticamente_al_enlace', $url_redireccionar_automaticamente_al_enlace)
-        ->with('url_fanpage', $url_fanpage)
-        ->with('url_youtube', $url_youtube)         
-        ->with('mnemo_face', $mnemo_face)   
-        ->with('url_form_inscripcion', $url_form_inscripcion)
-        ->with('nombre_de_la_institucion', $nombre_de_la_institucion)
-        ->with('dominio_publico', $Solicitud->dominioPublico());     
+        if ($Solicitud->url_redireccionar_automaticamente_al_enlace <> '') {
+            $url_redireccionar_automaticamente_al_enlace = $this->agregarHttp($Solicitud->url_redireccionar_automaticamente_al_enlace);
+        }
+        else {
+            //if (!in_array($Solicitud->id, [7880, 7881, 7882, 7883, 7884, 7886, 7887, 7889, 7524, 7536, 7542, 7543, 7544, 7549, 7550])) {
+            if (!in_array($Solicitud->id, [7880, 7881, 7882, 7883, 7884, 7886, 7887, 7889, 7524, 7549, 7550])) {
+                $celular_redireccion = $GrupoAsignado['celular_responsable_de_inscripciones'] ? $GrupoAsignado['celular_responsable_de_inscripciones'] : $Solicitud->celular_responsable_de_inscripciones;
+                $url_redireccionar_automaticamente_al_enlace = 'https://api.whatsapp.com/send/?phone='.$Solicitud->celular_wa($celular_redireccion).'&text='.__('Hola. Estoy interesado en participar y ya he completado el formulario').'&type=phone_number&app_absent=0';   
+            }
+        }
 
+
+        $data = [
+            'procesado' => !$error_inscripcion,
+            'mensaje_box' => $mensaje_box,
+            'mensaje' => 'forms/'.$blade_de_formulario,
+            'blade_de_formulario' => 'forms/'.$blade_de_formulario,
+            'Solicitud' => $Solicitud,
+            'inscripcion_id' => $inscripcion_id,
+            'titulo' => $titulo,
+            'url_invitacion_grupo_whatsapp' => $url_invitacion_grupo_whatsapp,
+            'url_invitacion_grupo_facebook' => $url_invitacion_grupo_facebook,
+            'url_redireccionar_automaticamente_al_enlace' => $url_redireccionar_automaticamente_al_enlace,
+            'url_fanpage' => $url_fanpage,
+            'url_youtube' => $url_youtube,
+            'mnemo_face' => $mnemo_face,
+            'url_form_inscripcion' => $url_form_inscripcion,
+            'nombre_de_la_institucion' => $nombre_de_la_institucion,
+            'dominio_publico' => $Solicitud->dominioPublico(),
+        ];
+        
+        return $data;
 
     }
-
 
     public function enviarNotificacionInscripcion($inscripcion_id, $codigo, $asunto) {
 
@@ -1435,6 +1649,7 @@ class FormController extends Controller
 
         
         //INICIO MAUTIC
+            //QUITAR COMENTARIOS CUANDO EL SERVIDOR DE MAUTIC ESTE NUEVAMENTE RESTAURADO
             if (ENV('APP_ENV') <> 'development') {
                 try {
                     $apiUrl = 'https://forms.gnosis.is';
@@ -1609,7 +1824,7 @@ class FormController extends Controller
             if ($recupero_tipo == 'pais') {
                 $recupero_pais_id = $recupero['id'];
                 $recupero_cant_dias = $recupero['cant_dias'];
-                $whereRaw .= " and (inscripciones.pais_id = $recupero_pais_id or s.pais_id = $recupero_pais_id or pr.pais_id = $recupero_pais_id) and DATEDIFF(NOW(), IFNULL(f.fecha_de_inicio, inscripciones.created_at)) BETWEEN 30 AND $recupero_cant_dias and a.id is null and s.tipo_de_evento_id in (1,2)";
+                $whereRaw .= " and (inscripciones.pais_id = $recupero_pais_id or s.pais_id = $recupero_pais_id or pr.pais_id = $recupero_pais_id) and DATEDIFF(NOW(), IFNULL(f.fecha_de_inicio, inscripciones.created_at)) BETWEEN 30 AND $recupero_cant_dias and (inscripciones.sino_asistio is null or inscripciones.sino_asistio <> 'SI') and a.id is null and s.tipo_de_evento_id in (1,2)";
             } 
             $Grupos['cant_total_inscriptos'] = $Inscripciones = Inscripcion::whereRaw($whereRaw)
             ->leftjoin('fechas_de_evento as f', 'f.id', '=', 'inscripciones.fecha_de_evento_id')
@@ -1651,7 +1866,7 @@ class FormController extends Controller
             }
 
             //$whereRaw .= " and inscripciones.id = 198632 ";
-            //$whereRaw .= " and inscripciones.sino_notificar_proximos_eventos = 'SI'";
+            $whereRaw .= " and inscripciones.sino_notificar_proximos_eventos = 'SI'";
 
             //
 
@@ -1729,7 +1944,7 @@ class FormController extends Controller
             $groupByRaw = 'inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo';
         }
         else {
-            $selectRaw = 'inscripciones.id, inscripciones.solicitud_id, inscripciones.solicitud_original, inscripciones.causa_de_cambio_de_solicitud_id, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo, inscripciones.pais_id, inscripciones.ciudad, inscripciones.consulta, inscripciones.fecha_de_evento_id, inscripciones.sino_notificar_proximos_eventos, inscripciones.sino_acepto_politica_de_privacidad, inscripciones.created_at, inscripciones.updated_at, inscripciones.sino_envio_pedido_de_confirmacion, inscripciones.sino_confirmo, inscripciones.sino_envio_recordatorio_pedido_de_confirmacion, inscripciones.sino_envio_voucher, inscripciones.sino_envio_motivacion, inscripciones.sino_envio_motivacion_2, inscripciones.sino_envio_motivacion_3, inscripciones.sino_envio_de_encuesta, inscripciones.sino_envio_recordatorio, inscripciones.sino_asistio, inscripciones.sino_contesto_consulta, inscripciones.sino_envio_recordatorio_proxima_clase, inscripciones.sino_envio_recordatorio_proxima_clase_a_no_asistente, inscripciones.sino_cancelo, inscripciones.sino_invitado_al_curso_online, inscripciones.sino_envio_1, inscripciones.sino_envio_2, inscripciones.sino_envio_3, inscripciones.sino_envio_4, inscripciones.sino_envio_5, inscripciones.sino_envio_6, inscripciones.sino_envio_7, inscripciones.sino_envio_8, inscripciones.sino_envio_9, inscripciones.sino_envio_10, sino_envio_certificado, inscripciones.observaciones, p.pais as nombre_pais, l.nombre_de_la_leccion, l.codigo_de_la_leccion, l.orden_de_leccion, lx.titulo, lx.nro_o_codigo, lp.id as proximaLeccion_id, lp.codigo_de_la_leccion proximaLeccion_codigo, c.canal_de_recepcion_del_curso, inscripciones.causa_de_baja_id, inscripciones.grupo, inscripciones.codigo_alumno, me.titulo_de_la_evaluacion, IFNULL(gs.nombre_responsable_de_inscripciones, s.nombre_responsable_de_inscripciones) nombre_responsable_de_inscripciones,  IFNULL(gs.celular_responsable_de_inscripciones, s.celular_responsable_de_inscripciones) celular_responsable_de_inscripciones, COUNT(enc.id) cant_encuestas, COUNT(DISTINCT l.id) cant_lecciones, COUNT(DISTINCT a.id) cant_asistencias, COUNT(DISTINCT e.modelo_de_evaluacion_id) cant_evaluaciones, inscripciones.sino_eleccion_modalidad_online, en.id envio_id, aa.estado_de_seguimiento_id, i.idioma';
+            $selectRaw = 'inscripciones.id, inscripciones.solicitud_id, inscripciones.solicitud_original, inscripciones.causa_de_cambio_de_solicitud_id, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo, inscripciones.pais_id, inscripciones.ciudad, inscripciones.consulta, inscripciones.fecha_de_evento_id, inscripciones.sino_notificar_proximos_eventos, inscripciones.sino_acepto_politica_de_privacidad, inscripciones.created_at, inscripciones.updated_at, inscripciones.sino_envio_pedido_de_confirmacion, inscripciones.sino_confirmo, inscripciones.sino_envio_recordatorio_pedido_de_confirmacion, inscripciones.sino_envio_voucher, inscripciones.sino_envio_motivacion, inscripciones.sino_envio_motivacion_2, inscripciones.sino_envio_motivacion_3, inscripciones.sino_envio_de_encuesta, inscripciones.sino_envio_recordatorio, inscripciones.sino_asistio, inscripciones.sino_contesto_consulta, inscripciones.sino_envio_recordatorio_proxima_clase, inscripciones.sino_envio_recordatorio_proxima_clase_a_no_asistente, inscripciones.sino_cancelo, inscripciones.sino_invitado_al_curso_online, inscripciones.sino_envio_1, inscripciones.sino_envio_2, inscripciones.sino_envio_3, inscripciones.sino_envio_4, inscripciones.sino_envio_5, inscripciones.sino_envio_6, inscripciones.sino_envio_7, inscripciones.sino_envio_8, inscripciones.sino_envio_9, inscripciones.sino_envio_10, sino_envio_certificado, sino_promocionado_a_contenidos_avanzados, inscripciones.sino_envio_pedido_de_confirmacion_a_contenidos_avanzados, inscripciones.sino_confirmo_a_contenidos_avanzados, inscripciones.observaciones, p.pais as nombre_pais, l.nombre_de_la_leccion, l.codigo_de_la_leccion, l.orden_de_leccion, lx.titulo, lx.nro_o_codigo, lp.id as proximaLeccion_id, lp.codigo_de_la_leccion proximaLeccion_codigo, c.canal_de_recepcion_del_curso, inscripciones.causa_de_baja_id, inscripciones.grupo, inscripciones.codigo_alumno, me.titulo_de_la_evaluacion, IFNULL(gs.nombre_responsable_de_inscripciones, s.nombre_responsable_de_inscripciones) nombre_responsable_de_inscripciones,  IFNULL(gs.celular_responsable_de_inscripciones, s.celular_responsable_de_inscripciones) celular_responsable_de_inscripciones, COUNT(enc.id) cant_encuestas, COUNT(DISTINCT a.leccion_id) cant_lecciones, COUNT(DISTINCT a.id) cant_asistencias, COUNT(DISTINCT e.modelo_de_evaluacion_id) cant_evaluaciones, inscripciones.sino_eleccion_modalidad_online, en.id envio_id, aa.estado_de_seguimiento_id, i.idioma';
 
             $groupByRaw = 'inscripciones.id, inscripciones.solicitud_id, inscripciones.solicitud_original, inscripciones.causa_de_cambio_de_solicitud_id, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo, inscripciones.pais_id, inscripciones.ciudad, inscripciones.consulta, inscripciones.fecha_de_evento_id, inscripciones.sino_notificar_proximos_eventos, inscripciones.sino_acepto_politica_de_privacidad, inscripciones.created_at, inscripciones.updated_at, inscripciones.sino_envio_pedido_de_confirmacion, inscripciones.sino_confirmo, inscripciones.sino_envio_recordatorio_pedido_de_confirmacion, inscripciones.sino_envio_voucher, inscripciones.sino_envio_motivacion, inscripciones.sino_envio_motivacion_2, inscripciones.sino_envio_motivacion_3, inscripciones.sino_envio_de_encuesta, inscripciones.sino_envio_recordatorio, inscripciones.sino_asistio, inscripciones.sino_contesto_consulta, inscripciones.sino_envio_recordatorio_proxima_clase, inscripciones.sino_envio_recordatorio_proxima_clase_a_no_asistente, inscripciones.sino_cancelo, inscripciones.sino_invitado_al_curso_online, inscripciones.sino_envio_1, inscripciones.sino_envio_2, inscripciones.sino_envio_3, inscripciones.sino_envio_4, inscripciones.sino_envio_5, inscripciones.sino_envio_6, inscripciones.sino_envio_7, inscripciones.sino_envio_8, inscripciones.sino_envio_9, inscripciones.sino_envio_10, sino_envio_certificado, inscripciones.observaciones, p.pais, l.nombre_de_la_leccion, l.codigo_de_la_leccion, l.orden_de_leccion, lx.titulo, lx.nro_o_codigo, c.canal_de_recepcion_del_curso, inscripciones.causa_de_baja_id, inscripciones.grupo, inscripciones.codigo_alumno, me.titulo_de_la_evaluacion, nombre_responsable_de_inscripciones, celular_responsable_de_inscripciones, inscripciones.sino_eleccion_modalidad_online, en.id, aa.estado_de_seguimiento_id, i.idioma';
 
@@ -1777,11 +1992,7 @@ class FormController extends Controller
         //dd($Inscripciones);
         //dd(DB::getQueryLog());
 
-        /*
-        if ($solicitud_id == 10440) {
-            dd($Inscripciones);
-        }
-        */
+        
 
         return [
             'Inscripciones' => $Inscripciones,
@@ -1889,12 +2100,15 @@ class FormController extends Controller
             $Modelos_de_mensajes_curso_grupo = Modelo_de_mensaje_curso::where('curso_id', $curso_id)->whereRaw('(sino_mensaje_para_alumno = "NO" OR sino_mensaje_para_alumno = "" OR sino_mensaje_para_alumno IS NULL)')->get();
 
             foreach ($Modelos_de_mensajes_curso_grupo as $Modelo) {
-                $url_texto_modelo = $Solicitud->texto_modelo_del_mensaje_del_curso($Modelo->id, $Grupo_de_solicitud, $codigo_tel);
+                $texto_modelo_del_mensaje_del_curso = $Solicitud->texto_modelo_del_mensaje_del_curso($Modelo->id, $Grupo_de_solicitud, $codigo_tel);
+                $url_texto_modelo = $texto_modelo_del_mensaje_del_curso['url_texto_modelo_del_mensaje_del_curso'];
+                $texto_modelo = $texto_modelo_del_mensaje_del_curso['texto_modelo_del_mensaje_del_curso'];
 
                 $array_modelo = [
                     'titulo_del_mensaje' => $Modelo->titulo_del_mensaje,
                     'aclaracion' => $Modelo->aclaracion,
-                    'url_texto_modelo' => $url_texto_modelo
+                    'url_texto_modelo' => $url_texto_modelo,
+                    'texto_modelo' => $texto_modelo,
                 ];                    
 
                 array_push($Modelos_grupo, $array_modelo);  
@@ -1924,10 +2138,13 @@ class FormController extends Controller
                                 $Modelo_de_mensaje_curso = $Modelo->modelo_del_mensaje;
                             }            
 
+                            $modelo_mensaje_curso = $Inscripcion->url_whatsapp_modelo_mensaje_curso($Modelo_de_mensaje_curso, $Idioma_por_pais, $Inscripcion->nombre_responsable_de_inscripciones, $Solicitud, $Curso, $Inscripcion->orden_de_leccion, $Inscripcion->proximaLeccion_id, $Inscripcion->proximaLeccion_codigo);
+
                             $Modelo_extra = [
                                 'titulo_del_mensaje' => $Modelo->titulo_del_mensaje, 
                                 'aclaracion' => $Modelo->aclaracion, 
-                                'url_del_mensaje' => $Inscripcion->url_whatsapp_modelo_mensaje_curso($Modelo_de_mensaje_curso, $Idioma_por_pais, $Inscripcion->nombre_responsable_de_inscripciones, $Solicitud, $Curso, $Inscripcion->orden_de_leccion, $Inscripcion->proximaLeccion_id, $Inscripcion->proximaLeccion_codigo)
+                                'url_del_mensaje' => $modelo_mensaje_curso['modelo_del_mensaje'],
+                                'mensaje_solo_texto' => $modelo_mensaje_curso['mensaje_solo_texto']
                             ];
                             array_push($Modelos_extra, $Modelo_extra);
                         }
@@ -1953,12 +2170,53 @@ class FormController extends Controller
         ];
     }
 
+    public function procesosEspeciales($origen, $solicitud_id) {
+        if ($solicitud_id == 21693 and $origen == 'listInscriptos') {
+            $Gnosisargentina_wp_inscriptos = Gnosisargentina_wp_inscripto::all();
+            foreach($Gnosisargentina_wp_inscriptos as $Inscripto_wp) {
+                
+                $pais_id_wp = null;
+                $pais_wp = $Inscripto_wp->pais;
+                if (strlen($pais_wp) > 3) {
+                    $pais_id_wp = Pais::whereRaw("pais like '%$pais_wp%'")->first();
+                }
+
+                $Inscripcion_ac = new Inscripcion;
+                $Inscripcion_ac->solicitud_id = $solicitud_id;
+                $Inscripcion_ac->nombre = $Inscripto_wp->nombre;
+                $Inscripcion_ac->apellido = $Inscripto_wp->apellido;
+                $Inscripcion_ac->email_correo = $Inscripto_wp->email;
+                $Inscripcion_ac->celular = $Inscripto_wp->celular;
+                $Inscripcion_ac->pais_id = $pais_id_wp;
+                $Inscripcion_ac->save();
+
+                $Gnosisargentina_wp_usermeta = new Gnosisargentina_wp_usermeta();
+                $Gnosisargentina_wp_usermeta->user_id = $Inscripto_wp->ID;
+                $Gnosisargentina_wp_usermeta->meta_key = 'inscripcion_id';
+                $Gnosisargentina_wp_usermeta->meta_value = $Inscripcion_ac->id;
+                $Gnosisargentina_wp_usermeta->save();
+            }
+       }
+    }
+
     public function listInscriptos($solicitud_id, $hash)
     {  
-       
+        $this->procesosEspeciales('listInscriptos', $solicitud_id);       
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
-        if ($Solicitud->hash == $hash) {              
 
+        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
+
+        //if ($Solicitud->hash == $hash or $hash == $hash_nuevo) {              
+        if ($hash == $hash_nuevo) {              
+
+
+            if (in_array($solicitud_id, [7542, 7543, 7544, 7536])) {
+                // Fer, Ariel, Angelica y Marcelo
+                if (Auth::guest() or !in_array(Auth::user()->id, [1, 232, 1159, 1072])) {
+                    dd('error 451');
+                }
+            }
+            
             $now = new \DateTime();
             $fecha_now = $now->format('Y-m-d H:i:s');
             $Solicitud->ultimo_acceso_planilla_inscripcion = $fecha_now;
@@ -2040,13 +2298,107 @@ class FormController extends Controller
 
     }
 
+    public function listInscriptosNomina($solicitud_id, $hash)
+    {  
+       
+        $Solicitud = Solicitud::where('id', $solicitud_id)->first();
+        if ($Solicitud->hash == $hash) {              
+
+            $now = new \DateTime();
+            $fecha_now = $now->format('Y-m-d H:i:s');
+            $Solicitud->ultimo_acceso_planilla_inscripcion = $fecha_now;
+            $Solicitud->save();
+
+            $campania_id = 0;
+            $offset = 0;
+            $cant_x_pagina = 999999;
+            $traerInscripciones = $this->traerInscripciones($solicitud_id, $campania_id, $offset, $cant_x_pagina);
+
+            $Inscripciones = $traerInscripciones['Inscripciones'];
+            $Fechas_de_evento = $traerInscripciones['Fechas_de_evento'];
+            //$Pais = $traerInscripciones['Pais'];
+            $Idioma_por_pais = $traerInscripciones['Idioma_por_pais'];   
+            $Grupos = $traerInscripciones['Grupos'];
+            $Grupo_de_solicitud = null;
+
+            /*
+            if ($Solicitud->id == 400 or $Solicitud->id == 815) {
+                $Inscripciones_limit = $Inscripciones->slice(0, 100);
+                $Inscripciones_limit = collect($Inscripciones_limit->all());
+                $Inscripciones = $Inscripciones_limit;
+            }
+            */
+
+            $traerModelosMensajesCurso = $this->traerModelosMensajesCurso($Solicitud, $Inscripciones, $Idioma_por_pais, $Grupo_de_solicitud);
+
+            
+            $Inscripciones = $traerModelosMensajesCurso['Inscripciones'];
+            $texto_lecciones_de_curso = $traerModelosMensajesCurso['texto_lecciones_de_curso'];
+            $Modelos_grupo = $traerModelosMensajesCurso['Modelos_grupo'];
+            $Modelos_alumno = $traerModelosMensajesCurso['Modelos_alumno'];
+            $Causas_de_baja = $traerModelosMensajesCurso['Causas_de_baja'];
+            $Causas_de_cambio_de_solicitud = $traerModelosMensajesCurso['Causas_de_cambio_de_solicitud'];
+
+
+            $Mensaje_limit = '';
+            $cant_paginas = 0;
+            //$cant_x_pagina = $this->cant_x_pagina;
+            if ($Grupos['cant_total_inscriptos'] > $cant_x_pagina) { 
+
+                //$Inscripciones = $Inscripciones->reverse(); 
+                $cant_paginas = intval($Grupos['cant_total_inscriptos']/$cant_x_pagina);
+                $resto = $Grupos['cant_total_inscriptos']-($cant_paginas*$cant_x_pagina);
+                if ($Grupos['cant_total_inscriptos']%$cant_x_pagina > 0) {
+                    $cant_paginas++;
+                }
+                else {
+                    $resto = $cant_x_pagina;
+                }
+
+                $Inscripciones_limit = $Inscripciones->slice(0, $resto);
+                $Inscripciones_limit = collect($Inscripciones_limit->all());
+                $Inscripciones = $Inscripciones_limit;
+                $Mensaje_limit = "Dividimos los Inscriptos en páginas de ".$cant_x_pagina." (total de inscriptos ".$Grupos['cant_total_inscriptos'].").";
+
+
+            }
+
+            
+            return View('forms/listar-inscriptos-nomina')
+            ->with('Inscripciones', $Inscripciones) 
+            ->with('Fechas_de_evento', $Fechas_de_evento)
+            ->with('Solicitud', $Solicitud)
+            ->with('Idioma_por_pais', $Idioma_por_pais)
+            //->with('Pais', $Pais)
+            ->with('texto_lecciones_de_curso', $texto_lecciones_de_curso)
+            ->with('Modelos_grupo', $Modelos_grupo)
+            ->with('Modelos_alumno', $Modelos_alumno)
+            ->with('Causas_de_baja', $Causas_de_baja)
+            ->with('Causas_de_cambio_de_solicitud', $Causas_de_cambio_de_solicitud)
+            ->with('Mensaje_limit', $Mensaje_limit)
+            ->with('cant_paginas', $cant_paginas)
+            ->with('cant_x_pagina', $cant_x_pagina)
+            ->with('Grupos', $Grupos)
+            ->with('dominio_publico', $Solicitud->dominioPublico($Idioma_por_pais));
+            }
+        else {
+            echo 'ERROR direccion no valida';
+        }  
+
+    }
+
 
 
     public function listInscriptosHistoricos($solicitud_id, $hash)
     {  
        
+
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
-        if ($Solicitud->hash == $hash) {              
+        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
+
+
+        //if ($Solicitud->hash == $hash) {
+        if ($hash == $hash_nuevo) {    
             $campania_id = NULL;
             $offset = 0;
             $cant_x_pagina = null;
@@ -2246,7 +2598,14 @@ class FormController extends Controller
         }
 
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
-        if ($Solicitud->hash == $hash) {
+
+
+        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
+
+        //if ($Solicitud->hash == $hash) {
+        if ($hash == $hash_nuevo) {     
+
+
 
             $recupero = array();            
             $now = new \DateTime();
@@ -2715,7 +3074,9 @@ class FormController extends Controller
         }
 
         $Solicitud = Solicitud::find($solicitud_id);
-        if ($Solicitud->hash == $hash) {              
+        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
+
+        if ($hash_nuevo == $hash) {              
 
 
             $campania_id = NULL;
@@ -2744,11 +3105,13 @@ class FormController extends Controller
             }
 
 
+        
 
             $Mensaje_limit = '';
             $cant_paginas = 1;
             $cant_x_pagina = $this->cant_x_pagina;
             
+            /*
             if ($Grupos['cant_total_inscriptos'] > $cant_x_pagina) { 
 
                 //$Inscripciones = $Inscripciones->reverse(); 
@@ -2768,6 +3131,7 @@ class FormController extends Controller
 
 
             }
+            */
             
 
             if ($criterio == '318723981723981291231892cn1naxjsdhak3') {
@@ -2837,7 +3201,8 @@ class FormController extends Controller
         $criterio = $inscripcion_id;
 
         $Solicitud = Solicitud::find($solicitud_id);
-        if ($Solicitud->hash == $hash) {              
+        $hash_inscripto = md5(intval($inscripcion_id));
+        if ($hash_inscripto == $hash) {              
 
 
             $campania_id = NULL;
@@ -3112,7 +3477,7 @@ class FormController extends Controller
                         'K'     =>  8,
                         'L'     =>  8,
                         'M'     =>  14,
-                        'N'     =>  $ancho_presente,
+                        'N'     =>  14,
                         'O'     =>  $ancho_presente,
                         'P'     =>  $ancho_presente,
                         'Q'     =>  $ancho_presente,
@@ -3130,7 +3495,8 @@ class FormController extends Controller
                         'AC'     =>  $ancho_presente,
                         'AD'     =>  $ancho_presente,
                         'AE'     =>  $ancho_presente,
-                        'AF'     =>  $ancho_presente
+                        'AF'     =>  $ancho_presente,
+                        'AG'     =>  $ancho_presente
                         ];
 
                     $nombre_de_columnas = [
@@ -3146,6 +3512,7 @@ class FormController extends Controller
                         __('Cancelo'), 
                         __('Grupo de whatsapp'),
                         __('Codigo de alumno'), 
+                        __('Inscripción registrada'), 
                         ];
 
                     foreach ($lecciones as $leccion) {
@@ -3281,7 +3648,8 @@ class FormController extends Controller
                             strval($Inscripcion->sino_envio_pedido_de_confirmacion), 
                             strval($Inscripcion->sino_cancelo), 
                             strval($Inscripcion->grupo), 
-                            strval($Inscripcion->codigo_alumno)
+                            strval($Inscripcion->codigo_alumno),
+                            Carbon::parse($Inscripcion->created_at)->format('d/m/Y')
                             ];
 
                         foreach ($lecciones as $leccion) {
@@ -3588,6 +3956,12 @@ class FormController extends Controller
         if ($codigo == 29) {
             $nombre_de_campo = 'sino_envio_de_encuesta';
         }
+        if ($codigo == 30) {
+            $nombre_de_campo = 'sino_envio_pedido_de_confirmacion_a_contenidos_avanzados';
+        }
+        if ($codigo == 31) {
+            $nombre_de_campo = 'sino_confirmo_a_contenidos_avanzados';
+        }
 
         if ($nombre_de_campo <> '') {
             $Inscripcion = Inscripcion::find($inscripcion_id);
@@ -3598,6 +3972,25 @@ class FormController extends Controller
             }
             
             $Inscripcion->save();
+
+            if ($codigo == 8) {
+                $Solicitud = Solicitud::find($solicitud_id);
+                if ($Solicitud->tipo_de_evento->id <> 3) {
+                    if ($sino == 'NO') {
+                        $deletedAsistencias = Asistencia::whereNull('leccion_id')->whereNull('leccion_extra_id')->where('inscripcion_id', $inscripcion_id)->delete();
+                    }
+                    else {
+                        $Asistencia = new Asistencia;
+                        $Asistencia->inscripcion_id = $inscripcion_id;
+                        if (!Auth::guest()) {
+                            $Asistencia->user_id = Auth::user()->id;
+                        }
+                        $Asistencia->save(); 
+                    }
+                }
+
+            }
+
         }
 
         /*
@@ -3637,6 +4030,7 @@ class FormController extends Controller
                 $email_correo = $Inscripcion->email_correo;
                 
                 //INICIO MAUTIC ASISTENCIA
+                    //QUITAR COMENTARIOS CUANDO EL SERVIDOR DE MAUTIC ESTE NUEVAMENTE RESTAURADO
                     if (ENV('APP_ENV') <> 'development') {
                         $settings = array(
                             'userName'   => 'fmadoz',             // Create a new user       
@@ -3754,7 +4148,11 @@ class FormController extends Controller
 
     public function printVoucher($inscripcion_id, $hash)
     {  
-        if (md5(ENV('PREFIJO_HASH').$inscripcion_id) == $hash) {
+
+        $hash_ok = md5(ENV('PREFIJO_HASH').$inscripcion_id);
+        $hash_okL = md5(ENV('PREFIJO_HASH').$inscripcion_id).'L';
+
+        if ($hash_ok == $hash or $hash_okL == $hash) {
             $Inscripcion = Inscripcion::find($inscripcion_id);
             $Solicitud = $Inscripcion->Solicitud;
     /*
@@ -3798,10 +4196,12 @@ class FormController extends Controller
             ->with('bgform', $bgform) 
             ->with('nombre_institucion', $nombre_institucion) 
             ->with('dir_imagen_url', $dir_imagen_url);       
+            
             }
         else {
             echo 'ERROR';
         }  
+        
 
     }
 
@@ -3829,6 +4229,7 @@ class FormController extends Controller
 
             
             //INICIO MAUTIC ASISTENCIA
+                //QUITAR COMENTARIOS CUANDO EL SERVIDOR DE MAUTIC ESTE NUEVAMENTE RESTAURADO
                 if (ENV('APP_ENV') <> 'development') {
                     $settings = array(
                         'userName'   => 'fmadoz',             // Create a new user       
@@ -3981,7 +4382,12 @@ class FormController extends Controller
         $descripcion = 'GNID'.$Inscripcion->solicitud_id.' '.$nombre.' '.$apellido.' '.$txtmodo.'-INS'.$Inscripcion->id.' ';
         $celular = $Inscripcion->celular_vCard();
         $email_correo = $Inscripcion->email_correo;
-        $contact_group = 'ID'.$Inscripcion->solicitud_id.'-'.$Inscripcion->solicitud->hash;
+        if (property_exists($Inscripcion, 'solicitud')) {
+            $contact_group = 'ID'.$Inscripcion->solicitud_id.'-'.$Inscripcion->solicitud->hash;
+        }
+        else {
+            $contact_group = 'ID'.$Inscripcion->solicitud_id.'-historico';
+        }
 
         if ($tipo == 1) {
             $Contact_data = "BEGIN:VCARD\n";
@@ -4008,6 +4414,19 @@ class FormController extends Controller
 
         if ($modo == 'todos') {
             $Inscripciones = Inscripcion::where('solicitud_id', $solicitud_id)->orderBy('id')->get();
+        }
+
+        if ($modo == 'todos-historico') {
+            $campania_id = NULL;
+            $offset = 0;
+            $cant_x_pagina = 9999999999;
+            $grupo = null;
+            $criterio = null;
+            $historico = true;
+            $traerInscripciones = $this->traerInscripciones($solicitud_id, $campania_id, $offset, $cant_x_pagina, $grupo, $criterio, $historico);
+
+            $Inscripciones = $traerInscripciones['Inscripciones'];
+            //$Inscripciones = Inscripcion::where('solicitud_id', $solicitud_id)->orderBy('id')->get();
         }
 
         if ($modo == 'grupo') {
@@ -4220,6 +4639,10 @@ class FormController extends Controller
             $Inscripcion->sino_envio_recordatorio_proxima_clase_a_no_asistente = NULL;
             $Inscripcion->sino_cancelo = NULL;
 
+            if ($causa_de_cambio_de_solicitud_id == 10) {
+                $Inscripcion->sino_promocionado_a_contenidos_avanzados = 'SI';
+            }
+
 
 
             $Inscripcion->save();
@@ -4274,6 +4697,21 @@ class FormController extends Controller
                 'url_youtube' => 'https://youtube.com/c/GnosisBrasilTV',
                 'url_twitter' => 'https://twitter.com/gnosisbrazil',
                 'url_instagram' => 'https://www.instagram.com/gnosisbrasil',
+                'url_tiktok' => '',
+                'url_invitacion_grupo_whatsapp' => '',
+                'mnemo_face' => 'pt_BR',
+                'nombre_de_la_institucion' => 'Cultura Gnóstica'
+            ];            
+        }
+
+
+        if ($solicitud_id == 7543) {
+            $url_redes = [
+                'url_fanpage' => null,
+                'url_sitio_web' => 'https://gnosis.is/pt/',
+                'url_youtube' => null,
+                'url_twitter' => null,
+                'url_instagram' => null,
                 'url_tiktok' => '',
                 'url_invitacion_grupo_whatsapp' => '',
                 'mnemo_face' => 'pt_BR',
@@ -4519,6 +4957,7 @@ class FormController extends Controller
 
                     
                     //INICIO MAUTIC COMPLETO LECCION
+                        //QUITAR COMENTARIOS CUANDO EL SERVIDOR DE MAUTIC ESTE NUEVAMENTE RESTAURADO
                         if (ENV('APP_ENV') <> 'development') {
                             $settings = array(
                                 'userName'   => 'fmadoz',             // Create a new user       
@@ -4539,17 +4978,19 @@ class FormController extends Controller
                             array_push($tags_mautic, 'COMPLETO LECCION id: '.$leccion_id);
                             $last_active = date("Y-m-d H:i:s");
 
-                            if ($contacts['total'] <> "0") {
-                                $contactId = key($contacts['contacts']);
+                            if (!isset($contacts['errors'])) {
+                                if ($contacts['total'] <> "0") {
+                                    $contactId = key($contacts['contacts']);
 
-                                $data = array(
-                                    'tags' => $tags_mautic,
-                                    'last_active' => $last_active,
-                                );
+                                    $data = array(
+                                        'tags' => $tags_mautic,
+                                        'last_active' => $last_active,
+                                    );
 
-                                $createIfNotFound = false;
+                                    $createIfNotFound = false;
 
-                                $contact = $contactApi->edit($contactId, $data, $createIfNotFound);
+                                    $contact = $contactApi->edit($contactId, $data, $createIfNotFound);
+                                }
                             }
                         }
                     //FIN MAUTIC COMPLETO LECCION
@@ -4687,19 +5128,20 @@ class FormController extends Controller
 
     public function listarInscripciones()
     {
-        $inscripcion_id = $_POST['inscripcion_id'];
-        $codigo_alumno = $_POST['codigo_alumno'];
-        $solicitud_id = $_POST['solicitud_id'];
-        $nombre = $_POST['nombre'];
-        $apellido = $_POST['apellido'];
-        $celular = $_POST['celular'];
-        $email_correo = $_POST['email_correo'];
-        $pais_id_solicitud = $_POST['pais_id_solicitud'];
-        $pais_id_inscripcion = $_POST['pais_id_inscripcion'];
-        $ciudad = $_POST['ciudad'];
-        $localidad_id = $_POST['localidad_id'];
-        $idioma_id = $_POST['idioma_id'];
-        $campania_id = $_POST['campania_id'];
+        $inscripcion_id = trim($_POST['inscripcion_id']);
+        $codigo_alumno = trim($_POST['codigo_alumno']);
+        $solicitud_id = trim($_POST['solicitud_id']);
+        $nombre = trim($_POST['nombre']);
+        $apellido = trim($_POST['apellido']);
+        $celular = trim($_POST['celular']);
+        $email_correo = trim($_POST['email_correo']);
+        $pais_id_solicitud = trim($_POST['pais_id_solicitud']);
+        $pais_id_inscripcion = trim($_POST['pais_id_inscripcion']);
+        $ciudad = trim($_POST['ciudad']);
+        $localidad_id = trim($_POST['localidad_id']);
+        $provincia_id = trim($_POST['provincia_id']);
+        $idioma_id = trim($_POST['idioma_id']);
+        $campania_id = trim($_POST['campania_id']);
 
         $whereRaw = '1 = 1';
 
@@ -4712,7 +5154,7 @@ class FormController extends Controller
         }
 
         if ($solicitud_id > 0) {
-            $whereRaw .= " and (inscripciones.solicitud_id = $solicitud_id or (inscripciones.solicitud_original = $solicitud_id and inscripciones.causa_de_cambio_de_solicitud_id in (1, 4) ))";
+            $whereRaw .= " and (inscripciones.solicitud_id = $solicitud_id or inscripciones.solicitud_original = $solicitud_id)";
         }
 
         if ($nombre <> '') {
@@ -4747,6 +5189,10 @@ class FormController extends Controller
             $whereRaw .= " and lc.id = $localidad_id";
         }
 
+        if ($provincia_id <> '') {
+            $whereRaw .= " and pr.id = $provincia_id";
+        }
+
         if ($idioma_id <> '') {
             $whereRaw .= " and s.idioma_id = $idioma_id";
         }
@@ -4758,7 +5204,7 @@ class FormController extends Controller
         //dd($whereRaw);
 
         //DB::enableQueryLog();
-        $Inscripciones = Inscripcion::select(DB::Raw('inscripciones.id, inscripciones.solicitud_id, s.hash, inscripciones.solicitud_original, cc.causa_de_cambio_de_solicitud, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo, p.pais pais_inscripcion, p2.pais pais_solicitud, inscripciones.ciudad, lc.localidad, inscripciones.created_at, l.nombre_de_la_leccion, inscripciones.sino_cancelo, cb.causa_de_baja, inscripciones.grupo, inscripciones.codigo_alumno, IFNULL(gs.nombre_responsable_de_inscripciones, s.nombre_responsable_de_inscripciones) nombre_responsable_de_inscripciones,  IFNULL(gs.celular_responsable_de_inscripciones, s.celular_responsable_de_inscripciones) celular_responsable_de_inscripciones, i.idioma'))
+        $Inscripciones = Inscripcion::select(DB::Raw('inscripciones.id, inscripciones.solicitud_id, MD5(inscripciones.id) hash_inscripto, inscripciones.solicitud_original, cc.causa_de_cambio_de_solicitud, inscripciones.apellido, inscripciones.nombre, inscripciones.celular, inscripciones.email_correo, p.pais pais_inscripcion, p2.pais pais_solicitud, inscripciones.ciudad, lc.localidad, inscripciones.created_at, l.nombre_de_la_leccion, inscripciones.sino_cancelo, cb.causa_de_baja, inscripciones.grupo, inscripciones.codigo_alumno, IFNULL(gs.nombre_responsable_de_inscripciones, s.nombre_responsable_de_inscripciones) nombre_responsable_de_inscripciones,  IFNULL(gs.celular_responsable_de_inscripciones, s.celular_responsable_de_inscripciones) celular_responsable_de_inscripciones, i.idioma'))
         ->whereRaw($whereRaw)
         ->leftjoin('fechas_de_evento as f', 'f.id', '=', 'inscripciones.fecha_de_evento_id')
         ->leftjoin('paises as p', 'p.id', '=', 'inscripciones.pais_id')
@@ -4766,7 +5212,7 @@ class FormController extends Controller
         ->leftjoin('evaluaciones as e', 'e.id', '=', 'inscripciones.ultima_evaluacion')
         ->leftjoin('modelos_de_evaluacion as me', 'me.id', '=', 'e.modelo_de_evaluacion_id')
         ->leftjoin('canales_de_recepcion_del_curso as c', 'c.id', '=', 'inscripciones.canal_de_recepcion_del_curso_id')
-        ->leftjoin('solicitudes as s', 's.id', '=', 'inscripciones.solicitud_id')
+        ->leftjoin('solicitudes as s', 's.id', '=', DB::raw('IFNULL(inscripciones.solicitud_original, inscripciones.solicitud_id)'))
         ->leftjoin('localidades as lc', 'lc.id', '=', 's.localidad_id')
         ->leftjoin('provincias as pr', 'pr.id', '=', 'lc.provincia_id')
         ->leftjoin('paises as p2', 'p2.id', '=', 'pr.pais_id')
@@ -5074,6 +5520,62 @@ class FormController extends Controller
         }
 
         return $url_http;
+    }
+
+    public function asignarGrupo($Solicitud) {
+
+        $nro_de_grupo = null;
+        $celular_responsable_de_inscripciones = null;
+        $nombre_responsable_de_inscripciones = null;
+
+        if ($Solicitud->sino_asignar_automaticamente_grupo_de_whatsapp == 'SI') {
+
+            $cantidad_de_inscripciones_por_grupo = $Solicitud->cantidad_de_inscripciones_por_grupo > 0 ? $Solicitud->cantidad_de_inscripciones_por_grupo : 100;
+
+            //OBTENGO EL NRO DE GRUPO MAS GRANDE QUE SE HALLA ASIGNADO 
+            $ultimo_grupo = DB::table('inscripciones as i')
+            ->select(DB::Raw('IFNULL(MAX(i.grupo), 0) nro_de_grupo'))
+            ->where('solicitud_id', $Solicitud->id)
+            ->get();
+            
+            $nro_de_grupo = $ultimo_grupo[0]->nro_de_grupo;
+
+
+            // SI EL GRUPO NO ES CERO VERIFICO LA CANT DE INSCRIPTOS
+            if ($nro_de_grupo > 0) {
+
+                $inscriptos_en_grupo = DB::table('inscripciones as i')
+                ->select(DB::Raw('COUNT(i.id) cant'))
+                ->where('solicitud_id', $Solicitud->id)
+                ->where('grupo', $nro_de_grupo)
+                ->get();
+                
+                $cant_inscriptos_en_grupo = $inscriptos_en_grupo[0]->cant;
+
+                $nro_de_grupo = $cant_inscriptos_en_grupo < $cantidad_de_inscripciones_por_grupo ? $nro_de_grupo : $nro_de_grupo+1;
+
+            }
+            else {
+                $nro_de_grupo = 1;
+            }
+
+            // TRAIGO LOS DATOS DEL GRUPO SI ESTAN CARGADOS
+            $cant_grupo_de_solicitud = Grupo_de_solicitud::where('solicitud_id', $Solicitud->id)->where('nro_de_grupo', $nro_de_grupo)->count();
+            if ($cant_grupo_de_solicitud > 0) {
+                $Grupo_de_solicitud = Grupo_de_solicitud::where('solicitud_id', $Solicitud->id)->where('nro_de_grupo', $nro_de_grupo)->get();
+                $celular_responsable_de_inscripciones = $Grupo_de_solicitud[0]->celular_responsable_de_inscripciones;
+                $nombre_responsable_de_inscripciones = $Grupo_de_solicitud[0]->nombre_responsable_de_inscripciones;
+            }            
+
+        }
+
+        $GrupoAsignado = [
+            'nro_de_grupo' => $nro_de_grupo,
+            'celular_responsable_de_inscripciones' => $celular_responsable_de_inscripciones,
+            'nombre_responsable_de_inscripciones' => $nombre_responsable_de_inscripciones,
+        ];
+
+        return $GrupoAsignado;
     }
  
 

@@ -76,7 +76,7 @@ class SolicitudController extends Controller
         }
         
         //SUPERVISOR
-        if (Auth::user()->rol_de_usuario_id == 2) {
+        if (in_array(2, Auth::user()->roles())) {
 
             $paisesDelEquipo = $this->paisesDelEquipo();
             //dd($paisesDelEquipo);
@@ -329,6 +329,84 @@ class SolicitudController extends Controller
         ->with('estado', $estado);
     }
 
+
+    public function SolicitudesContenidosAvanzandoz($estado)
+    {   
+        $Roles = Auth::user()->roles();
+
+        $titulo = __('Formularios').' '.__('Contenidos Avanzados');
+    
+        
+        $where_estado = '0=0';
+
+        $campos_select = 's.id, s.hash, CONCAT(te.tipo_de_evento, " ", IFNULL(s.titulo_del_formulario_personalizado, "")) as tipo_de_evento_fk, IFNULL(CONCAT(l.localidad, ", ", p.provincia, ", ", pa.pais), IFNULL(CONCAT(s.escribe_tu_ciudad_sino_esta_en_la_lista_anterior, ", ", pa2.pais), pa2.pais)) as localidad_fk, s.monto_a_invertir, id.idioma, e.name as nombre_de_ejecutivo, s.nombre_del_solicitante, COUNT(i.id) inscripciones_cant, s.sino_aprobado_administracion, s.sino_aprobado_solicitar_revision, s.sino_cancelada, s.sino_aprobado_finalizada, u.name';
+        $groupBy = 's.id, s.hash, tipo_de_evento_fk, s.monto_a_invertir, localidad_fk, id.idioma, e.name, s.nombre_del_solicitante, s.sino_aprobado_administracion, s.sino_aprobado_solicitar_revision, s.sino_cancelada, s.sino_aprobado_finalizada, u.name';
+
+        //SUPERVISOR
+        if(in_array(13, $Roles) or in_array(1, $Roles)) {
+
+            
+            if($estado == 't') {
+                $titulo .= ' ('.__('Todas').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL';  
+            }
+            if($estado == 'p') {
+                $titulo .= ' ('.__('Pendientes').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL AND sino_aprobado_administracion IS NULL AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_cancelada IS NULL OR sino_cancelada = "NO")';            
+            }
+            if($estado == 'r') {
+                $titulo .= ' ('.__('Revisar').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL AND (sino_aprobado_administracion = "NO" AND sino_aprobado_solicitar_revision = "SI") AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_cancelada IS NULL OR sino_cancelada = "NO")';
+            }
+            if($estado == 'a') {
+                $titulo .= ' ('.__('Aprobadas').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL AND sino_aprobado_administracion = "SI" AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_cancelada IS NULL OR sino_cancelada = "NO") AND DATEDIFF(NOW(), fecha_de_solicitud) <= 60';                
+            }
+            if($estado == 'v') {
+                $titulo .= ' ('.__('Aprobadas').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL AND sino_aprobado_administracion = "SI" AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_cancelada IS NULL OR sino_cancelada = "NO") AND DATEDIFF(NOW(), fecha_de_solicitud) > 60';                
+            }             
+            if($estado == 'd') {
+                $titulo .= ' ('.__('Desprobadas').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL AND sino_aprobado_administracion = "NO" and (sino_aprobado_solicitar_revision = "NO" OR sino_aprobado_solicitar_revision IS NULL) AND (sino_aprobado_finalizada IS NULL OR sino_aprobado_finalizada = "NO") AND (sino_cancelada IS NULL OR sino_cancelada = "NO")';
+            }
+            if($estado == 'c') {
+                $titulo .= ' ('.__('Canceladas').')';
+                $where_estado = 'sino_cancelada = "SI"';
+            }
+            if($estado == 'f') {
+                $titulo .= ' ('.__('Finalizadas').')';
+                $where_estado = 'fecha_de_solicitud IS NOT NULL AND sino_aprobado_finalizada = "SI"';                
+            }
+            if($estado == 'x' and $mostrar_x == 'S') {
+                $titulo .= ' ('.__('Pagadas sin enviar').')';
+                $where_estado = 'fecha_de_solicitud IS NULL AND (payment_status IS NOT NULL AND payment_status = "authorized")';
+            }      
+
+
+            $Solicitudes_1 = DB::table('solicitudes as s')
+                ->select(DB::Raw($campos_select))
+                ->join('tipos_de_eventos as te', 'te.id', '=', 's.tipo_de_evento_id')
+                ->leftjoin('localidades as l', 'l.id', '=', 's.localidad_id')
+                ->leftjoin('provincias as p', 'p.id', '=', 'l.provincia_id')
+                ->leftjoin('paises as pa', 'pa.id', '=', 'p.pais_id')
+                ->leftjoin('paises as pa2', 'pa2.id', '=', 's.pais_id')
+                ->leftjoin('users as e', 'e.id', '=', 's.ejecutivo')
+                ->leftjoin('idiomas as id', 'id.id', '=', 's.idioma_id')
+                ->leftjoin('inscripciones as i', 'i.solicitud_id', '=', 's.id')
+                ->leftjoin('users as u', 's.user_id', '=', 'u.id')
+                ->whereRaw($where_estado)
+                ->whereRaw('(s.tipo_de_evento_id = 5)')
+                ->groupBy(DB::Raw($groupBy))
+                ->get();
+
+        }
+
+        return View('solicitudes/solicitudes')
+        ->with('titulo', $titulo)
+        ->with('Solicitudes', $Solicitudes_1)
+        ->with('estado', $estado);
+    }
 
     public function SolicitudesRecoleccionDatos($estado)
     {   
@@ -883,6 +961,10 @@ class SolicitudController extends Controller
 
     public function PagarPaypal(Request $request) {
 
+        if (isset($_POST['sino_es_campania_organica_switch'])) {
+            return $this->GuardarDatosCampania($request);
+        }
+
         require_once(app_path() . '/Libraries/PayPal/PayPalClient.php');
         require_once(app_path() . '/Libraries/PayPal/PayPalConfiguration.php');
         require_once(app_path() . '/Libraries/PayPal/Requests/AuthorizeCheckoutRequest.php');
@@ -1115,16 +1197,34 @@ class SolicitudController extends Controller
         //$Solicitud->rector_diocesano_o_responsable = $_POST['rector_diocesano_o_responsable'];
         //$Solicitud->nombre_coordinador_de_difusion  = $_POST['nombre_coordinador_de_difusion'];
         //$Solicitud->celular_coordinador_de_difusion = $_POST['celular_coordinador_de_difusion'];
-        if (isset($_POST['moneda_id'])) {
-            $Solicitud->moneda_id = $_POST['moneda_id'];
-        }
+
         if (isset($_POST['idioma_id'])) {
             $Solicitud->idioma_id = $_POST['idioma_id'];
             $idioma_por_pais = $Solicitud->idioma_por_pais();
             $Solicitud->curso_id = $idioma_por_pais->curso_id;
         }
-        $Solicitud->monto_a_invertir = $_POST['monto_a_invertir'];       
 
+        $sino_es_campania_organica_switch = 'NO';
+        if (isset($_POST['sino_es_campania_organica_switch'])) {
+            $sino_es_campania_organica_switch = 'SI';
+        }
+
+        if ($sino_es_campania_organica_switch == 'NO') {         
+            $Solicitud->sino_es_campania_organica = 'NO';         
+
+            $sino_la_campania_paga_la_haremos_localmente = 'NO';
+            if (isset($_POST['sino_la_campania_paga_la_haremos_localmente_switch'])) {
+                $sino_la_campania_paga_la_haremos_localmente = 'SI';
+            }
+            $Solicitud->sino_la_campania_paga_la_haremos_localmente = $sino_la_campania_paga_la_haremos_localmente;       
+            $Solicitud->monto_a_invertir = $_POST['monto_a_invertir'];         
+            if (isset($_POST['moneda_id'])) {
+                $Solicitud->moneda_id = $_POST['moneda_id'];
+            }
+        }
+        else {
+            $Solicitud->sino_es_campania_organica = 'SI';         
+        }
 
         if (!isset($_POST['sino_solicitar_responsable_de_inscripcion']) or $_POST['sino_solicitar_responsable_de_inscripcion'] == 'NO') {
             $Solicitud->sino_solicitar_responsable_de_inscripcion = 'NO';
@@ -1206,7 +1306,9 @@ class SolicitudController extends Controller
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
         $now = new \DateTime();
         $Solicitud->fecha_de_solicitud = $now->format('Y-m-d H:i:s');
-        $Solicitud->AsignarEjecutivo();
+        if ($Solicitud->sino_la_campania_paga_la_haremos_localmente <> 'SI') {
+            $Solicitud->AsignarEjecutivo();
+        }
         $Solicitud->save();
 
 
@@ -1297,7 +1399,7 @@ class SolicitudController extends Controller
                     where('solicitud_id', $solicitud_id)
                     ->get();
 
-                if (($Solicitud->tipo_de_evento_id <> 3 AND (Auth::user()->rol_de_usuario_id < 3 or (Auth::user()->rol_de_usuario_id == 3 and $Solicitud->ejecutivo == Auth::user()->id)  or ($Solicitud->user_id == Auth::user()->id) or (in_array(Auth::user()->rol_de_usuario_id, array(7, 9))))) OR ($Solicitud->tipo_de_evento_id == 3 AND (in_array(13, $Roles) or in_array(3, $Roles) or in_array(2, $Roles) or in_array(1, $Roles)  or in_array(7, $Roles)  or $Solicitud->user_id == Auth::user()->id) ))  {
+                if (($Solicitud->tipo_de_evento_id <> 3 AND (min($Roles) < 3 or (in_array(3, $Roles) and $Solicitud->ejecutivo == Auth::user()->id)  or ($Solicitud->user_id == Auth::user()->id) or (in_array(Auth::user()->rol_de_usuario_id, array(7, 9))))) OR ($Solicitud->tipo_de_evento_id == 3 AND (in_array(13, $Roles) or in_array(3, $Roles) or in_array(2, $Roles) or in_array(1, $Roles)  or in_array(7, $Roles)  or $Solicitud->user_id == Auth::user()->id) ))  {
                     $autorizado = true;
                 }
                 else {

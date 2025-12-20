@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/completar_url_redirect', 'HomeController@completarUrlRedirect');
 	Route::get('/solicitudes-valores', 'ReportesController@solicitudesValores');
 	Route::get('/Solicitudes/online/{estado}', 'SolicitudController@SolicitudesOnline');
+	Route::get('/Solicitudes/contenidos-avanzandos/{estado}', 'SolicitudController@SolicitudesContenidosAvanzandoz');
 	Route::get('/Solicitudes/recoleccion/{estado}', 'SolicitudController@SolicitudesRecoleccionDatos');
 
 
@@ -135,6 +136,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('prog', 'MauticController@programarCampaniaMautic');
 	Route::post('change-password', 'HomeController@changePassword');
 
+	Route::get('/procesarRegistrosEugenioAsistencia', 'ExtController@procesarRegistrosEugenioAsistencia');
 
 
 
@@ -155,6 +157,7 @@ Route::post('/wabot/save', 'ExtController@saveWabot');
 Route::get('/lista-de-sedes/{pais_id}', 'ExtController@listaDeSedes');
 Route::get('/url-sedes-paises', 'ExtController@urlSedesPaises');
 
+Route::post('/f/i/setear-sino/{codigo}/{inscripcion_id}/{solicitud_id}', 'FormController@setearSino');
 
 
 
@@ -203,6 +206,7 @@ Route::group(['middleware' => 'sesion'], function () {
 	Route::post('/f/registrar-encuesta', 'EncuestaController@RegistrarEncuesta');
 });
 Route::get('/f/i/{solicitud_id}/{hash}', 'FormController@listInscriptos');
+Route::get('/f/in/{solicitud_id}/{hash}', 'FormController@listInscriptosNomina');
 Route::get('/f/il/{solicitud_id}/{hash}/{limite}', 'FormController@listInscriptoslimit');
 Route::get('/f/ilimite/{solicitud_id}/{hash}/{limite}', 'FormController@listInscriptoslimit');
 Route::get('/f/ipaginar/{solicitud_id}/{hash}/{pagina}/{parametros}', 'FormController@listInscriptosPaginar');
@@ -213,7 +217,6 @@ Route::get('/f/ivarias/{solicitudes}/{hash}', 'FormController@listInscriptosVari
 Route::get('/f/a/{solicitud_id}/{hash}', 'FormController@planillaAsistencia');
 Route::get('/f/agrupo/{solicitud_id}/{hash}/{grupo_id}', 'FormController@planillaAsistenciaGrupo');
 Route::get('/f/x/{solicitud_id}/{hash}/{fecha_de_evento_id}', 'FormController@listaInscripcionAExcel');
-Route::post('/f/i/setear-sino/{codigo}/{inscripcion_id}/{solicitud_id}', 'FormController@setearSino');
 Route::post('/f/i/setear-asistencia/{leccion_id}/{inscripcion_id}', 'FormController@setearAsistencia');
 Route::post('/f/i/baja-de-alumno/{inscripcion_id}/{causa_de_baja_id}', 'FormController@bajaDeAlumno');
 Route::post('/f/i/guardar-cel/{inscripcion_id}/{celular}', 'FormController@guardarCelular');
@@ -317,6 +320,12 @@ Route::get('/queue_restart', function () {
 //BOT DialogFlow
 Route::post('/dialog', 'DialogflowController@dialog');
 
+// routes/web.php
+
+//REDIRECCION A OLD
+Route::get('old/{path?}', function ($path = '') {
+    return redirect()->away("https://old.gnosisargentina.org.ar/" . $path);
+})->where('path', '.*');
 
 
 // ESPACIO DEL ALUMNO - FABRI
@@ -354,3 +363,5 @@ Route::prefix('alumnos')
         });
         */
 });
+
+
