@@ -4,7 +4,7 @@ namespace Payment\PayPal {
 
     class PayPalConfiguration {
 
-        private $sandbox = false;
+        private $sandbox = true;
         private $versionApi = "114.0";
 
         public function __construct()

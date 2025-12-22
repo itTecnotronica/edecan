@@ -5,6 +5,8 @@ $gCont = new GenericController();
 
 $cant = $Encuesta_cant->cant;
 
+App::setLocale($idioma);
+
 ?>
 
   <!-- Bootstrap 3.3.7 -->

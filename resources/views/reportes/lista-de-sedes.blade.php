@@ -16,6 +16,19 @@ function mostrar_correo($email_correo) {
   return $html_correo;
 }
 
+
+
+function mostrar_web($url) {
+  
+  $html_correo = '';
+  
+  if (trim($url) <> '') { 
+    $html_correo = 'Sitio Web: <a href="'.$url.'" target="_blank">'.$url.'</a>';
+  }
+
+  return $html_correo;
+}
+
 function separ_tel($numero, $separador) {
 
   $telefonos = [];
@@ -108,6 +121,8 @@ function mostrar_tel($numero, $GenericController, $codigo_tel) {
 <div class="container">
   <div class="row">
     <h3><?php echo $titulo ?></h3>
+    <h5><?php echo $texto_whatsapp_info ?></h5>
+
 
     <table id="table" class="table table-bordered table-striped" >
       <thead>
@@ -133,14 +148,31 @@ function mostrar_tel($numero, $GenericController, $codigo_tel) {
 
           <td class="hidden-xs"><?php echo $Sede->provincia_estado_o_region ?></td>
           <td class="hidden-xs"><?php echo $Sede->ciudad ?></td>
-          <td class="hidden-xs"><?php echo $Sede->direccion ?> <?php echo $Sede->informacion_adicional ?> <a href="<?php echo $Sede->url_enlace_a_google_maps ?>" target="_blank"><button type="button" class="btn btn-info btn-sm"><i class="fa fa-fw fa-map-marker" style="font-size: 17px"></i> Ver Ubicación</button></a></td>
+          <td class="hidden-xs"><?php echo $Sede->direccion ?> <?php echo $Sede->informacion_adicional ?> 
+            <?php if ($Sede->url_enlace_a_google_maps <> '') { ?>
+              <a href="<?php echo $Sede->url_enlace_a_google_maps ?>" target="_blank"><button type="button" class="btn btn-info btn-sm"><i class="fa fa-fw fa-map-marker" style="font-size: 17px"></i> Ver Ubicación</button></a>
+            <?php } ?>
+          </td>
 
           <td class="hidden-lg hidden-sm hidden-md">
             <?php echo $Sede->provincia_estado_o_region ?><br>
             <?php echo $Sede->ciudad ?><br>
-            <?php echo $Sede->direccion ?> <?php echo $Sede->informacion_adicional ?> <a href="<?php echo $Sede->url_enlace_a_google_maps ?>" target="_blank"><button type="button" class="btn btn-info btn-sm"><i class="fa fa-fw fa-map-marker" style="font-size: 17px"></i> Ver Ubicación</button></a></td>
+            <?php echo $Sede->direccion ?> <?php echo $Sede->informacion_adicional ?> 
+            <?php if ($Sede->url_enlace_a_google_maps <> '') { ?>
+              <a href="<?php echo $Sede->url_enlace_a_google_maps ?>" target="_blank"><button type="button" class="btn btn-info btn-sm"><i class="fa fa-fw fa-map-marker" style="font-size: 17px"></i> Ver Ubicación</button></a>
+            <?php } ?>
+            <?php echo mostrar_tel($Sede->telefono_con_whatsapp, $GenericController, $Sede->codigo_tel) ?> <?php echo mostrar_correo($Sede->email_correo) ?>
+            <?php echo mostrar_web($Sede->url_enlace_para_formulario_inactivo) ?>
+          </td>
 
-          <td><?php echo mostrar_tel($Sede->telefono_con_whatsapp, $GenericController, $Sede->codigo_tel) ?> <?php echo mostrar_correo($Sede->email_correo) ?></td>
+          <td class="hidden-xs">
+            <?php echo mostrar_tel($Sede->telefono_con_whatsapp, $GenericController, $Sede->codigo_tel) ?> 
+            <?php echo mostrar_correo($Sede->email_correo) ?><br>
+            <?php echo mostrar_web($Sede->url_enlace_para_formulario_inactivo) ?>
+          </td>
+          
+
+
         </tr>
       <?php } ?>
       </tbody>

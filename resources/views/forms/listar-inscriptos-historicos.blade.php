@@ -57,13 +57,15 @@ if (!Auth::guest()) {
 }
 
 
-$tel_responsable_inscripcion = $Solicitud->celular_responsable_de_inscripciones;
 $nombre_de_ciudad = $Solicitud->localidad_nombre();
 $nombre_responsable_de_inscripciones = $Solicitud->nombre_responsable_de_inscripciones;
 $tipo_de_evento_id = $Solicitud->tipo_de_evento_id;
 $descripcion_sin_estado = __($Solicitud->descripcion_sin_estado(false));
 $url_form_inscripcion = $Solicitud->url_form_inscripcion_contacto_historico();
 $nombre_responsable_inscripcion = $Solicitud->nombre_responsable_de_inscripciones;
+$tel_responsable_inscripcion = $Solicitud->celular_responsable_de_inscripciones;
+$nombre_del_solicitante = $Solicitud->nombre_del_solicitante;
+$celular_del_solicitante = $Solicitud->celular_del_solicitante;
 $Idioma_por_pais = $Solicitud->idioma_por_pais();
 
 if ($Idioma_por_pais->pais_id > 0) {
@@ -130,6 +132,9 @@ if (isset($nro_de_grupo)) {
 if (!isset($criterio)) {
   $criterio = '';
 }
+
+$hash_nuevo = md5(strval($Solicitud->id).strval($Solicitud->hash).strval($Solicitud->id));
+
 
 ?>
 <!DOCTYPE html>
@@ -238,6 +243,14 @@ if (!isset($criterio)) {
             </div>
             <?php } ?>
 
+            <div class="col-xs-6 col-lg-2" style="margin-bottom: 20px">  
+              <div class="btn btn-block btn-social btn-instagram" data-toggle="modal" data-target="#modal-downcontactos" target="_blank" style="margin-top: 10px;">
+                <i class="fa fa-mobile"></i> 
+                <span class="hidden-xs"><?php echo __('Descargar contactos') ?></span>
+                <span class="hidden-lg hidden-sm hidden-md"><?php echo __('Contactos') ?></span>
+              </div>              
+            </div>
+
 
             <div class="col-xs-6 col-lg-2" style="margin-bottom: 20px">  
               <div class="btn btn-block btn-social btn-instagram" data-toggle="modal" data-target="#modal-columnas" target="_blank" style="margin-top: 10px;">
@@ -261,7 +274,7 @@ if (!isset($criterio)) {
                   <div style="margin-top: 10px;">
                   {!! Form::open(array
                     (
-                    'url' => $dominio_publico.'f/ibuscar/'.$Solicitud->id.'/'.$Solicitud->hash, 
+                    'url' => $dominio_publico.'f/ibuscar/'.$Solicitud->id.'/'.$hash_nuevo, 
                     'role' => 'form',
                     'method' => 'POST',
                     'id' => "form_gen_modelo",
@@ -273,7 +286,7 @@ if (!isset($criterio)) {
                     <div class="input-group">
                       <input type="text" name="criterio" placeholder="Indique el nombre, apellido, ID, ciudad, país, codigo de alumno, email o celular para filtrar" class="form-control" v-model="criterio">
                       <input type="hidden" name="solicitud_id" value="<?php echo $Solicitud->id ?> ">
-                      <input type="hidden" name="hash" value="<?php echo $Solicitud->hash ?>">
+                      <input type="hidden" name="hash" value="<?php echo $hash_nuevo ?>">
                       <input type="hidden" name="historico" value="<?php echo $historico ?>">
                       <span class="input-group-btn">
                         <button type="submit" class="btn btn-primary btn-flat">Buscar en toda la planilla</button>
@@ -308,7 +321,7 @@ if (!isset($criterio)) {
                           $class_active = '';
                         }
                       ?>
-                      <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $Solicitud->hash ?>/<?php echo $j ?>/<?php echo $parametros_paginacion ?>">
+                      <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $hash_nuevo ?>/<?php echo $j ?>/<?php echo $parametros_paginacion ?>">
                         <button type="button" class="btn btn-default <?php echo $class_active ?>"><?php echo $i ?></button>
                       </a>
                       <?php } ?>
@@ -325,11 +338,16 @@ if (!isset($criterio)) {
                       $parametros_paginacion_ver_todo = $parametros_paginacion;
                     }
                     else {
-                      $parametros_paginacion_ver_todo = "1";
+                      if ($parametros_paginacion <> 'historico') {
+                        $parametros_paginacion_ver_todo = "1";
+                      }
+                      else {
+                        $parametros_paginacion_ver_todo = "historico";                        
+                      }
                     }
                     ?>
 
-                    <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $Solicitud->hash ?>/all/<?php echo $parametros_paginacion_ver_todo ?>">
+                    <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $hash_nuevo ?>/all/<?php echo $parametros_paginacion_ver_todo ?>">
                       <button type="button" class="btn btn-default <?php echo $class_active ?>"><?php echo __('Ver todos') ?></button>
                     </a>
 
@@ -346,6 +364,26 @@ if (!isset($criterio)) {
                 <textarea id="mensaje_extra" v-model="mensaje_extra" rows="6" name="mensaje_extra" class="form-control" placeholder="<?php echo __('Indique el mensaje personalizado que quiere enviar') ?>"></textarea>
                 <button type="button" class="btn btn-primary btn-xs" v-on:click="guardarMensajeAEnviar()"><i class="fa fa-fw fa-save" style="font-size: 19px"></i></button>  
                 <span v-html="mensaje_a_enviar_status_save"></span>
+
+
+                <h4>Puedes usar: </h4>
+                <ul>
+                  <li>inscrito_nombre</li>
+                  <li>inscrito_apellido</li>
+                  <li>codigo_del_alumno</li>
+                  <li>nombre_de_la_institucion</li>
+                  <li>txt_tipo_de_evento</li>
+                  <li>url_form_inscripcion</li>
+                  <li>icon_4diamantes 💠</li>
+                  <li>icon_check ✅</li>
+                  <li>icon_manito 👉</li>
+                  <li>icon_explosion 💥</li>
+                  <li>icon_libros 📚</li>
+                  <li>nombre_responsable_inscripcion</li>
+                  <li>tel_responsable_inscripcion</li>
+                  <li>nombre_del_solicitante</li>
+                  <li>celular_del_solicitante</li>
+                </ul>
 
               </div>
 
@@ -413,7 +451,7 @@ if (!isset($criterio)) {
                                     <a><?php echo __('Modificar') ?> <?php echo __('Datos') ?></a>
                                   </li>
                                   <li>
-                                    <a href="<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/inscripcion/<?php echo $Inscripcion->id; ?>/1/1/<?php echo $Solicitud->hash; ?>" target="_blank">
+                                    <a href="<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/inscripcion/<?php echo $Inscripcion->id; ?>/1/1/<?php echo $hash_nuevo; ?>" target="_blank">
                                       <?php echo __('Agendar Contacto vCard') ?>
                                     </a>
                                   </li>
@@ -535,6 +573,72 @@ if (!isset($criterio)) {
           </div>
       </div>
 
+      <!-- MODAL DOWNCONTACTOS -->
+        <div class="modal modal fade" id="modal-downcontactos">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><div id="modal-downcontactos-titulo"><?php echo __('Descargar').' '.__('Contactos') ?></div></h4>
+              </div>
+
+              <div class="modal-body" id="modal-bodi-downcontactos"> 
+
+                <form role="form">
+                  <!-- text input -->
+
+                  <div class="form-group">
+                      <select v-model="valor_select_contactdown" class="form-control">
+                        <option v-for="select in select_contactdown" v-bind:value="select.id">
+                          @{{ select.detalle }}
+                        </option>
+                      </select>
+                  </div>
+
+
+                  <p style="color: red">Solo se descargargarán los contactos que no esten cancelados o con causa de baja</p>
+                  
+
+                  <a v-show="valor_select_contactdown.substr(0, 8) == 'grupo_wa'" v-bind:href="urlgrupo(valor_select_contactdown.replace('grupo_wa_', ''))">
+                    <button type="button" class="btn btn-primary"><i class="fa fa-mobile" style="padding-right: 5px; font-size: 20px"> </i>  <?php echo __('Descargar contactos del Grupo de Whatsapp') ?> @{{ valor_select_contactdown.replace('grupo_wa_', '') }}</button>
+                  </a>
+
+                  <a v-show="valor_select_contactdown == 'todos-historico'" href="<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/todos-historico/0/1/9999999/<?php echo md5(ENV('PREFIJO_HASH').$Solicitud->id) ?>">
+                    <button type="button" class="btn btn-primary"><i class="fa fa-mobile" style="padding-right: 5px; font-size: 20px"> </i>  <?php echo __('Descargar todos los contactos') ?> </button>
+                  </a>
+
+                  <div v-show="valor_select_contactdown == 'pagina-historico'" class="form-group">
+                    <label><?php echo __('Cantidad de contactos por página') ?></label>  
+                      <input type="number" name="cant_x_pagina" class="form-control" v-model="cant_x_pagina">
+                      <br>
+                      <button type="button" class="btn btn-default" v-on:click="crearListasDeContactos()"><?php echo __('Generar lista de contactos') ?></button>
+                      <hr>
+
+                      <p v-show="valor_select_contactdown == 'pagina'"  v-for="lista in listas_de_contactos">
+                        <a v-bind:href="lista.url">
+                          <button type="button" class="btn btn-primary"><i class="fa fa-mobile" style="padding-right: 5px; font-size: 20px"> </i>  <?php echo __('Descargar').' '.__('Contactos') ?> @{{ lista.titulo }}</button>
+                        </a>
+                      </p>
+                  </div>
+
+                </form>
+
+              </div>
+
+              <div class="modal-footer">
+                <center>
+                  <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo __('Cerrar') ?></button>
+                </center>  
+                <input type="hidden" name="sino_aprobado_administracion" value="NO">
+              </div>
+
+            </div>
+            <!-- /.modal-content -->
+          </div>
+          <!-- /.modal-dialog -->
+        </div>
+      <!-- MODAL DOWNCONTACTOS -->
 
       <!-- MODAL COLUMNAS -->
         <div class="modal modal fade" id="modal-columnas">
@@ -899,6 +1003,11 @@ if (!isset($criterio)) {
                     { detalle: '<?php echo __('Sin contactar') ?>', id: 'sin_contactar'},
                 ],
                 criterio: '<?php echo $criterio ?>',
+                valor_select_contactdown: '',
+                select_contactdown: [
+                    { detalle: '<?php echo __('Seleccione como quiere descargar los contactos') ?>', id: ''},
+                    { detalle: '<?php echo __('Descargar todos') ?>', id: 'todos-historico'},
+                ],
               },
 
               methods: { 
@@ -1404,9 +1513,22 @@ if (!isset($criterio)) {
 
                   if (this.email_codigo == 25) {
                     var mensaje = this.mensaje_extra
+
                     mensaje = mensaje.replaceAll('inscrito_nombre', this.email_nombre.trim())
                     mensaje = mensaje.replaceAll('inscrito_apellido', this.email_apellido.trim())   
+                    mensaje = mensaje.replaceAll('codigo_del_alumno', codigo_del_alumno)
+                    mensaje = mensaje.replaceAll('nombre_de_la_institucion', '<?php echo $nombre_de_la_institucion ?>')
+                    mensaje = mensaje.replaceAll('txt_tipo_de_evento', '<?php echo $descripcion_sin_estado ?>')
+                    mensaje = mensaje.replaceAll('url_form_inscripcion', '<?php echo $url_form_inscripcion ?>')
+                    mensaje = mensaje.replaceAll(/icon_4diamantes/g, '💠')
+                    mensaje = mensaje.replaceAll(/icon_check/g, '✅')
+                    mensaje = mensaje.replaceAll(/icon_manito/g, '👉')
+                    mensaje = mensaje.replaceAll(/icon_explosion/g, '💥')
+                    mensaje = mensaje.replaceAll(/icon_libros/g, '📚')
+                    mensaje = mensaje.replaceAll(/nombre_responsable_inscripcion/g, '<?php echo $nombre_responsable_inscripcion ?>')
                     mensaje = mensaje.replaceAll('tel_responsable_inscripcion', '<?php echo $tel_responsable_inscripcion ?>')   
+                    mensaje = mensaje.replaceAll('nombre_del_solicitante', '<?php echo $nombre_del_solicitante ?>')   
+                    mensaje = mensaje.replaceAll('celular_del_solicitante', '<?php echo $celular_del_solicitante ?>')   
 
                     this.email_mensaje_extra = mensaje
                   }
@@ -1697,6 +1819,7 @@ if (!isset($criterio)) {
 
                 url_mensa_extra: function (celular, nombre, apellido, codigo_del_alumno) {
                   mensaje = encodeURI(this.mensaje_extra)
+                  
                   mensaje = mensaje.replaceAll('inscrito_nombre', nombre.trim())
                   mensaje = mensaje.replaceAll('inscrito_apellido', apellido.trim())
                   mensaje = mensaje.replaceAll('codigo_del_alumno', codigo_del_alumno)
@@ -1709,6 +1832,10 @@ if (!isset($criterio)) {
                   mensaje = mensaje.replaceAll(/icon_explosion/g, '💥')
                   mensaje = mensaje.replaceAll(/icon_libros/g, '📚')
                   mensaje = mensaje.replaceAll(/nombre_responsable_inscripcion/g, '<?php echo $nombre_responsable_inscripcion ?>')
+                  mensaje = mensaje.replaceAll('tel_responsable_inscripcion', '<?php echo $tel_responsable_inscripcion ?>')   
+                  mensaje = mensaje.replaceAll('nombre_del_solicitante', '<?php echo $nombre_del_solicitante ?>')   
+                  mensaje = mensaje.replaceAll('celular_del_solicitante', '<?php echo $celular_del_solicitante ?>')  
+
                   url_mensa_extra = 'https://api.whatsapp.com/send?phone='+celular+'&text='+mensaje;
                   return url_mensa_extra
                 },
@@ -1746,7 +1873,7 @@ if (!isset($criterio)) {
                   j = 0
                   for (i = cant_listas; i >= 1; i--) { 
                     j++
-                    this.listas_de_contactos.push({titulo: 'Grupo '+i, url: '<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/pagina/'+j+'/1/'+this.cant_x_pagina+'/<?php echo $Solicitud->hash; ?>'})
+                    this.listas_de_contactos.push({titulo: 'Grupo '+i, url: '<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/pagina/'+j+'/1/'+this.cant_x_pagina+'/<?php echo $hash_nuevo; ?>'})
                     }
                 },
                 

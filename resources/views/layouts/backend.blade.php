@@ -280,6 +280,9 @@ if ($_SERVER['HTTP_HOST'] == 'ac.igca.com.ar') {
             <li><a href="<?php echo $path_public?>Solicitudes/online/t"><i class="fa fa-file-text-o"></i> <span><?php echo __('Cursos Online') ?></span></a></li>
           </ul>
           <ul class="treeview-menu">
+            <li><a href="<?php echo $path_public?>Solicitudes/contenidos-avanzandos/t"><i class="fa fa-file-text-o"></i> <span><?php echo __('Contenidos Avanzados') ?></span></a></li>
+          </ul>
+          <ul class="treeview-menu">
             <li><a href="<?php echo $path_public?>Solicitudes/recoleccion/t"><i class="fa fa-file-text-o"></i> <span><?php echo __('Recolección de Datos') ?></span></a></li>
           </ul>
         </li>

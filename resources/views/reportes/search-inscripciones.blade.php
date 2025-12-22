@@ -112,9 +112,12 @@ $pais_id = Auth::user()->pais_id;
             </div>
 
             <div class="form-group">
-              <label><?php echo __('Correo') ?></label>
-              <input type="text" name="email_correo" id="email_correo" class="form-control">
+              <label><?php echo __('Provincia') ?> <?php echo __('Solicitud') ?></label>
+              <?php $provincias = App::make('App\Http\Controllers\HomeController')->get_provincias(); ?>
+              <?php array_push($provincias, [null => ''] ) ?>
+              <?php echo Form::select("provincia_id", $provincias, null, ['id' => "provincia_id", 'class' => 'form-control select2', 'style' => 'width: 100%;']); ?>
             </div>
+
 
           </div>   
 
@@ -139,6 +142,11 @@ $pais_id = Auth::user()->pais_id;
           </div>     
 
           <div class="col-lg-3 col-xs-12">
+
+            <div class="form-group">
+              <label><?php echo __('Correo') ?></label>
+              <input type="text" name="email_correo" id="email_correo" class="form-control">
+            </div>
 
             <div class="form-group">
               <label><?php echo __('Id de Campaña (Contador)') ?> </label>
@@ -203,6 +211,7 @@ $pais_id = Auth::user()->pais_id;
         ciudad: $('#ciudad').val(),
         pais_id_inscripcion: $('#pais_id_inscripcion').val(),
         localidad_id: $('#localidad_id').val(),
+        provincia_id: $('#provincia_id').val(),
         idioma_id: $('#idioma_id').val(),
         campania_id: $('#campania_id').val()
 

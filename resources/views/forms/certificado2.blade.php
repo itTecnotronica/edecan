@@ -10,6 +10,10 @@ $denominacion_de_voucher = $Idioma_por_pais->denominacion_de_voucher;
 $idioma = $Idioma_por_pais->idioma->mnemo;
 App::setLocale($idioma);    
 
+
+$mnemo_lang = $mnemo_lang == 'pt' ? 'pt-BR' : $mnemo_lang;
+$mnemo_lang = $mnemo_lang == 'es-es' ? 'es' : $mnemo_lang;
+$mnemo_lang = $mnemo_lang == 'es-ve' ? 'es' : $mnemo_lang;
 ?>
 
 

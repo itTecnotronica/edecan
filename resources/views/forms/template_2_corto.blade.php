@@ -62,12 +62,12 @@ else {
     <!-- Required meta tags-->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta name="description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta name="author" content="<?php echo $nombre_institucion ?>.is">
-    <meta name="keywords" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>">
-    <meta property="og:title" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>" />
+    <meta name="keywords" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
+    <meta property="og:title" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>" />
     <meta property="og:url" content="<?php echo $Solicitud->url_form_inscripcion() ?>" />
-    <meta property="og:description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta property="og:description" content="<?php echo $nombre_institucion ?>, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta property="og:image" content="<?php echo $imagen_chica ?>">
 
     <!-- Title Page-->
@@ -127,6 +127,10 @@ else {
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook);
+    }
+
+    if (isset($Solicitud->localidad->urlencode_pixel_de_facebook)) {
+      echo urldecode($Solicitud->localidad->urlencode_pixel_de_facebook);
     }
     ?>
 </head>
@@ -433,7 +437,24 @@ else {
                                                       <?php if ($Fecha_de_evento->sino_agotado == 'SI') { ?>
                                                         <p class="bg-danger txt_agotado"><?php echo __('CUPO AGOTADO') ?></p>
                                                       <?php } ?>
-                                                      <?php echo $Fecha_de_evento->armarDetalleFechasDeEventos('con_resumen')  ?>
+                                                      <?php 
+
+
+                                                        $tipo = 'con_resumen';
+                                                        if ($Solicitud->tipo_de_curso_online_id == 4) {
+                                                          $con_inicio = false;
+                                                          $ver_mapa = false;
+                                                          $con_dir_inicio_distinto = false;
+                                                        }
+                                                        else {
+                                                          $con_inicio = true;
+                                                          $ver_mapa = true;
+                                                          $con_dir_inicio_distinto = true;
+                                                        }
+
+                                                        ?>
+                                                  {!! nl2br($Fecha_de_evento->armarDetalleFechasDeEventos($tipo, $con_inicio, $idioma_por_pais, $Solicitud, $idioma, $ver_mapa, $con_dir_inicio_distinto)) !!}
+
                                                     </div>
                                                   </div>
                                               <?php } ?>
@@ -590,23 +611,26 @@ else {
                                               <?php $celular_responsable_de_inscripciones = str_replace('+', '', $Solicitud->celular_responsable_de_inscripciones); ?>
                                               <p>
                                                 <?php echo __('Informes') ?>: <?php echo $Solicitud->celular_responsable_de_inscripciones ?>  <a href="<?php echo $Solicitud->url_contacto_whatsapp_form() ?>" target="_blank">(<?php echo __('Enviar WhatsApp') ?>)</a></p>
-                                              <?php if($url_redes['url_sitio_web'] <> '') { ?>
-                                                <p><?php echo __('Sitio Web') ?>: <a href="<?php echo $url_redes['url_sitio_web'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_sitio_web']) ?></a></p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_fanpage'] <> '') { ?>
-                                              <p><?php echo __('Facebook') ?>: <a href="<?php echo $url_redes['url_fanpage'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_fanpage']) ?></a></p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_youtube'] <> '') { ?>
-                                                <p><?php echo __('Youtube') ?>: <a href="<?php echo $url_redes['url_youtube'] ?>?sub_confirmation=1" target="_blank"><?php echo quitar_www($url_redes['url_youtube']) ?></a></p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_twitter'] <> '') { ?>
-                                                <p><?php echo __('Twitter') ?>: <a href="<?php echo $url_redes['url_twitter'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_twitter']) ?></a></p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_instagram'] <> '') { ?>
-                                                <p><?php echo __('Instagram') ?>: <a href="<?php echo $url_redes['url_instagram'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_instagram']) ?></a></p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_tiktok'] <> '') { ?>
-                                                <p><?php echo __('TikTok') ?>: <a href="<?php echo $url_redes['url_tiktok'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_tiktok']) ?></a></p>
+                                              <?php if($Solicitud->sino_ocultar_enlaces_redes_sociales <> 'SI') { ?>
+
+                                                <?php if($url_redes['url_sitio_web'] <> '') { ?>
+                                                  <p><?php echo __('Sitio Web') ?>: <a href="<?php echo $url_redes['url_sitio_web'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_sitio_web']) ?></a></p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_fanpage'] <> '') { ?>
+                                                <p><?php echo __('Facebook') ?>: <a href="<?php echo $url_redes['url_fanpage'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_fanpage']) ?></a></p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_youtube'] <> '') { ?>
+                                                  <p><?php echo __('Youtube') ?>: <a href="<?php echo $url_redes['url_youtube'] ?>?sub_confirmation=1" target="_blank"><?php echo quitar_www($url_redes['url_youtube']) ?></a></p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_twitter'] <> '') { ?>
+                                                  <p><?php echo __('Twitter') ?>: <a href="<?php echo $url_redes['url_twitter'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_twitter']) ?></a></p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_instagram'] <> '') { ?>
+                                                  <p><?php echo __('Instagram') ?>: <a href="<?php echo $url_redes['url_instagram'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_instagram']) ?></a></p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_tiktok'] <> '') { ?>
+                                                  <p><?php echo __('TikTok') ?>: <a href="<?php echo $url_redes['url_tiktok'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_tiktok']) ?></a></p>
+                                                <?php } ?>
                                               <?php } ?>
                                             </div>
                                           <!-- INFO DATOS PC -->
@@ -626,35 +650,38 @@ else {
                                                   <?php echo __('Informes') ?>: <br>
                                                   <?php echo $Solicitud->celular_responsable_de_inscripciones ?>  <a href="<?php echo $Solicitud->url_contacto_whatsapp_form() ?>" target="_blank">(<?php echo __('Enviar WhatsApp') ?>)</a>
                                                 </p>
-                                              <?php if($url_redes['url_sitio_web'] <> '') { ?>
-                                                <p class="text-xs" style="text-align: left;"><?php echo __('Sitio Web') ?>:  <br>
-                                                  <a href="<?php echo $url_redes['url_sitio_web'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_sitio_web']) ?></a>
+                                              <?php if($Solicitud->sino_ocultar_enlaces_redes_sociales <> 'SI') { ?>
+
+                                                <?php if($url_redes['url_sitio_web'] <> '') { ?>
+                                                  <p class="text-xs" style="text-align: left;"><?php echo __('Sitio Web') ?>:  <br>
+                                                    <a href="<?php echo $url_redes['url_sitio_web'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_sitio_web']) ?></a>
+                                                  </p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_fanpage'] <> '') { ?>
+                                                <p class="text-xs" style="text-align: left;"><?php echo __('Facebook') ?>: <br>
+                                                  <a href="<?php echo $url_redes['url_fanpage'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_fanpage']) ?></a>
                                                 </p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_fanpage'] <> '') { ?>
-                                              <p class="text-xs" style="text-align: left;"><?php echo __('Facebook') ?>: <br>
-                                                <a href="<?php echo $url_redes['url_fanpage'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_fanpage']) ?></a>
-                                              </p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_youtube'] <> '') { ?>
-                                                <p class="text-xs" style="text-align: left;"><?php echo __('Youtube') ?>:  <br>
-                                                  <a href="<?php echo $url_redes['url_youtube'] ?>?sub_confirmation=1" target="_blank"><?php echo quitar_www($url_redes['url_youtube']) ?></a>
-                                                </p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_twitter'] <> '') { ?>
-                                                <p class="text-xs" style="text-align: left;"><?php echo __('Twitter') ?>:  <br>
-                                                  <a href="<?php echo $url_redes['url_twitter'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_twitter']) ?></a>
-                                                </p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_instagram'] <> '') { ?>
-                                                <p class="text-xs" style="text-align: left;"><?php echo __('Instagram') ?>:  <br>
-                                                  <a href="<?php echo $url_redes['url_instagram'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_instagram']) ?></a>
-                                                </p>
-                                              <?php } ?>
-                                              <?php if($url_redes['url_tiktok'] <> '') { ?>
-                                                <p class="text-xs" style="text-align: left;"><?php echo __('TikTok') ?>:  <br>
-                                                  <a href="<?php echo $url_redes['url_tiktok'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_tiktok']) ?></a>
-                                                </p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_youtube'] <> '') { ?>
+                                                  <p class="text-xs" style="text-align: left;"><?php echo __('Youtube') ?>:  <br>
+                                                    <a href="<?php echo $url_redes['url_youtube'] ?>?sub_confirmation=1" target="_blank"><?php echo quitar_www($url_redes['url_youtube']) ?></a>
+                                                  </p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_twitter'] <> '') { ?>
+                                                  <p class="text-xs" style="text-align: left;"><?php echo __('Twitter') ?>:  <br>
+                                                    <a href="<?php echo $url_redes['url_twitter'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_twitter']) ?></a>
+                                                  </p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_instagram'] <> '') { ?>
+                                                  <p class="text-xs" style="text-align: left;"><?php echo __('Instagram') ?>:  <br>
+                                                    <a href="<?php echo $url_redes['url_instagram'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_instagram']) ?></a>
+                                                  </p>
+                                                <?php } ?>
+                                                <?php if($url_redes['url_tiktok'] <> '') { ?>
+                                                  <p class="text-xs" style="text-align: left;"><?php echo __('TikTok') ?>:  <br>
+                                                    <a href="<?php echo $url_redes['url_tiktok'] ?>" target="_blank"><?php echo quitar_www($url_redes['url_tiktok']) ?></a>
+                                                  </p>
+                                                <?php } ?>
                                               <?php } ?>
                                             </div>
                                           <!-- INFO DATOS MOBILE -->
@@ -744,6 +771,17 @@ else {
             consulta: '<?php echo Input::old('consulta') ?>',
             ciudad: <?php echo $ciudad ?>,
             fecha_de_evento_id: null,
+            <?php
+            foreach ($Fechas_de_eventos as $Fecha_de_evento) { 
+              if ($Solicitud->tipo_de_evento_id == 1 or ($Solicitud->tipo_de_evento_id == 2 and $Solicitud->cant() == 1) or ($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 4) or ($Solicitud->tipo_de_evento_id == 4 and $Fechas_de_eventos->count() > 0)) {
+                echo '';
+              }
+              else {
+                $nombre_campo = 'fecha_de_evento_id_'.$Fecha_de_evento->id;
+              }
+              echo $nombre_campo.': null,';
+            }
+            ?>
             sino_notificar_proximos_eventos: true,
             acepto_politica_de_privacidad: false,
             class_errores: 'visibility: visible !important',

@@ -17,9 +17,22 @@ $gCont = new GenericController;
 use \App\Http\Controllers\SolicitudController; 
 $SolicitudController = new SolicitudController;
 
+
+
+function permisoAutorizado2($permisos) {
+  $Roles = Auth::user()->roles();
+  $autorizado = false;
+  foreach ($Roles as $rol_id) {
+    if (in_array($rol_id, $permisos)) {
+      $autorizado = true;
+    }
+  }
+  return $autorizado;
+}
+
 $rol_de_usuario_id = Auth::user()->rol_de_usuario_id;
 
-if ($Solicitud->sino_aprobado_administracion == 'SI' and $rol_de_usuario_id == 3) {
+if ($Solicitud->sino_aprobado_administracion == 'SI' and permisoAutorizado2([3])) {
     $modificar_solicitud = 'N';
 }
 else {
@@ -144,8 +157,17 @@ function sino_a_tf($sino) {
               </a>
               <?php } ?>
 
+              <?php if ($Solicitud->sino_es_campania_organica == 'SI') { ?>
+                <span class="badge bg-yellow datos-finales-asistente"><?php echo __('Es campaña organica') ?></span><br>
+              <?php } 
+              else { ?>
+                <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Importe') ?>:</span> <?php echo $moneda ?> <?php echo $gCont->formatoNumero($Solicitud->monto_a_invertir, 'entero'); ?><br>
+              <?php } ?>
 
-              <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Importe') ?>:</span> <?php echo $moneda ?> <?php echo $gCont->formatoNumero($Solicitud->monto_a_invertir, 'entero'); ?><br>
+              <?php if ($Solicitud->sino_la_campania_paga_la_haremos_localmente == 'SI') { ?>
+                <span class="badge bg-orange datos-finales-asistente"><?php echo __('La campaña paga la haremos localmente') ?></span><br>
+              <?php } ?>
+
               <?php if ($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id <> '') { ?>
               <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Tipo de curso online') ?>:</span> <?php echo $Solicitud->tipo_de_curso_online->tipo_de_curso_online; ?><br>
 
@@ -190,7 +212,7 @@ function sino_a_tf($sino) {
               </a></p>
 
               <!-- BOTON Ver Lista de Inscritos -->
-              <?php if (($Solicitud->id_pais() == 1 and $rol_de_usuario_id <> 4) or $Solicitud->id_pais() <> 1) { ?>
+              <?php if (($Solicitud->id_pais() == 1 and !permisoAutorizado2([4])) or $Solicitud->id_pais() <> 1) { ?>
                 <p class="txt_enlaces"><?php echo __('Planilla de Inscripción') ?>: <strong><?php echo $Solicitud->url_planilla_inscripcion() ?></strong></p>
                 <p><a target="_blank" href="<?php echo $Solicitud->url_planilla_inscripcion() ?>">
                   <button type="button" class="btn btn-block btn-primary btn-md"><i class="fa fa-list"></i> <?php echo __('Planilla de Inscripción') ?>  </button>
@@ -270,7 +292,7 @@ function sino_a_tf($sino) {
                   <i class="fa fa-instagram"></i> <?php echo __('Flyers') ?>
                 </a>
               <?php } ?>
-              <?php if ($rol_de_usuario_id <=3) { ?>
+              <?php if (permisoAutorizado2([1,2,3])) { ?>
               <a class="btn btn-block btn-social btn-facebook" data-toggle="modal" data-target="#modal-texto-anuncios" class="btn btn-default btn-md" style="margin-top: 10px;">
                 <i class="fa fa-facebook"></i> <?php echo __('Texto para los anuncios de Facebook') ?>
               </a>
@@ -278,7 +300,7 @@ function sino_a_tf($sino) {
             <?php } ?>
           </div>          
 
-          <?php if ($rol_de_usuario_id <=3) { ?>
+          <?php if (permisoAutorizado2([1,2,3])) { ?>
             <div class="col-xs-12 col-lg-6">
               <div v-bind:class="class_sino(envio_enlaces_a_resp_inscripcion)">
                 
@@ -540,12 +562,18 @@ function sino_a_tf($sino) {
             $cant_en_grupos = $Solicitud->cant_en_grupos(); 
 
             $cant_visualizaciones_x_inscripto = '';
+            $cant_visualizaciones_sin_bots_x_inscripto = '';
             $cant_visualizaciones = $Solicitud->cant_visualizaciones(); 
-            $cant_visualizaciones = $Solicitud->cant_visualizaciones(); 
+            $cant_visualizaciones_sin_bots = $Solicitud->cant_visualizaciones_sin_bots(); 
 
             if ($cant_inscriptos > 0) {
-              $cant_visualizaciones_x_inscripto = $Solicitud->cant_visualizaciones()/$cant_inscriptos; 
+              $cant_visualizaciones_x_inscripto = $cant_visualizaciones/$cant_inscriptos; 
             }
+
+            if ($cant_inscriptos > 0) {
+              $cant_visualizaciones_sin_bots_x_inscripto = $cant_visualizaciones_sin_bots/$cant_inscriptos; 
+            }
+
 
             $mostrar_stats_costos = false;
             if ($Solicitud->importe_gastado > 0) {
@@ -618,7 +646,9 @@ function sino_a_tf($sino) {
                       <div class="info-box-content">
                         <span class="info-box-text"><?php echo __('Inscriptos') ?> <?php echo __('únicos') ?>: <strong><?php echo $cant_inscriptos_unicos ?></strong></span>
                         <span class="info-box-text"><?php echo __('Visualizaciones') ?>: <strong><?php echo $cant_visualizaciones ?></strong></span>
+                        <span class="info-box-text"><?php echo __('Visualizaciones') ?> sin Bots: <strong><?php echo $cant_visualizaciones_sin_bots ?></strong></span>
                         <span class="info-box-text"><?php echo __('Visualizaciones') ?>/<?php echo __('Inscriptos') ?>: <strong><?php echo $gCont->formatoNumero($cant_visualizaciones_x_inscripto, 'decimal'); ?></strong></span>
+                        <span class="info-box-text"><?php echo __('Visualizaciones') ?> sin Bots/<?php echo __('Inscriptos') ?>: <strong><?php echo $gCont->formatoNumero($cant_visualizaciones_sin_bots_x_inscripto, 'decimal'); ?></strong></span>
                         <?php if ($mostrar_stats_costos) { ?>
                           <span class="info-box-text"><?php echo __('Costo por Inscripto') ?>: <strong>$ <?php echo $gCont->formatoNumero($costo_por_inscripto, 'decimal'); ?></strong></span>
                           <span class="info-box-text"><?php echo __('Costo por Asistente') ?>: <strong>$ <?php echo $gCont->formatoNumero($costo_por_asistente, 'decimal'); ?></strong></span>
@@ -764,7 +794,7 @@ function sino_a_tf($sino) {
                 <!-- Rounded switch -->
                 <div class="pull-left">
                   <span class="label_aprobacion"><?php echo __('Aprobada para inscripción') ?></span>
-                  <?php if ($rol_de_usuario_id <= 3) { ?>
+                  <?php if (permisoAutorizado2([1,2,3])) { ?>
                   <label class="switch">
                     <?php 
                     if (($Solicitud->localidad_id == '' and !in_array($Solicitud->tipo_de_evento_id, [3, 4])) or $Solicitud->nombre_responsable_de_inscripciones == '' or $Solicitud->celular_responsable_de_inscripciones == '') { 
@@ -783,7 +813,7 @@ function sino_a_tf($sino) {
                 <span id="estado_sino_aprobado_administracion" class="badge datos-finales-asistente" style="margin-top: 7px; background-color: #333; margin-left: 20px;"><?php echo $txt_sino_aprobado_administracion ?></span>
               </div>
               <div class="col-xs-6">
-                <?php if ($rol_de_usuario_id < 3) { ?>
+                <?php if (permisoAutorizado2([1,2])) { ?>
                 <textarea maxlength="250" id="observaciones_aprobado_administracion" name="observaciones_aprobado_administracion" class="form-control <?php echo $class_observaciones_aprobado_administracion ?>" placeholder="Indique los motivos de la desaprobacion" onkeydown="guardarObsAdm(this.value)"><?php echo $Solicitud->observaciones_aprobado_administracion ?></textarea>
                 <?php } 
                 else { ?>
@@ -797,7 +827,7 @@ function sino_a_tf($sino) {
 
         <!-- PANEL CANCELADA -->
           <div class="box box-default">
-            <?php if ($rol_de_usuario_id < 3) { ?>
+            <?php if (permisoAutorizado2([1,2])) { ?>
 
 
               <?php 
@@ -829,7 +859,7 @@ function sino_a_tf($sino) {
                     <!-- Rounded switch -->
                     <div class="pull-left">
                       <span class="label_aprobacion">CANCELADA</span>
-                      <?php if ($rol_de_usuario_id < 3) { ?>
+                      <?php if (permisoAutorizado2([1,2])) { ?>
                       <label class="switch">
                         <input id="sino_cancelada" type="checkbox" onclick="aprobacioncancelada(this.checked)" <?php echo $checked_sino_cancelada ?>>
                         <span class="slider round"></span>
@@ -839,7 +869,7 @@ function sino_a_tf($sino) {
                     <span id="estado_sino_cancelada" class="badge datos-finales-asistente" style="margin-top: 7px; background-color: #333; margin-left: 20px;"><?php echo $txt_sino_cancelada ?></span>
                   </div>
                   <div class="col-xs-6">
-                    <?php if ($rol_de_usuario_id < 3) { ?>
+                    <?php if (permisoAutorizado2([1,2])) { ?>
                     <textarea maxlength="250" id="observaciones_cancelada" name="observaciones_cancelada" class="form-control <?php echo $observaciones_cancelada ?>" placeholder="Indique las observaciones" onkeydown="guardarObsCanc(this.value)"><?php echo $Solicitud->observaciones_cancelada ?></textarea>
                     <?php } 
                     else { ?>
@@ -927,7 +957,7 @@ function sino_a_tf($sino) {
                       <!-- Rounded switch -->
                       <div class="pull-left">
                         <span class="label_aprobacion">FINALIZADA</span>
-                        <?php if ($rol_de_usuario_id <= 3) { ?>
+                        <?php if (permisoAutorizado2([1,2,3])) { ?>
                         <label class="switch">
                           <input id="sino_aprobado_finalizada" type="checkbox" onclick="aprobacionfinalizada(this.checked)" <?php echo $checked_sino_aprobado_finalizada ?>>
                           <span class="slider round"></span>
@@ -937,7 +967,7 @@ function sino_a_tf($sino) {
                       <span id="estado_sino_aprobado_finalizada" class="badge datos-finales-asistente" style="margin-top: 7px; background-color: #333; margin-left: 20px;"><?php echo $txt_sino_aprobado_finalizada ?></span>
                     </div>
                     <div class="col-xs-6">
-                      <?php if ($rol_de_usuario_id < 3) { ?>
+                      <?php if (permisoAutorizado2([1,2])) { ?>
                       <textarea maxlength="250" id="observaciones_aprobado_finalizada" name="observaciones_aprobado_finalizada" class="form-control <?php echo $observaciones_aprobado_finalizada ?>" placeholder="Indique las observaciones" onkeydown="guardarObsFin(this.value)"><?php echo $Solicitud->observaciones_aprobado_finalizada ?></textarea>
                       <?php } 
                       else { ?>
@@ -1026,166 +1056,176 @@ function sino_a_tf($sino) {
           <?php if ($Solicitud->campania_mautic_id <> '') { ?>
             <?php 
             $emailsMauticCampaign = $Solicitud->emailsMauticCampaign();
-            $Campaign = $emailsMauticCampaign['Campaign'];
 
-            if ($Campaign <> null) {
-              $Campaign_leads = $emailsMauticCampaign['Campaign_leads'];
-              $Email_stats = $emailsMauticCampaign['Email_stats'];
-              $cant_inscriptos = $emailsMauticCampaign['cant_inscriptos'];
-              $modificar = $emailsMauticCampaign['modificar'];
-              ?>
+            if ($emailsMauticCampaign) {
 
-              <p>Hemos generado automáticamente una campaña de envio de mails a todos los contactos de la base de datos que concuerden con la ciudad de esta campaña y que hallan solicitado recibir información sobre próximos eventos </p>
-            
+              $Campaign = $emailsMauticCampaign['Campaign'];
+              //$Campaign = NULL;
 
-              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-                <div class="panel panel-default">
-                  <div class="panel-heading" role="tab" id="headingOne" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    <h4 class="panel-title"><?php echo __('Datos de la Campaña') ?></h4>
-                  </div>
-                  <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
-                    <div class="panel-body">
-                      <table class="table table-bordered">
-                        <tbody>
+              if ($Campaign <> null) {
+                $Campaign_leads = $emailsMauticCampaign['Campaign_leads'];
+                $Email_stats = $emailsMauticCampaign['Email_stats'];
+                $cant_inscriptos = $emailsMauticCampaign['cant_inscriptos'];
+                $modificar = $emailsMauticCampaign['modificar'];
+                ?>
 
-                          <tr>
-                            <th><?php echo __('Fecha de Creación') ?></th>
-                            <td><?php echo $gCont->FormatoFecha($Campaign->date_added) ?></td>
-                          </tr>
+                <p>Hemos generado automáticamente una campaña de envio de mails a todos los contactos de la base de datos que concuerden con la ciudad de esta campaña y que hallan solicitado recibir información sobre próximos eventos </p>
+              
 
-                          <?php if ($modificar == 'SI') { ?>
-                            <tr>
-                              <th><?php echo __('Programada para enviar') ?></th>
-                              <td>
-                                <?php 
-
-                                if ($Campaign->is_published == 1) { 
-                                  $sino_is_published = 'SI';
-                                }
-                                else  { 
-                                  $sino_is_published = 'NO';
-                                }
-
-                                $checked_sino_is_published = '';
-                                $class_sino_is_published = '';
-                                if ($sino_is_published == 'SI') {
-                                  $checked_sino_is_published = 'checked="checked"';
-                                }
-                                if ($sino_is_published == 'NO') {
-                                  $checked_sino_is_published = '';
-                                }
-                                ?>                              
-                                <label class="switch">
-                                  <input id="sino_is_published" type="checkbox" onclick="aprobacionPublished(this.checked)" <?php echo $checked_sino_is_published ?>>
-                                  <span class="slider round"></span>
-                                </label>
-                                <span id="estado_sino_is_published" class="badge datos-finales-asistente" style="margin-top: 7px; background-color: #333; margin-left: 20px;"><?php echo $sino_is_published ?></span>
-
-                              </td>
-                            </tr>
-
-                            <tr>
-                              <th><?php echo __('Fecha de Envio') ?></th>
-                              <td><?php echo $gCont->FormatoFechayYHora($Campaign->publish_up) ?></td>
-                            </tr>
-
-                            <tr>
-                              <th><?php echo __('Destinatarios') ?></th>
-                              <td><?php echo $Campaign_leads->count() ?></td>
-                            </tr>
-                          <?php } ?>
-
-                          <tr>
-                            <th><?php echo __('Enviados') ?></th>
-                            <td><?php echo $Email_stats->enviados ?></td>
-                          </tr>
-                          <tr>
-                            <?php 
-                            if ($Email_stats->enviados > 0) {
-                              $porc_leidos = round($Email_stats->leidos * 100 / $Email_stats->enviados);
-                            }
-                            else {
-                              $porc_leidos = 0;
-                            }
-                            ?>
-                            <th><?php echo __('Leidos') ?></th>
-                            <td><?php echo $Email_stats->leidos ?> <span class="badge bg-green"><?php echo $porc_leidos ?>%</span></td>
-                          </tr>
-                          <tr>
-                            <th></th>
-                            <td>
-                              <div class="progress progress-xs progress-striped active">
-                                <div class="progress-bar progress-bar-success" style="width: <?php echo $porc_leidos ?>%"></div>
-                              </div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <?php 
-                            if ($Email_stats->enviados > 0) {
-                              $porc_inscriptos = round($cant_inscriptos * 100 / $Email_stats->enviados);
-                            }
-                            else {
-                              $porc_inscriptos = 0;
-                            }
-                            ?>
-                            <th><?php echo __('Inscriptos') ?></th>
-                            <td><?php echo $cant_inscriptos ?> <span class="badge bg-green"><?php echo $porc_inscriptos ?>%</span></td>
-                          </tr>
-                          <tr>
-                            <th></th>
-                            <td>
-                              <div class="progress progress-xs progress-striped active">
-                                <div class="progress-bar progress-bar-success" style="width: <?php echo $porc_inscriptos ?>%"></div>
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                      <h4 class="panel-title"><?php echo __('Datos de la Campaña') ?></h4>
                     </div>
-                  </div>
-                </div>
-                <div class="panel panel-default">
-                  <div class="panel-heading" role="tab" id="headingTwo" class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    <h4 class="panel-title"><?php echo __('Contenido del Mail') ?></h4>
-                  </div>
-                  <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                    <div class="panel-body">
-                      <a href="https://forms.gnosis.is/email/preview/<?php echo $Solicitud->mautic_email_id ?>" target="_blank"><p>Ver Email a Enviar</p></a>
-                    </div>
-                  </div>
-                </div>
-                <div class="panel panel-default">
-                  <div class="panel-heading" role="tab" id="headingThree" class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                    <h4 class="panel-title"><?php echo __('Destinatarios') ?> (<?php echo $Campaign_leads->count() ?>)</h4>
-                  </div>
-                  <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-                    <div class="panel-body">
-                      <!------- TABLA CORREOS CAMPAÑA ------------>
-                        <table id="table-campaign" class="table table-bordered table-striped" >
-                          <thead>
-                          <tr>
-                              <th><?php echo __('Nombre') ?></th>
-                              <th><?php echo __('Apellido') ?></th>
-                              <th><?php echo __('Email') ?></th>
-                          </tr>
-                          </thead>
+                    <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                      <div class="panel-body">
+                        <table class="table table-bordered">
                           <tbody>
-                            <?php foreach ($Campaign_leads as $Lead) { ?>
+
+                            <tr>
+                              <th><?php echo __('Fecha de Creación') ?></th>
+                              <td><?php echo $gCont->FormatoFecha($Campaign->date_added) ?></td>
+                            </tr>
+
+                            <?php if ($modificar == 'SI') { ?>
                               <tr>
-                                <td><?php echo $Lead->firstname; ?></td>
-                                <td><?php echo $Lead->lastname; ?></td>
-                                <td><?php echo $Lead->email; ?></td>
+                                <th><?php echo __('Programada para enviar') ?></th>
+                                <td>
+                                  <?php 
+
+                                  if ($Campaign->is_published == 1) { 
+                                    $sino_is_published = 'SI';
+                                  }
+                                  else  { 
+                                    $sino_is_published = 'NO';
+                                  }
+
+                                  $checked_sino_is_published = '';
+                                  $class_sino_is_published = '';
+                                  if ($sino_is_published == 'SI') {
+                                    $checked_sino_is_published = 'checked="checked"';
+                                  }
+                                  if ($sino_is_published == 'NO') {
+                                    $checked_sino_is_published = '';
+                                  }
+                                  ?>                              
+                                  <label class="switch">
+                                    <input id="sino_is_published" type="checkbox" onclick="aprobacionPublished(this.checked)" <?php echo $checked_sino_is_published ?>>
+                                    <span class="slider round"></span>
+                                  </label>
+                                  <span id="estado_sino_is_published" class="badge datos-finales-asistente" style="margin-top: 7px; background-color: #333; margin-left: 20px;"><?php echo $sino_is_published ?></span>
+
+                                </td>
+                              </tr>
+
+                              <tr>
+                                <th><?php echo __('Fecha de Envio') ?></th>
+                                <td><?php echo $gCont->FormatoFechayYHora($Campaign->publish_up) ?></td>
+                              </tr>
+
+                              <tr>
+                                <th><?php echo __('Destinatarios') ?></th>
+                                <td><?php echo $Campaign_leads->count() ?></td>
                               </tr>
                             <?php } ?>
+
+                            <tr>
+                              <th><?php echo __('Enviados') ?></th>
+                              <td><?php echo $Email_stats->enviados ?></td>
+                            </tr>
+                            <tr>
+                              <?php 
+                              if ($Email_stats->enviados > 0) {
+                                $porc_leidos = round($Email_stats->leidos * 100 / $Email_stats->enviados);
+                              }
+                              else {
+                                $porc_leidos = 0;
+                              }
+                              ?>
+                              <th><?php echo __('Leidos') ?></th>
+                              <td><?php echo $Email_stats->leidos ?> <span class="badge bg-green"><?php echo $porc_leidos ?>%</span></td>
+                            </tr>
+                            <tr>
+                              <th></th>
+                              <td>
+                                <div class="progress progress-xs progress-striped active">
+                                  <div class="progress-bar progress-bar-success" style="width: <?php echo $porc_leidos ?>%"></div>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <?php 
+                              $email_enviados = $Email_stats->enviados;
+                              if ($email_enviados > 0) {
+                                $porc_inscriptos = round($cant_inscriptos * 100 / $email_enviados);
+                              }
+                              else {
+                                $porc_inscriptos = 0;
+                              }
+                              ?>
+                              <th><?php echo __('Inscriptos') ?></th>
+                              <td><?php echo $cant_inscriptos ?> <span class="badge bg-green"><?php echo $porc_inscriptos ?>%</span></td>
+                            </tr>
+                            <tr>
+                              <th></th>
+                              <td>
+                                <div class="progress progress-xs progress-striped active">
+                                  <div class="progress-bar progress-bar-success" style="width: <?php echo $porc_inscriptos ?>%"></div>
+                                </div>
+                              </td>
+                            </tr>
                           </tbody>
                         </table>
-                      <!------- FIN TABLA CORREOS CAMPAÑA ------------>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo" class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      <h4 class="panel-title"><?php echo __('Contenido del Mail') ?></h4>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                      <div class="panel-body">
+                        <a href="https://forms.gnosis.is/email/preview/<?php echo $Solicitud->mautic_email_id ?>" target="_blank"><p>Ver Email a Enviar</p></a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingThree" class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      <h4 class="panel-title"><?php echo __('Destinatarios') ?> (<?php echo $Campaign_leads->count() ?>)</h4>
+                    </div>
+                    <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                      <div class="panel-body">
+                        <!------- TABLA CORREOS CAMPAÑA ------------>
+                          <table id="table-campaign" class="table table-bordered table-striped" >
+                            <thead>
+                            <tr>
+                                <th><?php echo __('Nombre') ?></th>
+                                <th><?php echo __('Apellido') ?></th>
+                                <th><?php echo __('Email') ?></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                              <?php foreach ($Campaign_leads as $Lead) { ?>
+                                <tr>
+                                  <td><?php echo $Lead->firstname; ?></td>
+                                  <td><?php echo $Lead->lastname; ?></td>
+                                  <td><?php echo $Lead->email; ?></td>
+                                </tr>
+                              <?php } ?>
+                            </tbody>
+                          </table>
+                        <!------- FIN TABLA CORREOS CAMPAÑA ------------>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-            <?php } ?>
+                <?php } 
+              } 
+              else {
+                echo '<h3>MAUTIC SERVIDOR CAIDO</h3>';
+              }
+              ?>
           <?php } ?>
 
         </div>
@@ -1251,13 +1291,26 @@ function sino_a_tf($sino) {
 <!-- FUNCIONES ABM Y MODIFICAR SOLICITUD -->
   <?php 
   $gen_url_siguiente = env('PATH_PUBLIC').'Solicitudes/solicitud/ver/'.$Solicitud->id;
-  $gen_seteo = array(
-      'gen_url_siguiente' => $gen_url_siguiente, 
-      'no_mostrar_campos_abm' => 'user_id|tipo_de_evento_id|sino_aprobado_administracion|sino_aprobado_solicitar_revision|sino_aprobado_finalizada|observaciones_aprobado_administracion|observaciones_aprobado_finalizada|hash|sino_envio_enlaces_a_resp_inscripcion|sino_cancelada|sino_envio_enlaces_a_resp_inscripcion|paypal_transaction_id|payment_pending_reason|payment_error_code|payment_status|payment_paid|payment_paid_date|paypal_payerid|paypal_token|paypal_value|payment_checkout_status|observaciones_aprobado_solicitar_revision|observaciones_cancelada|tipo_de_campania_facebook_id|identificador_de_la_campania_de_facebook|importe_gastado|resultados|alcances|impresiones|frecuencia|clics_unicos|latitud|longitud|campania_mautic_id'
-    );
+  if (permisoAutorizado2([1,2])) {
+    $gen_seteo = array(
+        'gen_url_siguiente' => $gen_url_siguiente, 
+        'no_mostrar_campos_abm' => 'user_id|tipo_de_evento_id|sino_aprobado_administracion|sino_aprobado_solicitar_revision|sino_aprobado_finalizada|observaciones_aprobado_administracion|observaciones_aprobado_finalizada|hash|sino_envio_enlaces_a_resp_inscripcion|sino_cancelada|sino_envio_enlaces_a_resp_inscripcion|paypal_transaction_id|payment_pending_reason|payment_error_code|payment_status|payment_paid|payment_paid_date|paypal_payerid|paypal_token|paypal_value|payment_checkout_status|observaciones_aprobado_solicitar_revision|observaciones_cancelada|tipo_de_campania_facebook_id|identificador_de_la_campania_de_facebook|importe_gastado|resultados|alcances|impresiones|frecuencia|clics_unicos|latitud|longitud|campania_mautic_id'
+      );
+  }
+  else {
+    if (isset($gen_seteo)) {
+      $gen_seteo['no_mostrar_campos_abm'] .= '|ejecutivo|colpick_color_de_fondo_del_formulario|sino_asignacion_automatica|cupo_maximo';
+    }
+    else {
+      $gen_seteo = array(
+          'no_mostrar_campos_abm' => 'ejecutivo|colpick_color_de_fondo_del_formulario|sino_asignacion_automatica|cupo_maximo',
+        );
 
-  if ($rol_de_usuario_id > 2) {
-    $gen_seteo['no_mostrar_campos_abm'] .= '|ejecutivo|colpick_color_de_fondo_del_formulario|sino_asignacion_automatica|cupo_maximo';
+    }
+
+    if ($Solicitud->fecha_de_solicitud <> '') {
+      $gen_seteo['no_mostrar_campos_abm'] .= '|fecha_de_solicitud';
+    }
   }
 
   /*
@@ -1282,12 +1335,10 @@ function sino_a_tf($sino) {
 
   $no_mostrar_campos_abm .= '|url_enlace_a_google_maps_inicio_redirect_final|url_enlace_a_google_maps_curso_redirect_final';
 
-  if ($rol_de_usuario_id > 2 or $Solicitud->fecha_de_solicitud <> '') {
-    $gen_seteo['no_mostrar_campos_abm'] .= '|fecha_de_solicitud';
-  }
 
 
-  if ($Solicitud->tipo_de_evento_id <> 3) {
+
+  if ($Solicitud->tipo_de_evento_id <> 3 and $Solicitud->tipo_de_evento_id <> 1) {
     $gen_seteo['no_mostrar_campos_abm'] .= '|fecha_de_inicio_del_curso_online|url_enlace_de_invitacion_al_grupo_de_whatsapp_del_aula_virtual';
   }
 

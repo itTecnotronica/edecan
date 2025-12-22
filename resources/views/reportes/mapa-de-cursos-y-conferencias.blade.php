@@ -1,5 +1,5 @@
   <!-- jQuery 3 -->
-  <script src="<?php echo env('PATH_PUBLIC')?>bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="<?php echo env('PATH_PUBLIC_MAPS')?>bower_components/jquery/dist/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/OverlappingMarkerSpiderfier/1.0.3/oms.min.js"></script>
 
     <style>
@@ -29,7 +29,7 @@
             options);
 
         var iconBase =
-            "<?php echo env('PATH_PUBLIC')?>img/";
+            "<?php echo env('PATH_PUBLIC_MAPS')?>img/";
 
         var icons = {
           marker: {
@@ -71,6 +71,8 @@
                 }
 
               }
+
+              $ciudad = str_replace("'", '&acute;', $ciudad);
 
 
           ?>
@@ -119,7 +121,7 @@
                 console.log("location: "+results[0].geometry.location);
 
                   $.ajax({
-                    url: '<?php echo env('PATH_PUBLIC')?>guardar-lat-y-long',
+                    url: '<?php echo env('PATH_PUBLIC_MAPS')?>guardar-lat-y-long',
                     type: 'POST',
                     dataType: 'html',
                     async: true,

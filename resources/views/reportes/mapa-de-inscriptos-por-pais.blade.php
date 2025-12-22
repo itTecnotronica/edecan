@@ -8,7 +8,7 @@
       <meta property="og:title" content="Mapa de personas inscriptas en todo el mundo">
       <meta property="og:url" content="https://ac.gnosis.is/mapa-de-inscriptos" >
       <meta property="og:description" content="Mapa de personas inscriptas en todo el mundo.">
-      <meta property="og:image" content="<?php echo env('PATH_PUBLIC')?>/img/mapasoldeacuario.jpg">
+      <meta property="og:image" content="<?php echo env('PATH_PUBLIC_MAPS')?>/img/mapasoldeacuario.jpg">
   <title>Mapa de personas inscriptas en todo el mundo</title>
 </head>
 <body>
@@ -43,7 +43,7 @@
             options);
 
         var iconBase =
-            "<?php echo env('PATH_PUBLIC')?>img/";
+            "<?php echo env('PATH_PUBLIC_MAPS')?>img/";
 
         var icons = {
           marker: {

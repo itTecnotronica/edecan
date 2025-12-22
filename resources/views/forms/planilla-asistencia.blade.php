@@ -21,6 +21,8 @@ function sino_a_tf($sino) {
   return $tf;
 }
 
+$mensaje_mo = __('Quisiera hacer este curso de forma online');
+
 if ($Solicitud->tipo_de_evento_id <> 3 or ($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 4)) {
   $mostrar_fechas = 'true';
   $mensaje_np = __('No puedo asistir a este horario pero quisiera me contacten mas adelante por otros días y horarios');
@@ -124,7 +126,7 @@ else {
             <div class="box-header">
               <h3 class="box-title"><?php echo __('Planilla de Asistencia') ?> <?php echo $Solicitud->descrip_modelo(); ?></h3>
               <p class="bg-info">
-                <select v-model="select_fechas_de_eventos" v-on:change="filtrar_tabla()" v-show="mostrar_fechas">
+                <select v-model="select_fechas_de_eventos" v-show="mostrar_fechas">
                   <option v-for="fecha_de_evento in fechas_de_evento" v-bind:value="fecha_de_evento.id">
                     @{{ fecha_de_evento.detalle }}
                   </option>
@@ -147,7 +149,7 @@ else {
 
               
               <div class="col-xs-6 col-lg-2" style="margin-top: 10px; "> 
-                <select v-model="valor_select_ver" class="form-control">
+                <select v-model="valor_select_ver" v-on:change="filtrar_tabla()" class="form-control">
                   <option v-for="select in select_ver" v-bind:value="select.id">
                     @{{ select.detalle }}
                   </option>
@@ -175,8 +177,8 @@ else {
                           <th v-show="show_col_fecha"><?php echo __('Fecha') ?></th>
                           <th v-show="show_col_apellido"><?php echo __('Apellido') ?></th>
                           <th v-show="show_col_nombre"><?php echo __('Nombre') ?></th>
-                          <th v-show="show_col_celular"><?php echo __('Celular') ?></th>
-                          <th v-show="show_col_celular"></th>
+                          <!--th v-show="show_col_celular"><?php echo __('Celular') ?></th>
+                          <th v-show="show_col_celular"></th-->
                           <th v-show="show_col_email_correo"><?php echo __('Correo') ?></th>
                           <th v-show="show_col_fecha_de_evento && mostrar_fechas"><?php echo __('Horario') ?></th>
                           <?php if ($Solicitud->tipo_de_evento_id == 3) { ?>
@@ -244,22 +246,29 @@ else {
                             <td v-show="show_col_fecha"><?php echo $gCont->FormatoFechayYHora($Inscripcion->created_at); ?></td>
                             <td v-show="show_col_apellido"><?php echo $Inscripcion->apellido; ?></td>
                             <td v-show="show_col_nombre"><?php echo $Inscripcion->nombre; ?></td>
-                            <td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
+                            <!--td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
                             <td v-show="show_col_celular">                     
                                 <a href="http://api.whatsapp.com/send?phone=<?php echo $Inscripcion->celular_wa(); ?>" target="_blank">
                                   <button type="button" class="btn btn-success btn-xs"><i class="fa fa-fw fa-whatsapp" style="font-size: 19px"></i></button>
                                 </a>                    
-                            </td>
+                            </td-->
                             <td v-show="show_col_email_correo"><?php echo $Inscripcion->email_correo; ?></td>
                             <td v-show="show_col_fecha_de_evento && mostrar_fechas">
                               <?php 
                               if ($Inscripcion->fecha_de_evento_id > 0) {
-                                echo $Inscripcion->fecha_de_evento->armarDetalleFechasDeEventos('html', true, $Idioma_por_pais, $Solicitud, $idioma); 
+                                echo $Inscripcion->fecha_de_evento->armarDetalleFechasDeEventos('html', true, $Idioma_por_pais, $Solicitud, $idioma).'<br>'; 
                               }
                               else {
-                                echo $mensaje_np.'<br>';
+                                if ($Solicitud->tipo_de_evento_id <> 3 or ($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 4)) {
+                                  if ($Inscripcion->sino_eleccion_modalidad_online == 'SI') {
+                                    echo $mensaje_mo.'<br>';
+                                  }
+                                  else {
+                                    echo $mensaje_np.'<br>';
+                                  }
+                                }
                               }
-                              ?>    
+                              ?>  
                             </td>
                             <?php if ($Solicitud->tipo_de_evento_id == 3) { ?>
                               <td v-show="show_col_pais"><?php echo $Inscripcion->nombre_pais; ?></td>                            
@@ -613,10 +622,26 @@ else {
                 show_col_grupo: true,
                 estados: [
                 <?php 
+                $asistio = 'false';
                 foreach ($Inscripciones as $Inscripcion) { 
                   $fecha_de_evento_id = '-1';
                   if ($Inscripcion->fecha_de_evento_id <> '') {
                     $fecha_de_evento_id = $Inscripcion->fecha_de_evento_id;
+
+                    //Verifico si registro asistencias
+                    if ($Inscripcion->sino_asistio == 'SI') {
+                      $asistio = 'true';
+                    }
+                    else {
+                      if ($Inscripcion->cant_asistencias > 0) {
+                        $asistio = 'true';
+                      }
+                      else {
+                        $asistio = 'false';
+                      }
+                    }
+
+
                   }
                 ?>
                       {
@@ -628,7 +653,7 @@ else {
                         envio_voucher: <?php echo sino_a_tf($Inscripcion->sino_envio_voucher) ?>,
                         envio_motivacion: <?php echo sino_a_tf($Inscripcion->sino_envio_motivacion) ?>,
                         envio_recordatorio: <?php echo sino_a_tf($Inscripcion->sino_envio_recordatorio) ?>,
-                        asistio: <?php echo sino_a_tf($Inscripcion->sino_asistio) ?>,
+                        asistio: <?php echo $asistio ?>,
                         cancelo: <?php echo sino_a_tf($Inscripcion->sino_cancelo) ?>,
                         causa_de_baja_id: '<?php echo $Inscripcion->causa_de_baja_id ?>',
                         asistencia: {                        
@@ -647,11 +672,19 @@ else {
                 fechas_de_evento: [
                     { detalle: '<?php echo __('Todos') ?>', id: 'todos'},
                     { detalle: '<?php echo __('No pueden asistir') ?>', id: '-1'},
+                    { detalle: '<?php echo __('Modalidad Online') ?>', id: 'mo'},
                   <?php 
-                  foreach ($Fechas_de_evento as $Fecha_de_evento) { 
+                  if ($Fechas_de_evento <> null) {
+                    foreach ($Fechas_de_evento as $Fecha_de_evento) { 
                   ?>
-                    { detalle: '<?php echo $Fecha_de_evento->armarDetalleFechasDeEventos('select') ?>', id: <?php echo $Fecha_de_evento->id ?> },
-                  <?php } ?>
+                    { 
+                      detalle: '<?php echo $Fecha_de_evento->armarDetalleFechasDeEventos('select', true, $Idioma_por_pais, $Solicitud, $idioma) ?>', 
+                      cupo_maximo: '<?php echo $Fecha_de_evento->cupo_maximo_disponible_del_salon ?>', 
+                      id: <?php echo $Fecha_de_evento->id ?> 
+                    },
+                  <?php } 
+                    } 
+                  ?>
                 ],
                 mostrar_fechas: <?php echo $mostrar_fechas ?>,
                 valor_select_ver: 'todos',
@@ -666,7 +699,8 @@ else {
               methods: {                
 
                 mostrarFila: function (i) {
-                  mostrar = false
+                  mostrar = false                  
+                  mostrar_fecha = false  
                   if (this.valor_select_ver == 'ocultar_cancelados' && (!this.estados[i].cancelo && this.estados[i].causa_de_baja_id == '')) {
                     mostrar = true
                   }
@@ -679,8 +713,43 @@ else {
                   if (this.valor_select_ver == 'todos') {
                     mostrar = true
                   }
+                  var grupo_wa = this.valor_select_ver.split('grupo_wa_')
+                  if (grupo_wa.length > 0 && grupo_wa[1] ==  this.estados[i].grupo) {
+                    mostrar = true  
+                  }
+                  if (this.valor_select_ver == 'sin_grupo' && this.estados[i].grupo == '') {
+                    mostrar = true
+                  }
+                  if (this.valor_select_ver == 'ocultar_promocionados' && !this.estados[i].promocionado && !this.estados[i].certificado) {
+                    mostrar = true
+                  }
+                  if (this.valor_select_ver == 'solo_promocionados' && (this.estados[i].promocionado || this.estados[i].certificado)) {
+                    mostrar = true
+                  }
 
-                  return mostrar
+                  if (
+                    !this.mostrar_fechas || 
+                    (this.mostrar_fechas && 
+                        (this.estados[i].fecha_de_evento_id == this.select_fechas_de_eventos 
+                          || this.select_fechas_de_eventos == 'todos' 
+                          || (this.estados[i].fecha_de_evento_id == null && this.select_fechas_de_eventos == '-1' && this.estados[i].sino_eleccion_modalidad_online == null)))) {
+                    mostrar_fecha = true
+                  }
+
+
+                  if (this.select_fechas_de_eventos == 'mo' && this.estados[i].sino_eleccion_modalidad_online) {
+                    mostrar_fecha = true
+                  }
+
+                  if (mostrar && mostrar_fecha) {
+                    mostrar_fin = true
+                  }
+                  else {
+                    mostrar_fin = false  
+                  }
+                
+
+                  return mostrar_fin
                   
               },
 

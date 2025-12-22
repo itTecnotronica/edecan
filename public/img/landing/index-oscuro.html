@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Despertar Interior | Curso Gratuito de Gnosis y Autoconocimiento</title>
+    <meta name="description" content="Domina las claves para conocerte a ti mismo. Curso gratuito de 4 clases de Gnosis, Psicología Revolucionaria y Meditación. Certificado incluido.">
+    <meta name="keywords" content="gnosis, autoconocimiento, meditación, psicología, curso gratuito, espiritualidad, despertar conciencia">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gnosis-dark': '#0a0514',
+                        'gnosis-purple': '#2e1065',
+                        'gnosis-gold': '#cfb568', /* Color Dorado/Ocre actualizado según solicitud */
+                        'gnosis-gold-dark': '#b45309',
+                        'gnosis-accent': '#7c3aed',
+                    },
+                    fontFamily: {
+                        heading: ['Cinzel', 'serif'],
+                        body: ['Lato', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'cosmos': "radial-gradient(circle at center, #1e1b4b 0%, #000000 100%)",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Efectos personalizados */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gold-gradient-text {
+            background: linear-gradient(to right, #fcd34d, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .floating-whatsapp {
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+        
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+
+        /* Estilos específicos para la imagen de fondo del hero */
+        .hero-background {
+            background-image: url('https://ac.gnosis.is/img/landing/recurso-01.jpg');
+            background-size: cover;
+            background-position: center top; 
+            background-repeat: no-repeat;
+        }
+        
+        /* Ajuste para el estilo de la caja de información tipo "etiqueta" */
+        .info-pill {
+            background: rgba(46, 16, 101, 0.8); /* Gnosis Purple con transparencia */
+            border: 1px solid #7c3aed;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        }
+    </style>
+</head>
+<body class="font-body bg-gnosis-dark text-white overflow-x-hidden">
+
+    <!-- Navbar Simple -->
+    <nav class="absolute top-0 w-full z-50 py-4 px-6 md:px-12 flex justify-between items-center">
+        <img src="https://ac.gnosis.is/img/imagotipo.png" alt="Logotipo Gnosis" class="h-12 md:h-16 drop-shadow-lg" loading="lazy">
+        <!-- Ocultamos el botón en móvil para no saturar, ya que el form está visible -->
+        <a href="#registro" class="hidden md:inline-block bg-gradient-to-r from-gnosis-gold to-gnosis-gold-dark text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition transform shadow-lg text-sm">
+            RESERVAR CUPO
+        </a>
+    </nav>
+
+    <!-- SECCIÓN 1: HERO & REGISTRO (Diseño basado en 01.jpg) -->
+    <header id="inicio" class="relative min-h-screen flex items-center justify-center pt-28 pb-12 px-4 md:px-8 hero-background">
+        
+        <!-- Overlay sutil para mejorar contraste sin tapar el fondo -->
+        <div class="absolute inset-0 bg-gradient-to-r from-gnosis-dark/90 via-gnosis-dark/60 to-transparent"></div>
+
+        <div class="container mx-auto relative z-10 grid md:grid-cols-12 gap-8 items-center">
+            
+            <!-- COLUMNA IZQUIERDA: Contenido + Formulario (Como en 01.jpg) -->
+            <div class="md:col-span-6 lg:col-span-5 text-left space-y-6">
+                
+                <!-- Logo/Título de Marca ELIMINADO según solicitud -->
+
+                <h1 class="font-heading text-3xl md:text-5xl font-bold leading-tight drop-shadow-lg">
+                    <span class="text-white">DESPERTAR INTERIOR:</span><br>
+                    <span class="gold-gradient-text text-2xl md:text-4xl">CURSO GRATUITO DE GNOSIS Y AUTOCONOCIMIENTO</span>
+                </h1>
+                
+                <h2 class="text-base md:text-lg text-gray-200 font-light leading-relaxed">
+                    Domina las claves para <span class="font-bold text-white">conocerte a ti mismo</span> y transforma tu vida en solo <span class="text-gnosis-gold font-bold">4 clases</span>, descubre tu propósito interior.
+                </h2>
+
+                <!-- Info Box (Estilo Etiqueta Morada) -->
+                <div class="info-pill rounded-lg p-3 md:p-4 text-sm md:text-base border-l-4 border-gnosis-gold">
+                    <p class="font-bold text-white uppercase text-xs md:text-sm tracking-wide mb-1">
+                        <i class="fas fa-certificate text-gnosis-gold mr-1"></i> Con materiales de apoyo y certificado
+                    </p>
+                    <p class="text-gray-200 text-xs md:text-sm">
+                        <span class="text-gnosis-accent font-bold">DEL 26 AL 29 DE ENERO</span> - SIEMPRE A LAS 7:30 PM <span class="text-gray-400 italic">(Hora Colombia)</span>
+                    </p>
+                </div>
+
+                <!-- FORMULARIO DE CONVERSIÓN (Ahora a la izquierda) -->
+                <div id="registro" class="glass-effect p-5 rounded-xl border border-white/10 w-full mt-4">
+                    <form action="#" method="POST" class="space-y-3">
+                        <div>
+                            <label for="nombre" class="sr-only">Nombre Completo</label>
+                            <input type="text" id="nombre" name="nombre" placeholder="* Nombre:" required 
+                                class="w-full px-4 py-3 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-gnosis-gold outline-none placeholder-gray-500 font-medium">
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="sr-only">Correo Electrónico</label>
+                            <input type="email" id="email" name="email" placeholder="* Email:" required 
+                                class="w-full px-4 py-3 bg-white text-gray-900 rounded-md focus:ring-2 focus:ring-gnosis-gold outline-none placeholder-gray-500 font-medium">
+                        </div>
+
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-md shadow-lg transition duration-300 transform hover:-translate-y-1 text-center uppercase tracking-wide text-sm md:text-base">
+                            Quiero reservar mi lugar GRATIS
+                        </button>
+                        
+                        <p class="text-[10px] text-gray-400 text-center">
+                            <i class="fas fa-lock mr-1"></i> No utilizaremos tu información para contactar a terceros.
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: Elementos Visuales (Para equilibrar el layout) -->
+            <div class="hidden md:flex md:col-span-6 lg:col-span-7 justify-center relative h-full items-center">
+                <!-- Imagen eliminada para dejar visible el fondo limpio -->
+                
+                <!-- Decoración flotante extra (opcional, se mantiene para dar ambiente) -->
+                <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-gnosis-accent/30 rounded-full blur-3xl animate-pulse"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SECCIÓN 2 y 3: MÓDULOS (FIXED) -->
+    <section class="py-20 px-4 md:px-8 bg-cosmos relative overflow-hidden">
+        <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 50px 50px;"></div>
+
+        <div class="container mx-auto relative z-10">
+            <h2 class="font-heading text-3xl md:text-4xl text-center mb-16">
+                ¿QUÉ VAS A <span class="text-gnosis-gold">DESCUBRIR</span> EN ESTE VIAJE?
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
+                
+                <!-- TARJETA 1: Módulo Teórico-Fundacional -->
+                <article class="glass-effect rounded-2xl overflow-hidden hover:border-gnosis-gold/50 transition duration-500 group flex flex-col h-full">
+                    <div class="h-56 overflow-hidden relative shrink-0">
+                        <!-- Imagen sugerida: Silueta/Luz interior -->
+                        <img src="https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Luz interior emergiendo de la oscuridad" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/70 to-transparent p-4">
+                            <!-- Badge en imagen -->
+                            <span class="inline-block bg-gnosis-purple/90 border border-gnosis-gold text-white text-xs font-bold px-3 py-1 rounded mb-1">
+                                MÓDULO 1
+                            </span>
+                            <h3 class="font-heading text-lg font-bold text-white tracking-wide">PSICOLOGÍA REVOLUCIONARIA</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        <!-- Título Principal Dorado -->
+                        <h4 class="text-gnosis-gold font-bold text-lg mb-4 leading-tight">
+                            Despierta tu Conciencia: Distingue entre tu Personalidad, Esencia y Ego
+                        </h4>
+                        <!-- Copy -->
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4 grow">
+                            ¿Alguna vez has sentido que no eres dueño de tus propias decisiones? En este primer módulo, romperemos el ciclo del "piloto automático". Aprenderás a identificar qué es realmente tuyo (tu <strong>Esencia</strong>) y qué son agregados psicológicos que limitan tu potencial (el <strong>Ego</strong> y la <strong>Personalidad</strong>).
+                            <br><br>
+                            No se trata solo de teoría; es un mapa para navegar tu propio mundo interior. Descubrirás por qué la <strong>Auto-Observación</strong> es la herramienta más poderosa para dejar de ser una víctima de las circunstancias.
+                        </p>
+                        <!-- El Resultado -->
+                        <div class="mt-auto border-t border-white/10 pt-4">
+                            <p class="text-xs text-gray-400 italic">
+                                <span class="text-gnosis-gold font-bold not-italic"><i class="fas fa-star mr-1"></i> El resultado:</span> 
+                                Al finalizar, tendrás la claridad mental necesaria para iniciar el Despertar de tu Conciencia y dejar de repetir los mismos errores.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- TARJETA 2: Módulo Práctico-Vivencial -->
+                <article class="glass-effect rounded-2xl overflow-hidden hover:border-gnosis-gold/50 transition duration-500 group flex flex-col h-full">
+                    <div class="h-56 overflow-hidden relative shrink-0">
+                        <img src="https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Meditación y conexión interior" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/70 to-transparent p-4">
+                            <span class="inline-block bg-gnosis-purple/90 border border-gnosis-gold text-white text-xs font-bold px-3 py-1 rounded mb-1">
+                                MÓDULO 2
+                            </span>
+                            <h3 class="font-heading text-lg font-bold text-white tracking-wide">PRÁCTICA Y COMPROBACIÓN</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        <h4 class="text-gnosis-gold font-bold text-lg mb-4 leading-tight">
+                            Deja atrás las creencias: Experimenta la Verdad a través de la Meditación y Runas
+                        </h4>
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4 grow">
+                            La Gnosis no es cuestión de fe, es cuestión de experiencia directa. Aquí dejaremos a un lado los dogmas para entrar en el laboratorio de tu propia mente. Dominarás técnicas milenarias de <strong>Relajación y Concentración</strong> para silenciar el ruido mental.
+                            <br><br>
+                            Aprenderás el uso correcto de <strong>Mantrams y Runas</strong>, herramientas vibratorias que activan facultades latentes, y realizarás ejercicios de retrospección para sanar tu pasado.
+                        </p>
+                        <div class="mt-auto border-t border-white/10 pt-4">
+                            <p class="text-xs text-gray-400 italic">
+                                <span class="text-gnosis-gold font-bold not-italic"><i class="fas fa-star mr-1"></i> El resultado:</span> 
+                                Dejarás de "creer" para empezar a "saber". Experimentarás la realidad de tu ser interior y accederás a estados de paz y lucidez.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- TARJETA 3: Módulo Leyes Cósmicas -->
+                <article class="glass-effect rounded-2xl overflow-hidden hover:border-gnosis-gold/50 transition duration-500 group flex flex-col h-full">
+                    <div class="h-56 overflow-hidden relative shrink-0">
+                        <!-- Imagen ACTUALIZADA: Espacio profundo y nebulosas (Representando Cosmos) -->
+                        <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Cosmos y leyes universales" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/70 to-transparent p-4">
+                             <!-- Badge -->
+                             <span class="inline-block bg-gnosis-purple/90 border border-gnosis-gold text-white text-xs font-bold px-3 py-1 rounded mb-1">
+                                MÓDULO 3
+                            </span>
+                            <h3 class="font-heading text-lg font-bold text-white tracking-wide">LEYES CÓSMICAS</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        <!-- Título Principal -->
+                        <h4 class="text-gnosis-gold font-bold text-lg mb-4 leading-tight">
+                            Rompe el Ciclo: Karma, Reencarnación y los Misterios de la Vida y la Muerte
+                        </h4>
+                        <!-- Copy -->
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4 grow">
+                            Nada es casualidad, todo es causalidad. En este módulo desvelaremos la mecánica oculta del universo. Comprenderás las leyes de <strong>Evolución e Involución</strong> y cómo la ley de <strong>Recurrencia</strong> te atrapa repitiendo los mismos dramas vida tras vida.
+                            <br><br>
+                            Abordaremos sin tabúes el misterio de <strong>la Muerte</strong> y sus procesos, el Retorno, y aprenderás a diferenciar entre <strong>Karma</strong> (consecuencia) y <strong>Dharma</strong> (recompensa), dándote la llave para modificar tu propio Destino.
+                        </p>
+                        <!-- El Resultado -->
+                        <div class="mt-auto border-t border-white/10 pt-4">
+                            <p class="text-xs text-gray-400 italic">
+                                <span class="text-gnosis-gold font-bold not-italic"><i class="fas fa-star mr-1"></i> El resultado:</span> 
+                                Perderás el miedo a lo desconocido y tomarás el timón de tu existencia, dejando de ser una víctima de las circunstancias.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- TARJETA 4: Módulo Estructura Espiritual (REPARADA) -->
+                <article class="glass-effect rounded-2xl overflow-hidden hover:border-gnosis-gold/50 transition duration-500 group flex flex-col h-full">
+                    <div class="h-56 overflow-hidden relative shrink-0">
+                        <!-- Imagen ACTUALIZADA: Luz dorada y energía abstracta (Representando Alquimia) -->
+                        <img src="https://images.unsplash.com/photo-1600618528240-fb9fc964b853?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Transmutación alquímica y luz interior" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" loading="lazy">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black via-black/70 to-transparent p-4">
+                             <!-- Badge -->
+                             <span class="inline-block bg-gnosis-purple/90 border border-gnosis-gold text-white text-xs font-bold px-3 py-1 rounded mb-1">
+                                MÓDULO 4
+                            </span>
+                            <h3 class="font-heading text-lg font-bold text-white tracking-wide">LA ESTRUCTURA ESPIRITUAL</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow">
+                        <!-- Título Principal -->
+                        <h4 class="text-gnosis-gold font-bold text-lg mb-4 leading-tight">
+                            Ingeniería del Alma: Alquimia, Cuerpos Solares y el Camino Iniciático
+                        </h4>
+                        <!-- Copy -->
+                        <p class="text-gray-300 text-sm leading-relaxed mb-4 grow">
+                            El ser humano actual es una "semilla" con posibilidades latentes. Descubre el mapa secreto de los <strong>4 Caminos</strong> y la ciencia sagrada de la <strong>Alquimia</strong> para transmutar tu energía creadora.
+                            <br><br>
+                            Te enseñaremos cómo construir tus <strong>Cuerpos Internos</strong> (Astral, Mental, Causal) para tener presencia consciente en dimensiones superiores. Conocerás los pasos precisos de los <strong>Procesos Iniciáticos</strong> y cómo lograr el verdadero <strong>Dominio de la Naturaleza</strong> interior.
+                        </p>
+                        <!-- El Resultado -->
+                        <div class="mt-auto border-t border-white/10 pt-4">
+                            <p class="text-xs text-gray-400 italic">
+                                <span class="text-gnosis-gold font-bold not-italic"><i class="fas fa-star mr-1"></i> El resultado:</span> 
+                                Pasarás de ser una criatura mecánica a un creador consciente, iniciando el camino hacia la Auto-Realización íntima del Ser.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="#registro" class="inline-block bg-transparent border-2 border-gnosis-gold text-gnosis-gold hover:bg-gnosis-gold hover:text-black font-bold py-3 px-8 rounded-full transition duration-300">
+                    RESERVAR MI LUGAR AHORA
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 4: INSTITUCIONAL (ACTUALIZADA) -->
+    <section class="py-20 bg-gradient-to-b from-gnosis-dark to-indigo-950 text-white">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-gnosis-gold font-bold tracking-widest text-sm uppercase mb-2">Respaldo Internacional</h2>
+                <h3 class="font-heading text-3xl md:text-5xl font-bold text-white drop-shadow-lg">
+                    GNOSIS ARGENTINA
+                </h3>
+            </div>
+
+            <div class="flex flex-col lg:flex-row items-center gap-12 bg-black/20 p-8 rounded-3xl border border-white/5">
+                <div class="w-full lg:w-1/2 flex justify-center">
+                    <div class="relative w-full max-w-md aspect-square rounded-xl overflow-hidden shadow-2xl border-4 border-gnosis-gold/30">
+                        <img src="https://ac.gnosis.is/img/landing/templo-del-saber.jpg" alt="Templo del Saber" class="w-full h-full object-cover">
+                        <!-- Eliminadas las columnas superpuestas para dejar la imagen limpia -->
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-1/2 space-y-6">
+                    <ul class="space-y-6">
+                        <!-- Item 1: Trayectoria -->
+                        <li class="flex items-start group">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-gnosis-purple to-black flex items-center justify-center border-2 border-gnosis-gold shadow-[0_0_15px_rgba(207,181,104,0.3)] group-hover:scale-110 transition duration-300">
+                                <i class="fas fa-landmark text-gnosis-gold text-lg"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-gnosis-gold font-bold text-lg font-heading group-hover:text-white transition">Trayectoria Sólida</h4>
+                                <p class="text-gray-300 text-sm">Asociación civil con más de <strong class="text-white">70 años</strong> de labor ininterrumpida.</p>
+                            </div>
+                        </li>
+                        
+                        <!-- Item 2: Red Internacional -->
+                        <li class="flex items-start group">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-gnosis-purple to-black flex items-center justify-center border-2 border-gnosis-gold shadow-[0_0_15px_rgba(207,181,104,0.3)] group-hover:scale-110 transition duration-300">
+                                <i class="fas fa-globe text-gnosis-gold text-lg"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-gnosis-gold font-bold text-lg font-heading group-hover:text-white transition">Red Internacional</h4>
+                                <p class="text-gray-300 text-sm">Parte de una Federación Global con más de <strong class="text-white">1.000 sedes</strong> en 30 países y los 5 continentes.</p>
+                            </div>
+                        </li>
+
+                        <!-- Item 3: Impacto Masivo -->
+                        <li class="flex items-start group">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-gnosis-purple to-black flex items-center justify-center border-2 border-gnosis-gold shadow-[0_0_15px_rgba(207,181,104,0.3)] group-hover:scale-110 transition duration-300">
+                                <i class="fas fa-users text-gnosis-gold text-lg"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-gnosis-gold font-bold text-lg font-heading group-hover:text-white transition">Impacto Masivo</h4>
+                                <p class="text-gray-300 text-sm">Más de <strong class="text-white">1.200.000 inscriptos</strong> históricos a nivel mundial en los últimos 10 años.</p>
+                            </div>
+                        </li>
+
+                        <!-- Item 4: Experiencia Educativa -->
+                        <li class="flex items-start group">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-gnosis-purple to-black flex items-center justify-center border-2 border-gnosis-gold shadow-[0_0_15px_rgba(207,181,104,0.3)] group-hover:scale-110 transition duration-300">
+                                <i class="fas fa-graduation-cap text-gnosis-gold text-lg"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-gnosis-gold font-bold text-lg font-heading group-hover:text-white transition">Experiencia Educativa</h4>
+                                <p class="text-gray-300 text-sm"><strong class="text-white">17.000 cursos</strong> impartidos en más de 200 países y territorios.</p>
+                            </div>
+                        </li>
+
+                        <!-- Item 5: Sin Fines de Lucro -->
+                        <li class="flex items-start group">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-gnosis-purple to-black flex items-center justify-center border-2 border-gnosis-gold shadow-[0_0_15px_rgba(207,181,104,0.3)] group-hover:scale-110 transition duration-300">
+                                <i class="fas fa-hand-holding-heart text-gnosis-gold text-lg"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-gnosis-gold font-bold text-lg font-heading group-hover:text-white transition">Sin Fines de Lucro</h4>
+                                <p class="text-gray-300 text-sm">Vocación de servicio y difusión cultural genuina.</p>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div class="pt-6">
+                        <a href="#registro" class="block w-full text-center bg-gnosis-gold hover:bg-yellow-400 text-black font-bold text-xl py-4 rounded-lg shadow-lg hover:shadow-yellow-500/50 transition transform hover:-translate-y-1">
+                            ¡QUIERO INSCRIBIRME AHORA!
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NUEVA SECCIÓN: PASO FINAL (Antes del Footer) -->
+    <section class="bg-gnosis-dark text-white relative">
+        <!-- Barra Superior Amarilla -->
+        <div class="bg-gnosis-gold text-black font-bold text-center py-2 uppercase tracking-widest text-sm">
+            ¡ATENCIÓN: PASO FINAL!
+        </div>
+        
+        <div class="container mx-auto px-4 py-16 text-center max-w-3xl">
+            <!-- Logo oficial (Reemplazando al de la imagen) -->
+            <img src="https://ac.gnosis.is/img/imagotipo.png" alt="Gnosis Logo" class="h-16 mx-auto mb-6 drop-shadow-lg">
+            
+            <h2 class="text-2xl md:text-3xl font-heading font-bold text-gnosis-gold mb-8">
+                ¡Tu viaje de autoconocimiento está a un paso de comenzar!
+            </h2>
+            
+            <!-- Barra de Progreso -->
+            <div class="w-full bg-gray-800 rounded-full h-8 mb-4 border border-gray-600 relative overflow-hidden">
+                <div class="bg-gradient-to-r from-gnosis-purple to-gnosis-gold h-full rounded-full flex items-center justify-end px-3 font-bold text-white text-sm animate-pulse w-[90%]">
+                    90%
+                </div>
+            </div>
+            
+            <!-- Advertencia -->
+            <div class="flex items-start justify-center gap-3 text-left mb-8 bg-white/5 p-4 rounded-lg border border-white/10">
+                <i class="fas fa-exclamation-triangle text-gnosis-gold text-xl mt-1"></i>
+                <div class="text-sm md:text-base">
+                    <p class="font-bold text-gnosis-gold mb-1">
+                        Únete al grupo exclusivo de WhatsApp para recibir los materiales y accesos
+                    </p>
+                    <p class="text-gray-300 text-xs md:text-sm">
+                        El grupo es silenciado y se usará exclusivamente para enviarte los enlaces a las clases, prácticas y material de apoyo del curso.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Botón CTA -->
+            <a href="https://chat.whatsapp.com/..." target="_blank" class="inline-block w-full md:w-auto bg-gnosis-gold hover:bg-yellow-400 text-black font-bold text-lg py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.4)] transition transform hover:-translate-y-1 uppercase tracking-wide">
+                ÚNETE AL GRUPO DE WHATSAPP AHORA
+            </a>
+        </div>
+    </section>
+
+    <!-- NUEVA SECCIÓN: BENEFICIOS WHATSAPP (Agregada según solicitud) -->
+    <section class="py-20 px-4 bg-cosmos relative overflow-hidden border-t border-white/5">
+        <!-- Partículas de fondo sutiles -->
+        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#cfb568 1px, transparent 1px); background-size: 40px 40px;"></div>
+        
+        <div class="container mx-auto relative z-10">
+            <h2 class="text-2xl md:text-4xl font-heading font-bold text-center mb-16 text-gnosis-gold leading-tight">
+                ¿Qué beneficios exclusivos te esperan <br class="hidden md:block"> en el grupo de WhatsApp?
+            </h2>
+
+            <div class="grid md:grid-cols-12 gap-8 items-center">
+                <!-- Columna Izquierda: Lista de Beneficios (Ocupa 5 de 12 columnas) -->
+                <div class="space-y-8 order-2 md:order-1 md:col-span-5">
+                    
+                    <!-- Beneficio 1 -->
+                    <div class="flex items-start gap-4 group">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-b from-gnosis-gold to-yellow-700 rounded-lg flex items-center justify-center text-black font-heading font-bold text-xl shadow-lg border border-yellow-300 group-hover:scale-110 transition duration-300">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="text-gnosis-gold font-bold text-xl mb-2">Material de Apoyo Exclusivo</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Recibirás guías descargables, audios de meditación y lecturas complementarias para profundizar en tu estudio teórico y práctico.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Beneficio 2 -->
+                    <div class="flex items-start gap-4 group">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-b from-gnosis-gold to-yellow-700 rounded-lg flex items-center justify-center text-black font-heading font-bold text-xl shadow-lg border border-yellow-300 group-hover:scale-110 transition duration-300">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="text-gnosis-gold font-bold text-xl mb-2">Orientación y Prácticas</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Tendrás un canal directo con instructores capacitados para resolver tus dudas y recibir orientación personalizada sobre tu proceso interior.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Beneficio 3 -->
+                    <div class="flex items-start gap-4 group">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-b from-gnosis-gold to-yellow-700 rounded-lg flex items-center justify-center text-black font-heading font-bold text-xl shadow-lg border border-yellow-300 group-hover:scale-110 transition duration-300">
+                            3
+                        </div>
+                        <div>
+                            <h3 class="text-gnosis-gold font-bold text-xl mb-2">Recordatorios y Comunidad</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Recibirás avisos puntuales de las clases en vivo para no perderte nada y conectarás con otros participantes que comparten tu mismo camino de búsqueda.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Columna Derecha: Imagen (Ocupa 7 de 12 columnas y ESCALADA AL 150%) -->
+                <div class="flex justify-center order-1 md:order-2 md:col-span-7 relative z-20 mt-10 md:mt-0">
+                    <div class="relative w-full flex justify-center">
+                        <!-- Efecto de resplandor detrás de la imagen (Ajustado) -->
+                        <div class="absolute inset-0 bg-gnosis-gold/20 blur-3xl rounded-full scale-150"></div>
+                        
+                        <!-- IMAGEN GIGANTE: Eliminado max-w restrictivo y añadido md:scale-150 -->
+                        <img src="https://ac.gnosis.is/img/landing/contenido-grupo-whatsapp.png" 
+                             alt="Contenido Exclusivo del Grupo de WhatsApp" 
+                             class="relative w-full drop-shadow-2xl hover:scale-155 transition duration-700 animate-[pulse_4s_ease-in-out_infinite] transform md:scale-150 origin-center">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-black py-8 text-center text-gray-500 text-xs border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <img src="https://ac.gnosis.is/img/imagotipo.png" alt="Gnosis Logo Small" class="h-8 mx-auto mb-4 opacity-50 grayscale hover:grayscale-0 transition" loading="lazy">
+            <p>Daxus Latam © 2025 – Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <!-- BOTÓN FLOTANTE WHATSAPP -->
+    <a href="https://wa.me/5493804201747?text=Hola,%20quisiera%20más%20información%20sobre%20el%20curso%20de%20Gnosis" 
+       target="_blank" 
+       rel="noopener noreferrer"
+       class="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-2xl transition transform hover:scale-110 floating-whatsapp group"
+       aria-label="Contactar por WhatsApp">
+        <i class="fab fa-whatsapp text-3xl md:text-4xl"></i>
+    </a>
+
+</body>
+</html>

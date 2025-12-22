@@ -38,16 +38,16 @@ else {
     <!-- Required meta tags-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta name="description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta name="author" content="gnosis.is">
-    <meta name="keywords" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>">
-    <meta property="og:title" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>" />
+    <meta name="keywords" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
+    <meta property="og:title" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>" />
     <meta property="og:url" content="<?php echo $Solicitud->url_form_inscripcion() ?>" />
-    <meta property="og:description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado() ?>">
+    <meta property="og:description" content="Gnosis, <?php echo $Solicitud->descripcion_sin_estado(false) ?>">
     <meta property="og:image" content="<?php echo env('PATH_PUBLIC')?>/img/sol-de-acuario-chico.jpg">
 
     <!-- Title Page-->
-    <title><?php echo $Solicitud->descripcion_sin_estado() ?></title>
+    <title><?php echo $Solicitud->descripcion_sin_estado(false) ?></title>
 
     <!-- Icons font CSS-->
     <link href="<?php echo env('PATH_PUBLIC')?>templates/2/vendor/mdi-font/css/material-design-iconic-font.min.css" rel="stylesheet" media="all">
@@ -94,6 +94,10 @@ else {
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook);
+    }
+
+    if (isset($Solicitud->localidad->urlencode_pixel_de_facebook)) {
+      echo urldecode($Solicitud->localidad->urlencode_pixel_de_facebook);
     }
     ?>
 
@@ -235,7 +239,25 @@ else {
                                                   <?php if ($Fecha_de_evento->sino_agotado == 'SI') { ?>
                                                     <p class="bg-danger txt_agotado"><?php echo __('CUPO AGOTADO') ?></p>
                                                   <?php } ?>
-                                                  <?php echo $Fecha_de_evento->armarDetalleFechasDeEventos('con_resumen')  ?>
+                                                  <?php 
+
+
+                                                        $tipo = 'con_resumen';
+                                                        if ($Solicitud->tipo_de_curso_online_id == 4) {
+                                                          $con_inicio = false;
+                                                          $ver_mapa = false;
+                                                          $con_dir_inicio_distinto = false;
+                                                        }
+                                                        else {
+                                                          $con_inicio = true;
+                                                          $ver_mapa = true;
+                                                          $con_dir_inicio_distinto = true;
+                                                        }
+                                                        
+                                                  ?>
+                                                  
+                                                  {!! nl2br($Fecha_de_evento->armarDetalleFechasDeEventos($tipo, $con_inicio, $idioma_por_pais, $Solicitud, $idioma, $ver_mapa, $con_dir_inicio_distinto)) !!}
+                                                
                                                 </div>
                                               </div><!-- /input-group -->
 
@@ -384,6 +406,17 @@ else {
             pais_id: null,
             ciudad: null,
             fecha_de_evento_id: null,
+            <?php
+            foreach ($Fechas_de_eventos as $Fecha_de_evento) { 
+              if ($Solicitud->tipo_de_evento_id == 1 or ($Solicitud->tipo_de_evento_id == 2 and $Solicitud->cant() == 1) or ($Solicitud->tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 4) or ($Solicitud->tipo_de_evento_id == 4 and $Fechas_de_eventos->count() > 0)) {
+                echo '';
+              }
+              else {
+                $nombre_campo = 'fecha_de_evento_id_'.$Fecha_de_evento->id;
+              }
+              echo $nombre_campo.': null,';
+            }
+            ?>
             sino_notificar_proximos_eventos: true,
             acepto_politica_de_privacidad: false,
             mensaje_error: '',

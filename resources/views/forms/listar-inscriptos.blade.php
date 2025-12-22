@@ -5,6 +5,7 @@ $gCont = new GenericController();
 $idioma = $Solicitud->idioma->mnemo;
 App::setLocale($idioma); 
 
+
 function sino_a_tf($sino) {
   if ($sino == 'SI') {
     $tf = 'true';
@@ -43,9 +44,13 @@ else {
 
 $tel_responsable_inscripcion = $Solicitud->celular_responsable_de_inscripciones;
 $nombre_de_ciudad = $Solicitud->localidad_nombre();
-$nombre_responsable_de_inscripciones = $Solicitud->nombre_responsable_de_inscripciones;
 $tipo_de_evento_id = $Solicitud->tipo_de_evento_id;
 $tipo_de_evento = __($Solicitud->tipo_de_evento->tipo_de_evento);
+$descripcion_sin_estado = __($Solicitud->descripcion_sin_estado(false));
+$url_form_inscripcion = $Solicitud->url_form_inscripcion_contacto_historico();
+$nombre_responsable_inscripcion = $Solicitud->nombre_responsable_de_inscripciones;
+$nombre_del_solicitante = $Solicitud->nombre_del_solicitante;
+$celular_del_solicitante = $Solicitud->celular_del_solicitante;
 
 if ($Idioma_por_pais->pais_id > 0) {
   $codigo_tel = $Idioma_por_pais->pais->codigo_tel;
@@ -102,6 +107,9 @@ if (!isset($criterio)) {
 $url_envio_de_motivacion_2 = '';
 $url_envio_de_motivacion_3 = '';
 
+$hash_nuevo = md5(strval($Solicitud->id).strval($Solicitud->hash).strval($Solicitud->id));
+
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -121,13 +129,7 @@ $url_envio_de_motivacion_3 = '';
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <?php 
-        $localidad_text = '';
-        if ($Solicitud->localidad <> '') { 
-          $localidad_text = $Solicitud->localidad->localidad;
-        }
-        ?>
-        <title><?php echo __('Lista de Inscriptos') ?> |  {{ __($Solicitud->tipo_de_evento->tipo_de_evento) }} {{ $localidad_text }}</title>
+        <title><?php echo __('Lista de Inscriptos') ?> |  {{ $Solicitud->descripcion_sin_estado(false) }}</title>
 
       <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
       <!-- Bootstrap 3.3.7 -->
@@ -193,10 +195,11 @@ $url_envio_de_motivacion_3 = '';
 
     <!-- INICIO app-lista -->    
     <div id="app-lista">
+      
       <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title"><?php echo __('Lista de Inscritpos') ?> <?php echo $Solicitud->descrip_modelo(); ?></h3>
+              <h3 class="box-title"><?php echo __('Lista de Inscritpos') ?> <?php echo $Solicitud->descripcion_sin_estado(false); ?></h3>
               <p class="bg-info">
                 <select v-model="select_fechas_de_eventos" v-show="mostrar_fechas">
                   <option v-for="fecha_de_evento in fechas_de_evento" v-bind:value="fecha_de_evento.id">
@@ -297,7 +300,7 @@ $url_envio_de_motivacion_3 = '';
                           $class_active = '';
                         }
                       ?>
-                      <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $Solicitud->hash ?>/<?php echo $j ?>/0">
+                      <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $hash_nuevo ?>/<?php echo $j ?>/0">
                         <button type="button" class="btn btn-default <?php echo $class_active ?>"><?php echo $i ?></button>
                       </a>
                       <?php } ?>
@@ -310,7 +313,7 @@ $url_envio_de_motivacion_3 = '';
                       $class_active = '';
                     }
                     ?>
-                    <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $Solicitud->hash ?>/all/0">
+                    <a href="<?php echo $dominio_publico ?>f/ipaginar/<?php echo $Solicitud->id ?>/<?php echo $hash_nuevo ?>/all/0">
                       <button type="button" class="btn btn-default <?php echo $class_active ?>"><?php echo __('Ver todos') ?></button>
                     </a>
 
@@ -326,7 +329,7 @@ $url_envio_de_motivacion_3 = '';
                 <div class="col-xs-12 col-lg-12">
                   {!! Form::open(array
                     (
-                    'url' => $dominio_publico.'f/ibuscar/'.$Solicitud->id.'/'.$Solicitud->hash, 
+                    'url' => $dominio_publico.'f/ibuscar/'.$Solicitud->id.'/'.$hash_nuevo, 
                     'role' => 'form',
                     'method' => 'POST',
                     'id' => "form_gen_modelo",
@@ -338,7 +341,7 @@ $url_envio_de_motivacion_3 = '';
                     <div class="input-group">
                       <input type="text" name="criterio" placeholder="Indique el nombre, apellido, ID, ciudad, país, codigo de alumno, email o celular para filtrar" class="form-control" v-model="criterio">
                       <input type="hidden" name="solicitud_id" value="<?php echo $Solicitud->id ?> ">
-                      <input type="hidden" name="hash" value="<?php echo $Solicitud->hash ?>">
+                      <input type="hidden" name="hash" value="<?php echo $hash_nuevo ?>">
                       <span class="input-group-btn">
                         <button type="submit" class="btn btn-primary btn-flat">Buscar en toda la planilla</button>
                       </span>
@@ -518,7 +521,9 @@ $url_envio_de_motivacion_3 = '';
                           <?php if ($tipo_de_evento_id == 3) { ?>
                           <th v-show="show_col_pais"><?php echo __('Pais') ?></th>
                           <?php } ?>
+                          <?php if ($tipo_de_evento_id <> 5) { ?>
                           <th><?php echo __('Acción') ?></th>
+                          <?php } ?>
                           <th v-show="show_col_estado"><?php echo __('Estado') ?></th>
                           <th v-show="mensaje_extra != ''"><?php echo __('Mensaje Extra') ?></th>
                       </tr>
@@ -532,54 +537,83 @@ $url_envio_de_motivacion_3 = '';
                       $nombre = str_replace(array("\n", "\t", "\r"), '', str_replace("'", '’', htmlentities($Inscripcion->nombre)));
                       $apellido = str_replace("'", '’', htmlentities($Inscripcion->apellido));
 
-                      if ($Inscripcion->fecha_de_evento_id > 0) {
-                        $fecha_de_evento = null;
-                        foreach ($Fechas_de_evento as $fecha_de_evento_iterar) {
-                          if ($fecha_de_evento_iterar->id == $Inscripcion->fecha_de_evento_id) {
-                            $fecha_de_evento = $fecha_de_evento_iterar;
-                          }
-                        }
-                        $url_whatsapp = $Inscripcion->url_whatsapp($nombre_de_la_institucion, $Inscripcion->celular_responsable_de_inscripciones, $Inscripcion->nombre_responsable_de_inscripciones, $nombre_de_ciudad, $denominacion_de_voucher, $tipo_de_evento_id, $tipo_de_evento, $codigo_tel, $contesto_consulta, $Idioma_por_pais, $Solicitud, $idioma, $fecha_de_evento, $Inscripcion->cant_encuestas);
+                      // SI ES CONTENIDO AVANZADO
+                      if ($Inscripcion->sino_promocionado_a_contenidos_avanzados == 'SI') {
+                        $url_whatsapp = $Inscripcion->url_whatsapp_contenidos_avanzados($Solicitud, $Idioma_por_pais);
                         $url_pedido_de_confirmacion = $url_whatsapp['pedido_de_confirmacion'];
                         $url_sms_pedido_de_confirmacion = $url_whatsapp['sms_pedido_de_confirmacion'];
-                        $url_no_respondieron_al_pedido_de_confirmacion = $url_whatsapp['no_respondieron_al_pedido_de_confirmacion'];                      
-                        $url_sms_no_respondieron_al_pedido_de_confirmacion = $url_whatsapp['sms_no_respondieron_al_pedido_de_confirmacion'];                      
-                        $url_envio_de_voucher = $url_whatsapp['envio_de_voucher'];
-                        $url_sms_envio_de_voucher = $url_whatsapp['sms_envio_de_voucher'];
-                        $url_envio_de_motivacion = $url_whatsapp['envio_de_motivacion'];
-                        $url_sms_envio_de_motivacion = $url_whatsapp['sms_envio_de_motivacion'];
-                        $url_envio_de_motivacion_2 = $url_whatsapp['envio_de_motivacion_2'];
-                        $url_sms_envio_de_motivacion_2 = $url_whatsapp['sms_envio_de_motivacion_2'];
-                        $url_envio_de_motivacion_3 = $url_whatsapp['envio_de_motivacion_3'];
-                        $url_sms_envio_de_motivacion_3 = $url_whatsapp['sms_envio_de_motivacion_3'];
-                        $url_envio_de_recordatorio = $url_whatsapp['envio_de_recordatorio'];
-                        $url_sms_envio_de_recordatorio = $url_whatsapp['sms_envio_de_recordatorio'];
-                        $url_contesto_consulta = $url_whatsapp['contesto_consulta'];
-                        $url_sms_contesto_consulta = $url_whatsapp['sms_contesto_consulta'];
-                        $url_envio_de_recordatorio_prox_clase = $url_whatsapp['envio_de_recordatorio_prox_clase'];
-                        $url_sms_envio_de_recordatorio_prox_clase = $url_whatsapp['sms_envio_de_recordatorio_prox_clase'];
-                        $url_envio_de_recordatorio_prox_clase_no_asistente = $url_whatsapp['envio_de_recordatorio_prox_clase_no_asistente'];
-                        $url_sms_envio_de_recordatorio_prox_clase_no_asistente = $url_whatsapp['sms_envio_de_recordatorio_prox_clase_no_asistente'];
-                        $url_envio_de_texto_encuesta_satisfaccion = $url_whatsapp['envio_de_texto_encuesta_satisfaccion'];
-                        $url_sms_envio_de_texto_encuesta_satisfaccion = $url_whatsapp['sms_envio_de_texto_encuesta_satisfaccion'];                        
-                        $url_envio_de_invitacion_al_curso_online = $url_whatsapp['envio_de_invitacion_al_curso_online'];
-                        $url_sms_envio_de_invitacion_al_curso_online = $url_whatsapp['sms_envio_de_invitacion_al_curso_online'];
-                        $url_envio_de_certificado = $url_whatsapp['envio_de_certificado'];
-                        $url_sms_envio_de_certificado = $url_whatsapp['sms_envio_de_certificado'];
+                        $mail_pedido_de_confirmacion = $url_whatsapp['mail_pedido_de_confirmacion'];
                       }
                       else {
-                        $url_whatsapp = $Inscripcion->url_whatsapp_sin_evento($nombre_de_la_institucion, $Inscripcion->celular_responsable_de_inscripciones, $Inscripcion->nombre_responsable_de_inscripciones, $nombre_de_ciudad, $denominacion_de_voucher, $tipo_de_evento_id, $tipo_de_evento, $codigo_tel, $contesto_consulta, $Idioma_por_pais, $Solicitud);
-                        $url_pedido_de_confirmacion = $url_whatsapp['pedido_de_confirmacion'];
-                        $url_sms_pedido_de_confirmacion = $url_whatsapp['sms_pedido_de_confirmacion'];
-                        $url_contesto_consulta = $url_whatsapp['contesto_consulta'];
-                        $url_sms_contesto_consulta = $url_whatsapp['sms_contesto_consulta'];
-                        $url_envio_de_invitacion_al_curso_online = $url_whatsapp['envio_de_invitacion_al_curso_online'];
-                        $url_sms_envio_de_invitacion_al_curso_online = $url_whatsapp['sms_envio_de_invitacion_al_curso_online'];
-                        $url_envio_de_recordatorio = $url_whatsapp['envio_de_recordatorio'];
-                        $url_sms_envio_de_recordatorio = $url_whatsapp['sms_envio_de_recordatorio'];
-                        $url_envio_de_certificado = $url_whatsapp['envio_de_certificado'];
-                        $url_sms_envio_de_certificado = $url_whatsapp['sms_envio_de_certificado'];
+                        // SI NO ES CONTENIDO AVANZADO
+                        if ($Inscripcion->fecha_de_evento_id > 0) {
+                          $fecha_de_evento = null;
+                          foreach ($Fechas_de_evento as $fecha_de_evento_iterar) {
+                            if ($fecha_de_evento_iterar->id == $Inscripcion->fecha_de_evento_id) {
+                              $fecha_de_evento = $fecha_de_evento_iterar;
+                            }
+                          }
+                          $url_whatsapp = $Inscripcion->url_whatsapp($nombre_de_la_institucion, $Inscripcion->celular_responsable_de_inscripciones, $Inscripcion->nombre_responsable_de_inscripciones, $nombre_de_ciudad, $denominacion_de_voucher, $tipo_de_evento_id, $tipo_de_evento, $codigo_tel, $contesto_consulta, $Idioma_por_pais, $Solicitud, $idioma, $fecha_de_evento, $Inscripcion->cant_encuestas);
+                          $url_pedido_de_confirmacion = $url_whatsapp['pedido_de_confirmacion'];
+                          $url_sms_pedido_de_confirmacion = $url_whatsapp['sms_pedido_de_confirmacion'];
+                          $url_no_respondieron_al_pedido_de_confirmacion = $url_whatsapp['no_respondieron_al_pedido_de_confirmacion'];                      
+                          $url_sms_no_respondieron_al_pedido_de_confirmacion = $url_whatsapp['sms_no_respondieron_al_pedido_de_confirmacion'];                      
+                          $url_envio_de_voucher = $url_whatsapp['envio_de_voucher'];
+                          $url_sms_envio_de_voucher = $url_whatsapp['sms_envio_de_voucher'];
+                          $url_envio_de_motivacion = $url_whatsapp['envio_de_motivacion'];
+                          $url_sms_envio_de_motivacion = $url_whatsapp['sms_envio_de_motivacion'];
+                          $url_envio_de_motivacion_2 = $url_whatsapp['envio_de_motivacion_2'];
+                          $url_sms_envio_de_motivacion_2 = $url_whatsapp['sms_envio_de_motivacion_2'];
+                          $url_envio_de_motivacion_3 = $url_whatsapp['envio_de_motivacion_3'];
+                          $url_sms_envio_de_motivacion_3 = $url_whatsapp['sms_envio_de_motivacion_3'];
+                          $url_envio_de_recordatorio = $url_whatsapp['envio_de_recordatorio'];
+                          $url_sms_envio_de_recordatorio = $url_whatsapp['sms_envio_de_recordatorio'];
+                          $url_contesto_consulta = $url_whatsapp['contesto_consulta'];
+                          $url_sms_contesto_consulta = $url_whatsapp['sms_contesto_consulta'];
+                          $url_envio_de_recordatorio_prox_clase = $url_whatsapp['envio_de_recordatorio_prox_clase'];
+                          $url_sms_envio_de_recordatorio_prox_clase = $url_whatsapp['sms_envio_de_recordatorio_prox_clase'];
+                          $url_envio_de_recordatorio_prox_clase_no_asistente = $url_whatsapp['envio_de_recordatorio_prox_clase_no_asistente'];
+                          $url_sms_envio_de_recordatorio_prox_clase_no_asistente = $url_whatsapp['sms_envio_de_recordatorio_prox_clase_no_asistente'];
+                          $url_envio_de_texto_encuesta_satisfaccion = $url_whatsapp['envio_de_texto_encuesta_satisfaccion'];
+                          $url_sms_envio_de_texto_encuesta_satisfaccion = $url_whatsapp['sms_envio_de_texto_encuesta_satisfaccion'];                        
+                          $url_envio_de_invitacion_al_curso_online = $url_whatsapp['envio_de_invitacion_al_curso_online'];
+                          $url_sms_envio_de_invitacion_al_curso_online = $url_whatsapp['sms_envio_de_invitacion_al_curso_online'];
+                          $url_envio_de_certificado = $url_whatsapp['envio_de_certificado'];
+                          $url_sms_envio_de_certificado = $url_whatsapp['sms_envio_de_certificado'];
+
+                          $mail_pedido_de_confirmacion = $url_whatsapp['mail_pedido_de_confirmacion'];
+                          $mail_no_respondieron_al_pedido_de_confirmacion = $url_whatsapp['mail_no_respondieron_al_pedido_de_confirmacion'];
+                          $mail_envio_de_voucher = $url_whatsapp['mail_envio_de_voucher'];
+                          $mail_envio_de_motivacion = $url_whatsapp['mail_envio_de_motivacion'];
+                          $mail_envio_de_recordatorio = $url_whatsapp['mail_envio_de_recordatorio'];
+                          $mail_contesto_consulta = $url_whatsapp['mail_contesto_consulta'];
+                          $mail_envio_de_recordatorio_prox_clase = $url_whatsapp['mail_envio_de_recordatorio_prox_clase'];
+                          $mail_envio_de_recordatorio_prox_clase_no_asistente = $url_whatsapp['mail_envio_de_recordatorio_prox_clase_no_asistente'];
+                          $mail_envio_de_invitacion_al_curso_online = $url_whatsapp['mail_envio_de_invitacion_al_curso_online'];
+                          $mail_envio_de_certificado = $url_whatsapp['mail_envio_de_certificado'];
+                          $mail_envio_de_texto_encuesta_satisfaccion = $url_whatsapp['mail_envio_de_texto_encuesta_satisfaccion'];
+
+                        }
+                        else {
+                          $url_whatsapp = $Inscripcion->url_whatsapp_sin_evento($nombre_de_la_institucion, $Inscripcion->celular_responsable_de_inscripciones, $Inscripcion->nombre_responsable_de_inscripciones, $nombre_de_ciudad, $denominacion_de_voucher, $tipo_de_evento_id, $tipo_de_evento, $codigo_tel, $contesto_consulta, $Idioma_por_pais, $Solicitud);
+                          $url_pedido_de_confirmacion = $url_whatsapp['pedido_de_confirmacion'];
+                          $url_sms_pedido_de_confirmacion = $url_whatsapp['sms_pedido_de_confirmacion'];
+                          $url_contesto_consulta = $url_whatsapp['contesto_consulta'];
+                          $url_sms_contesto_consulta = $url_whatsapp['sms_contesto_consulta'];
+                          $url_envio_de_invitacion_al_curso_online = $url_whatsapp['envio_de_invitacion_al_curso_online'];
+                          $url_sms_envio_de_invitacion_al_curso_online = $url_whatsapp['sms_envio_de_invitacion_al_curso_online'];
+                          $url_envio_de_recordatorio = $url_whatsapp['envio_de_recordatorio'];
+                          $url_sms_envio_de_recordatorio = $url_whatsapp['sms_envio_de_recordatorio'];
+                          $url_envio_de_certificado = $url_whatsapp['envio_de_certificado'];
+                          $url_sms_envio_de_certificado = $url_whatsapp['sms_envio_de_certificado'];
+
+                          $mail_pedido_de_confirmacion = $url_whatsapp['mail_pedido_de_confirmacion'];
+                          $mail_envio_de_invitacion_al_curso_online = $url_whatsapp['mail_envio_de_invitacion_al_curso_online'];
+                          $mail_contesto_consulta = $url_whatsapp['mail_contesto_consulta'];
+                          $mail_envio_de_certificado = $url_whatsapp['mail_envio_de_certificado'];
+                        }
                       }
+
 
                       $fecha_de_inicio = $Solicitud->fecha_de_inicio;
 
@@ -602,7 +636,6 @@ $url_envio_de_motivacion_3 = '';
                         $cant_asistencias = $Inscripcion->cant_asistencias;
                       }
                       
-             
                       ?>
 
                         <tr v-show="mostrarFila(<?php echo $i ?>)" v-bind:style="class_promocionado(estados[<?php echo $i ?>].promocionado)">
@@ -637,7 +670,7 @@ $url_envio_de_motivacion_3 = '';
                                       <?php } ?>
                                   <?php } ?>
                                   <li>
-                                    <a href="<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/inscripcion/<?php echo $Inscripcion->id; ?>/1/1/<?php echo $Solicitud->hash; ?>" target="_blank">
+                                    <a href="<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/inscripcion/<?php echo $Inscripcion->id; ?>/1/1/<?php echo $hash_nuevo; ?>" target="_blank">
                                       <?php echo __('Agendar Contacto vCard') ?>
                                     </a>
                                   </li>
@@ -669,7 +702,7 @@ $url_envio_de_motivacion_3 = '';
                               }
                               ?>
                               <br>
-                              <?php if ($tipo_de_evento_id == 3) { ?>
+                              <?php if ($tipo_de_evento_id >= 3) { ?>
                                 <?php echo __('Pais') ?>: <?php echo $Inscripcion->nombre_pais; ?> | <?php echo __('Ciudad') ?>: <?php echo $Inscripcion->ciudad; ?><br>
                               <?php } ?>
                               <i>
@@ -841,487 +874,653 @@ $url_envio_de_motivacion_3 = '';
                             <?php } ?>
 
                             
+                            <!-- INICIO BOTONES DE ACCIONES  -->
                             <td>
+                              <?php if ($tipo_de_evento_id == 5) { ?>
 
-                            <?php if ($promocionado) { ?>
-                              <div class="alert alert-success alert-dismissible">
-                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                                <h4><i class="icon fa fa-check"></i> PROMOCIONADO A CAMARA AVANZADA! <?php if ($forzado) echo " (Forzada)"; ?></h4>
-                                <h5><i class="icon fa fa-file-text-o"></i> <?php echo $Inscripcion->planilla_promocion() ?> </h5>
-                              </div>
-                            <?php } ?>
+                                <!-- ENVIO DE PEDIDO DE CONFIRMACION A CONTENIDOS AVANZANDOS -->
+                                <div v-show="!estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_pedido_de_confirmacion_a_contenidos_avanzados)">
 
-                            <?php if ($Inscripcion->fecha_de_evento_id > 0 and $tipo_de_evento_id <> 3) { ?>
 
-                                    <!-- ENVIO DE PEDIDO DE CONFIRMACION -->
-                                    <div v-show="!estados[<?php echo $i ?>].cancelo && !estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_pedido_de_confirmacion)">
+                                    <!-- BTN COPIAR TEXTO -->
+                                    <textarea ref="textarea_pedido_de_confirmacion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_pedido_de_confirmacion ?></textarea>
+                                    <button @click="copiarTexto('pedido_de_confirmacion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
                                       
-                                        <a href="<?php echo $url_pedido_de_confirmacion; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
+                                      <i class="fa fa-copy"></i>
+                                    </button>
 
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(1, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Pedido de confirmación') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
+                                    <a href="<?php echo $url_pedido_de_confirmacion; ?>" target="_blank">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 30, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                    </a>
+
+                                    <a href="<?php echo $url_sms_pedido_de_confirmacion; ?>" target="_blank">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 30, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                    </a>
+
+                                    <?php echo __('Contactado'); ?>
+
+                                    <label class="switch switch-inscripcion">
+                                      <input  type="checkbox" v-on:change="setearSino(30, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_pedido_de_confirmacion">
+                                      <span class="slider round"></span>
                                       
-                                        <a href="<?php echo $url_sms_pedido_de_confirmacion; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
+                                    </label>
+                                </div> 
 
-                                        <?php echo __('Pedido de confirmación') ?>
 
-                                        <label class="switch switch-inscripcion">
-                                          <input  type="checkbox" v-on:change="setearSino(1, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_pedido_de_confirmacion">
-                                          <span class="slider round"></span>
+                              <?php } 
+                              else { ?>
+                                <?php if ($promocionado) { ?>
+                                  <div class="alert alert-success alert-dismissible">
+                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                    <h4><i class="icon fa fa-check"></i> PROMOCIONADO A CAMARA AVANZADA! <?php if ($forzado) echo " (Forzada)"; ?></h4>
+                                    <h5><i class="icon fa fa-file-text-o"></i> <?php echo $Inscripcion->planilla_promocion() ?> </h5>
+                                  </div>
+                                <?php } ?>
+
+                                <?php if ($Inscripcion->fecha_de_evento_id > 0 and $tipo_de_evento_id <> 3) { ?>
+
+                                      <!-- ENVIO DE PEDIDO DE CONFIRMACION -->
+
+                                      <div v-show="!estados[<?php echo $i ?>].cancelo && !estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_pedido_de_confirmacion)">
                                           
-                                        </label>
-                                    </div>
-                                  
-                                    <!-- ENVIO DE RESPUESTA DE CONSULTA -->
-                                    <div v-show="mostrar_responder_consulta(<?php echo $i ?>) && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].contesto_consulta)">
-                                      
-                                        <a href="<?php echo $url_contesto_consulta; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
 
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(7, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Responder Consulta') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-                                        
-                                        <a href="<?php echo $url_sms_contesto_consulta; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_pedido_de_confirmacion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_pedido_de_confirmacion ?></textarea>
+                                          <button @click="copiarTexto('pedido_de_confirmacion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                          <!--button @click="copiarTexto('<?php echo str_replace(["\r", "\n"], ' ', $mail_pedido_de_confirmacion); ?>')" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje"-->
+                                            <i class="fa fa-copy"></i>
+                                          </button>
 
-                                        <?php echo __('Responder Consulta') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input  type="checkbox" v-on:change="setearSino(7, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].contesto_consulta">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                  
-                                    <!-- ENVIO DE NUEVO PEDIDO DE CONFIRMACION -->
-                                    <div v-show="estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_pedido_de_confirmacion)">
-                                      
-                                        <a href="<?php echo $url_no_respondieron_al_pedido_de_confirmacion; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 2, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(2, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Nuevo pedido de confirmación') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-
-                                        <a href="<?php echo $url_sms_no_respondieron_al_pedido_de_confirmacion; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 2, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phonr"></i> sms</button>
-                                        </a> 
-
-                                        <?php echo __('Nuevo pedido de confirmación') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(2, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio_pedido_de_confirmacion">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                    
-                                    <!-- SI CONFIRMO -->
-                                    <div v-show="(estados[<?php echo $i ?>].envio_pedido_de_confirmacion || estados[<?php echo $i ?>].confirmo) && !estados[<?php echo $i ?>].envio_voucher && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].confirmo)">
-                                      <?php echo __('Confirmado') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(3, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].confirmo">
-                                          <span class="slider round"></span>
-                                        </label>
-                                      </div>
-                                    
-                                    <!-- ENVIO DE VOUCHER -->
-                                    <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_voucher)">   
-                                     
-                                        <a href="<?php echo $url_envio_de_voucher; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco btn-md" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 4, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(4, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Voucher') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-
-                                        <a href="<?php echo $url_sms_envio_de_voucher; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco btn-md" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 4, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
-
-                                        <?php echo __('Envio de Voucher') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(4, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_voucher">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                  
-                                    <!-- ENVIO DE MOTIVACION 1 -->
-                                    <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_motivacion)">
-                                      
-                                        <a href="<?php echo $url_envio_de_motivacion; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 5, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(5, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Motivacion') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-
-                                      
-                                        <a href="<?php echo $url_sms_envio_de_motivacion; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 5, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
-
-                                        <?php echo __('Envio de Motivacion') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(5, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_motivacion">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                  
-                                    <!-- ENVIO DE MOTIVACION 2 -->
-                                    <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo && url_envio_de_motivacion_2 != ''" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_motivacion_2)">
-                                      
-                                        <a href="<?php echo $url_envio_de_motivacion_2; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 27, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(27, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Motivacion') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-
-                                      
-                                        <a href="<?php echo $url_sms_envio_de_motivacion_2; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 27, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
-
-                                        <?php echo __('Envio de Motivacion 2') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(27, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_motivacion_2">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                  
-                                    <!-- ENVIO DE MOTIVACION 3 -->
-                                    <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo && url_envio_de_motivacion_3 != ''" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_motivacion_3)">
-                                      
-                                        <a href="<?php echo $url_envio_de_motivacion_3; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 28, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(28, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Motivacion') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-
-                                      
-                                        <a href="<?php echo $url_sms_envio_de_motivacion_3; ?>" target="_blank">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 28, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
-
-                                        <?php echo __('Envio de Motivacion 3') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(28, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_motivacion_3">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                    
-                                    <!-- ENVIO DE RECORDATORIO -->
-                                    <?php if ($Inscripcion->enviarRecordatorioHoy($fecha_de_evento)) { ?>                                     
-                                      <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio)">
-                                        
-                                          <a href="<?php echo $url_envio_de_recordatorio; ?>" target="_blank">
-                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          <a href="<?php echo $url_pedido_de_confirmacion; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
                                           </a>
 
-                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(6, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio') ?>', <?php echo $i ?>)">
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(1, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Pedido de confirmación') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+                                        
+                                          <a href="<?php echo $url_sms_pedido_de_confirmacion; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Pedido de confirmación') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input  type="checkbox" v-on:change="setearSino(1, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_pedido_de_confirmacion">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                    
+                                      <!-- ENVIO DE RESPUESTA DE CONSULTA -->
+                                      <div v-show="mostrar_responder_consulta(<?php echo $i ?>) && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].contesto_consulta)">
+                                        
+
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_contesto_consulta_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_contesto_consulta ?></textarea>
+                                          <button @click="copiarTexto('contesto_consulta', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                            <i class="fa fa-copy"></i>
+                                          </button>
+
+                                          <a href="<?php echo $url_contesto_consulta; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(7, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Responder Consulta') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+                                          
+                                          <a href="<?php echo $url_sms_contesto_consulta; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Responder Consulta') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input  type="checkbox" v-on:change="setearSino(7, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].contesto_consulta">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                    
+                                      <!-- ENVIO DE NUEVO PEDIDO DE CONFIRMACION -->
+                                      <div v-show="estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_pedido_de_confirmacion)">
+                                        
+
+
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_no_respondieron_al_pedido_de_confirmacion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_no_respondieron_al_pedido_de_confirmacion ?></textarea>
+                                          <button @click="copiarTexto('no_respondieron_al_pedido_de_confirmacion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                            <i class="fa fa-copy"></i>
+                                          </button>
+
+                                          <a href="<?php echo $url_no_respondieron_al_pedido_de_confirmacion; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 2, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(2, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Nuevo pedido de confirmación') ?>', <?php echo $i ?>)">
                                             <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
                                           </a>
 
-                                          <a href="<?php echo $url_sms_envio_de_recordatorio; ?>" target="_blank">
-                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                          </a>
+                                          <a href="<?php echo $url_sms_no_respondieron_al_pedido_de_confirmacion; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 2, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phonr"></i> sms</button>
+                                          </a> 
 
-                                          <?php echo __('Envio de Recordatorio') ?>
+                                          <?php echo __('Nuevo pedido de confirmación') ?>
 
                                           <label class="switch switch-inscripcion">
-                                            <input type="checkbox" v-on:change="setearSino(6, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio">
+                                            <input type="checkbox" v-on:change="setearSino(2, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio_pedido_de_confirmacion">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                      
+                                      <!-- SI CONFIRMO -->
+                                      <div v-show="(estados[<?php echo $i ?>].envio_pedido_de_confirmacion || estados[<?php echo $i ?>].confirmo) && !estados[<?php echo $i ?>].envio_voucher && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].confirmo)">
+                                        <?php echo __('Confirmado') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input type="checkbox" v-on:change="setearSino(3, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].confirmo">
+                                            <span class="slider round"></span>
+                                          </label>
+                                        </div>
+                                      
+                                      <!-- ENVIO DE VOUCHER -->
+                                      <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_voucher)">   
+
+
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_envio_de_voucher_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_voucher ?></textarea>
+                                          <button @click="copiarTexto('envio_de_voucher', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                            <i class="fa fa-copy"></i>
+                                          </button>
+
+                                          <a href="<?php echo $url_envio_de_voucher; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco btn-md" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 4, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(4, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Voucher') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+
+                                          <a href="<?php echo $url_sms_envio_de_voucher; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco btn-md" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 4, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Envio de Voucher') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input type="checkbox" v-on:change="setearSino(4, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_voucher">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                    
+                                      <!-- ENVIO DE MOTIVACION 1 -->
+                                      <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_motivacion)">
+                                        
+
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_envio_de_motivacion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_motivacion ?></textarea>
+                                          <button @click="copiarTexto('envio_de_motivacion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                            <i class="fa fa-copy"></i>
+                                          </button>
+
+                                          <a href="<?php echo $url_envio_de_motivacion; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 5, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(5, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Motivacion') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+
+                                        
+                                          <a href="<?php echo $url_sms_envio_de_motivacion; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 5, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Envio de Motivacion') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input type="checkbox" v-on:change="setearSino(5, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_motivacion">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                    
+                                      <!-- ENVIO DE MOTIVACION 2 -->
+                                      <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo && url_envio_de_motivacion_2 != ''" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_motivacion_2)">
+                                        
+                                          <a href="<?php echo $url_envio_de_motivacion_2; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 27, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(27, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Motivacion') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+
+                                        
+                                          <a href="<?php echo $url_sms_envio_de_motivacion_2; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 27, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Envio de Motivacion 2') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input type="checkbox" v-on:change="setearSino(27, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_motivacion_2">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                    
+                                      <!-- ENVIO DE MOTIVACION 3 -->
+                                      <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo && url_envio_de_motivacion_3 != ''" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_motivacion_3)">
+                                        
+                                          <a href="<?php echo $url_envio_de_motivacion_3; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 28, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(28, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Motivacion') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+
+                                        
+                                          <a href="<?php echo $url_sms_envio_de_motivacion_3; ?>" target="_blank">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 28, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Envio de Motivacion 3') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input type="checkbox" v-on:change="setearSino(28, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_motivacion_3">
+                                            <span class="slider round"></span>
+                                            
+                                          </label>
+                                      </div>
+                                      
+                                      <!-- ENVIO DE RECORDATORIO -->
+                                      <?php if ($Inscripcion->enviarRecordatorioHoy($fecha_de_evento)) { ?>                                     
+                                        <div v-show="estados[<?php echo $i ?>].envio_voucher && estados[<?php echo $i ?>].confirmo && estados[<?php echo $i ?>].envio_pedido_de_confirmacion && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio)">
+                                          
+
+                                            <!-- BTN COPIAR TEXTO -->
+                                            <textarea ref="textarea_envio_de_recordatorio_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_recordatorio ?></textarea>
+                                            <button @click="copiarTexto('envio_de_recordatorio', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                              
+                                              <i class="fa fa-copy"></i>
+                                            </button>
+
+                                            <a href="<?php echo $url_envio_de_recordatorio; ?>" target="_blank">
+                                                <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                            </a>
+
+                                            <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(6, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio') ?>', <?php echo $i ?>)">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                            </a>
+
+                                            <a href="<?php echo $url_sms_envio_de_recordatorio; ?>" target="_blank">
+                                                <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                            </a>
+
+                                            <?php echo __('Envio de Recordatorio') ?>
+
+                                            <label class="switch switch-inscripcion">
+                                              <input type="checkbox" v-on:change="setearSino(6, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio">
+                                              <span class="slider round"></span>
+                                              
+                                            </label>
+                                        </div>
+                                      <?php } ?>
+                                
+                                      <?php if ($Inscripcion->enviarRecordatorioProxClase($fecha_de_evento) and $tipo_de_evento_id == 1) { ?>
+                                        <!-- ENVIO DE RECORDATORIO PROX CLASE -->
+                                        <div v-show="estados[<?php echo $i ?>].asistio && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_proxima_clase)">
+                                          
+
+                                            <!-- BTN COPIAR TEXTO -->
+                                            <textarea ref="textarea_envio_de_recordatorio_prox_clase_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_recordatorio_prox_clase ?></textarea>
+                                            <button @click="copiarTexto('envio_de_recordatorio_prox_clase', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                              
+                                              <i class="fa fa-copy"></i>
+                                            </button>
+
+                                            <a href="<?php echo $url_envio_de_recordatorio_prox_clase; ?>" target="_blank">
+                                                <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 9, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                            </a>
+
+                                            <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(9, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio Próxima clase') ?>', <?php echo $i ?>)">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                            </a>
+
+                                            <a href="<?php echo $url_sms_envio_de_recordatorio_prox_clase; ?>" target="_blank">
+                                                <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 9, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                            </a>
+
+                                            <?php echo __('Envio de Recordatorio Próxima clase') ?>
+
+                                            <label class="switch switch-inscripcion">
+                                              <input type="checkbox" v-on:change="setearSino(9, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio_proxima_clase">
+                                              <span class="slider round"></span>
+                                              
+                                            </label>
+                                          </div>
+                                        <?php } ?>
+
+                                    <?php if ($Inscripcion->enviarRecordatorioProxClase($fecha_de_evento) and $tipo_de_evento_id == 1) { ?>
+                                      <!-- ENVIO DE RECORDATORIO PROX CLASE A NO ASISTENTE-->
+                                      <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].asistio && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_proxima_clase_a_no_asistente)">
+
+
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_envio_de_recordatorio_prox_clase_no_asistente_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_recordatorio_prox_clase_no_asistente ?></textarea>
+                                          <button @click="copiarTexto('envio_de_recordatorio_prox_clase_no_asistente', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                            <i class="fa fa-copy"></i>
+                                          </button>
+                                        
+                                          <a href="<?php echo $url_envio_de_recordatorio_prox_clase_no_asistente; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 10, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                          </a>
+
+                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(10, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio a Próxima clase a no Asistente') ?>', <?php echo $i ?>)">
+                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          </a>
+
+                                          <a href="<?php echo $url_sms_envio_de_recordatorio_prox_clase_no_asistente; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 10, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                          </a>
+
+                                          <?php echo __('Envio de Recordatorio a Próxima clase a no Asistente') ?>
+
+                                          <label class="switch switch-inscripcion">
+                                            <input type="checkbox" v-on:change="setearSino(10, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio_proxima_clase_a_no_asistente">
                                             <span class="slider round"></span>
                                             
                                           </label>
                                       </div>
                                     <?php } ?>
-                              
-                                    <?php if ($tipo_de_evento_id == 1) { ?>
-                                      <!-- ENVIO DE RECORDATORIO PROX CLASE -->
-                                      <div v-show="estados[<?php echo $i ?>].asistio && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_proxima_clase)">
+
+                                    <?php if ($Inscripcion->enviarRecordatorioProxClase($fecha_de_evento) and $tipo_de_evento_id == 2) { ?>
+                                      <!-- ENVIO DE ENCUESTA-->
+                                      <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_de_encuesta)">
                                         
-                                          <a href="<?php echo $url_envio_de_recordatorio_prox_clase; ?>" target="_blank">
-                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 9, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+
+                                          <!-- BTN COPIAR TEXTO -->
+                                          <textarea ref="textarea_envio_de_texto_encuesta_satisfaccion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_texto_encuesta_satisfaccion ?></textarea>
+                                          <button @click="copiarTexto('envio_de_texto_encuesta_satisfaccion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                            
+                                            <i class="fa fa-copy"></i>
+                                          </button>
+
+                                          <a href="<?php echo $url_envio_de_texto_encuesta_satisfaccion; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 29, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
                                           </a>
 
-                                          <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(9, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio Próxima clase') ?>', <?php echo $i ?>)">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                          <a href="<?php echo $url_sms_envio_de_texto_encuesta_satisfaccion; ?>" target="_blank">
+                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 29, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
                                           </a>
 
-                                          <a href="<?php echo $url_sms_envio_de_recordatorio_prox_clase; ?>" target="_blank">
-                                              <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 9, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                          </a>
-
-                                          <?php echo __('Envio de Recordatorio Próxima clase') ?>
+                                          <?php echo __('Envio de Encuesta') ?>
 
                                           <label class="switch switch-inscripcion">
-                                            <input type="checkbox" v-on:change="setearSino(9, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio_proxima_clase">
+                                            <input type="checkbox" v-on:change="setearSino(29, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_de_encuesta">
                                             <span class="slider round"></span>
                                             
                                           </label>
-                                        </div>
-                                      <?php } ?>
-
-                                  <?php if ($Inscripcion->enviarRecordatorioProxClase($fecha_de_evento) and $tipo_de_evento_id == 1) { ?>
-                                    <!-- ENVIO DE RECORDATORIO PROX CLASE A NO ASISTENTE-->
-                                    <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].asistio && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio_proxima_clase_a_no_asistente)">
-                                      
-                                        <a href="<?php echo $url_envio_de_recordatorio_prox_clase_no_asistente; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 10, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(10, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio a Próxima clase a no Asistente') ?>', <?php echo $i ?>)">
-                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                        </a>
-
-                                        <a href="<?php echo $url_sms_envio_de_recordatorio_prox_clase_no_asistente; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 10, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
-
-                                        <?php echo __('Envio de Recordatorio a Próxima clase a no Asistente') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(10, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio_proxima_clase_a_no_asistente">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                  <?php } ?>
-
-                                  <?php if ($Inscripcion->enviarRecordatorioProxClase($fecha_de_evento) and $tipo_de_evento_id == 2) { ?>
-                                    <!-- ENVIO DE ENCUESTA-->
-                                    <div v-show="estados[<?php echo $i ?>].confirmo && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_de_encuesta)">
-                                      
-                                        <a href="<?php echo $url_envio_de_texto_encuesta_satisfaccion; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 29, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                        </a>
-
-                                        <a href="<?php echo $url_sms_envio_de_texto_encuesta_satisfaccion; ?>" target="_blank">
-                                            <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 29, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                        </a>
-
-                                        <?php echo __('Envio de Encuesta') ?>
-
-                                        <label class="switch switch-inscripcion">
-                                          <input type="checkbox" v-on:change="setearSino(29, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_de_encuesta">
-                                          <span class="slider round"></span>
-                                          
-                                        </label>
-                                    </div>
-                                  <?php } ?>
-
-                            <?php }
-                            else { ?>
-
-                              <!-- ENVIO DE PEDIDO DE CONFIRMACION -->
-                              <div v-show="!estados[<?php echo $i ?>].promocionado && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_pedido_de_confirmacion)">
-
-                                  <a href="<?php echo $url_pedido_de_confirmacion; ?>" target="_blank">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                  </a>
-
-                                  <?php if ($tipo_de_evento_id <> 3) { ?>                                  
-                                  <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(1, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Contactado') ?>', <?php echo $i ?>)">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                  </a>
-                                  <?php } ?>
-
-
-                                  <a href="<?php echo $url_sms_pedido_de_confirmacion; ?>" target="_blank">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                  </a>
-
-                                  <?php 
-                                  if ($tipo_de_evento_id == 3) {
-                                    echo __('Enviar Mensaje de Bienvenida');
-                                  }
-                                  else {
-                                    echo __('Contactado');
-                                  }
-                                  ?>
-
-                                  <label class="switch switch-inscripcion">
-                                    <input  type="checkbox" v-on:change="setearSino(1, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_pedido_de_confirmacion">
-                                    <span class="slider round"></span>
-                                    
-                                  </label>
-                              </div>  
-
-
-                              <?php if ($tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 77) { ?> 
-                              <!-- ENVIO DE RECORDATORIO -->                                    
-                                <div v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio)">
-                                  
-                                    <a href="<?php echo $url_envio_de_recordatorio; ?>" target="_blank">
-                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                    </a>
-
-                                    <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(6, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio') ?>', <?php echo $i ?>)">
-                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                    </a>
-
-                                    <a href="<?php echo $url_sms_envio_de_recordatorio; ?>" target="_blank">
-                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                    </a>
-
-                                    <?php echo __('Envio de Recordatorio') ?>
-
-                                    <label class="switch switch-inscripcion">
-                                      <input type="checkbox" v-on:change="setearSino(6, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio">
-                                      <span class="slider round"></span>
-                                      
-                                    </label>
-                                </div>
-                              <?php } ?>
-
-                                                                
-                              <!-- ENVIO DE RESPUESTA DE CONSULTA -->
-                              <div v-show="!estados[<?php echo $i ?>].promocionado && mostrar_responder_consulta(<?php echo $i ?>) && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].contesto_consulta)">
-                                
-                                  <a href="<?php echo $url_contesto_consulta; ?>" target="_blank">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button> 
-                                  </a>
-
-                                  <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(7, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Responder Consulta') ?>', <?php echo $i ?>)">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                  </a>
-
-                                  <a href="<?php echo $url_sms_contesto_consulta; ?>" target="_blank">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button> 
-                                  </a>
-
-                                  <?php echo __('Responder Consulta') ?>
-
-                                  <label class="switch switch-inscripcion">
-                                    <input  type="checkbox" v-on:change="setearSino(7, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].contesto_consulta">
-                                    <span class="slider round"></span>
-                                    
-                                  </label>
-                              </div>
-
-                            <?php } ?>  
-
-                              <?php if ($habilitar_invitacion_al_curso_online <> 'NO' and ($Inscripcion->enviarInvitacionCursoOnline($Solicitud, $fecha_de_evento) or ($cant_dias > 60 and $tipo_de_evento_id <> 3)) and $url_envio_de_invitacion_al_curso_online <> '') { ?>
-                                <!-- ENVIO DE INVITACION A CURSO ONLINE-->
-                                <div v-bind:class="class_sino(estados[<?php echo $i ?>].envio_invitacion_al_curso_online)">
-                                  
-                                    <a href="<?php echo $url_envio_de_invitacion_al_curso_online; ?>" target="_blank">
-                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 12, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                    </a>
-
-                                    <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(12, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de invitación a Curso Online') ?>', <?php echo $i ?>)">
-                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                    </a>
-
-                                    <a href="<?php echo $url_sms_envio_de_invitacion_al_curso_online; ?>" target="_blank">
-                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 12, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                    </a>
-
-                                    <?php echo __('Envio de invitación a Curso Online') ?>
-
-                                    <label class="switch switch-inscripcion">
-                                      <input type="checkbox" v-on:change="setearSino(12, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_invitacion_al_curso_online">
-                                      <span class="slider round"></span>
-                                      
-                                    </label>
-                                </div>
-                              <?php } ?>
-
-                              <!-- ENVIO MODELOS EXTRA -->
-                                <?php if (isset($Inscripcion->Modelos_extra) and !$promocionado) { ?>
-                                  <div class="box box-primary box-solid collapsed-box">
-                                    <div class="box-header with-border" data-widget="collapse">
-                                      <h3 class="box-title"><i class="fa fa-whatsapp"></i> <?php echo __('Mas Mensajes') ?></h3>
-
-                                      <div class="box-tools pull-right">
-                                        <button type="button" class="btn btn-box-tool"><i class="fa fa-plus"></i>
-                                        </button>
                                       </div>
-                                      <!-- /.box-tools -->
-                                    </div>
-                                    <!-- /.box-header -->
-                                    <div class="box-body" style="display: none;">
+                                    <?php } ?>
 
-                                      <?php                                     
-                                        $k = 0;
-                                        foreach ($Inscripcion->Modelos_extra as $Modelo_extra) {
-                                          $k++;
-                                      ?>
+                                <?php }
+                                else { ?>
 
-                                        <div v-bind:class="class_sino(estados[<?php echo $i ?>].envio_<?php echo $k; ?>)">
-                                          
-                                            <a href="<?php echo $Modelo_extra['url_del_mensaje']; ?>" target="_blank">
-                                              <button type="button" class="btn btn-blanco" alt="editar" title="editar" v-on:click="marcar_envio(1, <?php echo $k+12; ?>, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                            </a>
-
-                                            <?php echo $Modelo_extra['titulo_del_mensaje']; ?> <i class="fa fa-fw fa-info-circle box-tools" data-toggle="tooltip" title="" data-original-title="<?php echo $Modelo_extra['aclaracion']; ?>" style="font-size: 30px; padding: 10px; margin-top: -20px"></i> 
+                                <!-- ENVIO DE PEDIDO DE CONFIRMACION -->
+                                <div v-show="!estados[<?php echo $i ?>].promocionado && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_pedido_de_confirmacion)">
 
 
-                                            <label class="switch switch-inscripcion">
-                                              <input  type="checkbox" v-on:change="setearSino(<?php echo $k+12; ?>, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_<?php echo $k; ?>">
-                                              <span class="slider round"></span>
-                                              
-                                            </label>
-                                        </div>
+                                    <!-- BTN COPIAR TEXTO -->
+                                    <textarea ref="textarea_pedido_de_confirmacion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_pedido_de_confirmacion ?></textarea>
+                                    <button @click="copiarTexto('pedido_de_confirmacion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
                                       
-                                      <?php
-                                        }
-                                      ?>        
-                                    </div>
-                                    <!-- /.box-body -->
+                                      <i class="fa fa-copy"></i>
+                                    </button>
+
+                                    <a href="<?php echo $url_pedido_de_confirmacion; ?>" target="_blank">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                    </a>
+
+                                    <?php if ($tipo_de_evento_id <> 3) { ?>                                  
+                                    <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(1, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Contactado') ?>', <?php echo $i ?>)">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                    </a>
+                                    <?php } ?>
+
+
+                                    <a href="<?php echo $url_sms_pedido_de_confirmacion; ?>" target="_blank">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 1, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                    </a>
+
+                                    <?php 
+                                    if ($tipo_de_evento_id == 3) {
+                                      echo __('Enviar Mensaje de Bienvenida');
+                                    }
+                                    else {
+                                      echo __('Contactado');
+                                    }
+                                    ?>
+
+                                    <label class="switch switch-inscripcion">
+                                      <input  type="checkbox" v-on:change="setearSino(1, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_pedido_de_confirmacion">
+                                      <span class="slider round"></span>
+                                      
+                                    </label>
+                                </div>  
+
+
+                                <?php if ($tipo_de_evento_id == 3 and $Solicitud->tipo_de_curso_online_id == 77) { ?> 
+                                <!-- ENVIO DE RECORDATORIO -->                                    
+                                  <div v-bind:class="class_sino(estados[<?php echo $i ?>].envio_recordatorio)">
+
+
+                                      <!-- BTN COPIAR TEXTO -->
+                                      <textarea ref="textarea_envio_de_recordatorio_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_recordatorio ?></textarea>
+                                      <button @click="copiarTexto('envio_de_recordatorio', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                        
+                                        <i class="fa fa-copy"></i>
+                                      </button>
+
+                                      <a href="<?php echo $url_envio_de_recordatorio; ?>" target="_blank">
+                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                      </a>
+
+                                      <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(6, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de Recordatorio') ?>', <?php echo $i ?>)">
+                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                      </a>
+
+                                      <a href="<?php echo $url_sms_envio_de_recordatorio; ?>" target="_blank">
+                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 6, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                      </a>
+
+                                      <?php echo __('Envio de Recordatorio') ?>
+
+                                      <label class="switch switch-inscripcion">
+                                        <input type="checkbox" v-on:change="setearSino(6, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_recordatorio">
+                                        <span class="slider round"></span>
+                                        
+                                      </label>
                                   </div>
                                 <?php } ?>
-                              <!-- FIN ENVIO MODELOS EXTRA -->
-                                                          
-                                 
 
-                              <!-- ENVIO DE CERTIFICADO -->
-                              <div v-show="estados[<?php echo $i ?>].promocionado || estados[<?php echo $i ?>].certificado" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_certificado)">
-                                
-                                  <a href="<?php echo $url_envio_de_certificado; ?>" target="_blank">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 24, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
-                                  </a>
+                                                                  
+                                <!-- ENVIO DE RESPUESTA DE CONSULTA -->
+                                <div v-show="!estados[<?php echo $i ?>].promocionado && mostrar_responder_consulta(<?php echo $i ?>) && !estados[<?php echo $i ?>].cancelo" v-bind:class="class_sino(estados[<?php echo $i ?>].contesto_consulta)">
 
-                                  <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(24, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de certificado') ?>', <?php echo $i ?>)">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
-                                  </a>
+                                    <?php if (isset($url_contesto_consulta)) { ?>
 
-                                  <a href="<?php echo $url_sms_envio_de_certificado; ?>" target="_blank">
-                                    <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 24, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
-                                  </a>
+                                      <!-- BTN COPIAR TEXTO -->
+                                      <textarea ref="textarea_contesto_consulta_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_contesto_consulta ?></textarea>
+                                      <button @click="copiarTexto('contesto_consulta', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                        
+                                        <i class="fa fa-copy"></i>
+                                      </button>
 
-                                  <a href="<?php echo $Inscripcion->url_certificado() ?>" target="_blank"><img src="<?php echo $dominio_publico ?>img/certified.png" style="width: 30px; vertical-align: middle;"></a><?php echo __('Envio de certificado') ?>
+                                      <a href="<?php echo $url_contesto_consulta; ?>" target="_blank">
+                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button> 
+                                      </a>
+                                    <?php } ?>
 
-                                  <label class="switch switch-inscripcion">
-                                    <input  type="checkbox" v-on:change="setearSino(24, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_certificado">
-                                    <span class="slider round"></span>
+                                    <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(7, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Responder Consulta') ?>', <?php echo $i ?>)">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                    </a>
+
+                                    <?php if (isset($url_sms_contesto_consulta)) { ?>
+                                      <a href="<?php echo $url_sms_contesto_consulta; ?>" target="_blank">
+                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 7, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button> 
+                                      </a>
+                                    <?php } ?>
+
+                                    <?php echo __('Responder Consulta') ?>
+
+                                    <label class="switch switch-inscripcion">
+                                      <input  type="checkbox" v-on:change="setearSino(7, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].contesto_consulta">
+                                      <span class="slider round"></span>
+                                      
+                                    </label>
+                                </div>
+
+                                <?php } ?>  
+
+                                <?php if ($habilitar_invitacion_al_curso_online <> 'NO' and ($Inscripcion->enviarInvitacionCursoOnline($Solicitud, $fecha_de_evento) or ($cant_dias > 60 and $tipo_de_evento_id <> 3)) and $url_envio_de_invitacion_al_curso_online <> '') { ?>
+                                  <!-- ENVIO DE INVITACION A CURSO ONLINE-->
+                                  <div v-bind:class="class_sino(estados[<?php echo $i ?>].envio_invitacion_al_curso_online)">
                                     
-                                  </label>
-                              </div>
+
+                                      <!-- BTN COPIAR TEXTO -->
+                                      <textarea ref="textarea_envio_de_invitacion_al_curso_online_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_invitacion_al_curso_online ?></textarea>
+                                      <button @click="copiarTexto('envio_de_invitacion_al_curso_online', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                        
+                                        <i class="fa fa-copy"></i>
+                                      </button>
+                                      
+
+                                      <a href="<?php echo $url_envio_de_invitacion_al_curso_online; ?>" target="_blank">
+                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 12, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                      </a>
+
+                                      <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(12, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de invitación a Curso Online') ?>', <?php echo $i ?>)">
+                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                      </a>
+
+                                      <a href="<?php echo $url_sms_envio_de_invitacion_al_curso_online; ?>" target="_blank">
+                                          <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 12, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                      </a>
+
+                                      <?php echo __('Envio de invitación a Curso Online') ?>
+
+                                      <label class="switch switch-inscripcion">
+                                        <input type="checkbox" v-on:change="setearSino(12, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_invitacion_al_curso_online">
+                                        <span class="slider round"></span>
+                                        
+                                      </label>
+                                  </div>
+                                <?php } ?>
+
+                                <!-- ENVIO MODELOS EXTRA -->
+                                  <?php if (isset($Inscripcion->Modelos_extra) and !$promocionado) { ?>
+                                    <div class="box box-primary box-solid collapsed-box">
+                                      <div class="box-header with-border" data-widget="collapse">
+                                        <h3 class="box-title"><i class="fa fa-whatsapp"></i> <?php echo __('Mas Mensajes') ?></h3>
+
+                                        <div class="box-tools pull-right">
+                                          <button type="button" class="btn btn-box-tool"><i class="fa fa-plus"></i>
+                                          </button>
+                                        </div>
+                                        <!-- /.box-tools -->
+                                      </div>
+                                      <!-- /.box-header -->
+                                      <div class="box-body" style="display: none;">
+
+                                        <?php                                     
+                                          $k = 0;
+                                          foreach ($Inscripcion->Modelos_extra as $Modelo_extra) {
+                                            $k++;
+                                        ?>
+
+                                          <div v-bind:class="class_sino(estados[<?php echo $i ?>].envio_<?php echo $k; ?>)">
+                                      
+                                              <!-- BTN COPIAR TEXTO -->
+                                              <textarea ref="textarea_modelo_extra_<?php echo $k ?>_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $Modelo_extra['mensaje_solo_texto'] ?></textarea>
+                                              <button @click="copiarTexto('modelo_extra_<?php echo $k ?>', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                                
+                                                <i class="fa fa-copy"></i>
+                                              </button>
+
+                                              <a href="<?php echo $Modelo_extra['url_del_mensaje']; ?>" target="_blank">
+                                                <button type="button" class="btn btn-blanco" alt="editar" title="editar" v-on:click="marcar_envio(1, <?php echo $k+12; ?>, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                              </a>
+
+                                              <?php echo $Modelo_extra['titulo_del_mensaje']; ?> <i class="fa fa-fw fa-info-circle box-tools" data-toggle="tooltip" title="" data-original-title="<?php echo $Modelo_extra['aclaracion']; ?>" style="font-size: 30px; padding: 10px; margin-top: -20px"></i> 
+
+
+                                              <label class="switch switch-inscripcion">
+                                                <input  type="checkbox" v-on:change="setearSino(<?php echo $k+12; ?>, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_<?php echo $k; ?>">
+                                                <span class="slider round"></span>
+                                                
+                                              </label>
+                                          </div>
+                                        
+                                        <?php
+                                          }
+                                        ?>        
+                                      </div>
+                                      <!-- /.box-body -->
+                                    </div>
+                                  <?php } ?>
+                                <!-- FIN ENVIO MODELOS EXTRA -->
+                                                            
+                                   
+
+                                <!-- ENVIO DE CERTIFICADO -->
+                                <div v-show="estados[<?php echo $i ?>].promocionado || estados[<?php echo $i ?>].certificado" v-bind:class="class_sino(estados[<?php echo $i ?>].envio_certificado)">
+                                  
+                                    <?php if (isset($url_envio_de_certificado)) { ?>
+
+                                      <!-- BTN COPIAR TEXTO -->
+                                      <textarea ref="textarea_envio_de_certificado_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $mail_envio_de_certificado ?></textarea>
+                                      <button @click="copiarTexto('envio_de_certificado', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                        
+                                        <i class="fa fa-copy"></i>
+                                      </button>
+
+                                      <a href="<?php echo $url_envio_de_certificado; ?>" target="_blank">
+                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 24, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i></button>
+                                      </a>
+                                    <?php } ?>
+
+                                    <a v-show="enviar_mail" data-toggle="modal" data-target="#modal-confirmar-mail" v-on:click="preparar_envio_mail(24, '<?php echo $nombre; ?>', '<?php echo $apellido; ?>', <?php echo $Inscripcion->id ?>, '<?php echo __('Envio de certificado') ?>', <?php echo $i ?>)">
+                                      <button type="button" class="btn btn-blanco" alt="enviar" title="enviar"><i class="fa fa-envelope-o"></i></button>
+                                    </a>
+
+                                    <?php if (isset($url_sms_envio_de_certificado)) { ?>
+                                      <a href="<?php echo $url_sms_envio_de_certificado; ?>" target="_blank">
+                                        <button type="button" class="btn btn-blanco" alt="enviar" title="enviar" v-on:click="marcar_envio(3, 24, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-phone"></i> sms</button>
+                                      </a>
+                                    <?php } ?>
+
+                                    <a href="<?php echo $Inscripcion->url_certificado() ?>" target="_blank"><img src="<?php echo $dominio_publico ?>img/certified.png" style="width: 30px; vertical-align: middle;"></a><?php echo __('Envio de certificado') ?>
+
+                                    <label class="switch switch-inscripcion">
+                                      <input  type="checkbox" v-on:change="setearSino(24, <?php echo $i ?>, <?php echo $Inscripcion->id ?>)" v-model="estados[<?php echo $i ?>].envio_certificado">
+                                      <span class="slider round"></span>
+                                      
+                                    </label>
+                                </div>
+
+                              <?php } ?>
 
                               <!-- CANCELO  -->                              
                               <div v-show="!estados[<?php echo $i ?>].promocionado" v-bind:class="class_sino_cancelo(estados[<?php echo $i ?>].cancelo)" style="margin-top: 30px; padding-top: 0px; padding-bottom: 0px;">
@@ -1344,9 +1543,20 @@ $url_envio_de_motivacion_3 = '';
                               </div>  
                                    
                             </td>
+                            <!-- FIN BOTONES DE ACCIONES  -->
+
                             <td v-show="!estados[<?php echo $i ?>].promocionado && mensaje_extra != ''">
 
                               <!-- ENVIO DE MENSAJE EXTRA x WHATSAPP -->   
+
+                                <p>          
+                                  <!-- BTN COPIAR TEXTO -->
+                                  <textarea ref="textarea_mensa_extra_<?php echo $i ?>" style="position: absolute; left: -9999px;"> {{ mensa_extra(false, '<?php echo $Inscripcion->celular_wa($codigo_tel, $Solicitud) ?>', '<?php echo $nombre; ?>', '<?php echo $apellido ?>', '<?php echo $Inscripcion->codigo_alumno ?>') }} </textarea>
+                                  <button @click="copiarTexto('mensa_extra', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                                    Copiar Mensaje
+                                    <i class="fa fa-copy"></i>
+                                  </button>
+                                </p>
                                 <p>          
                                   <a v-bind:href="url_mensa_extra('<?php echo $Inscripcion->celular_wa($codigo_tel, $Solicitud) ?>', '<?php echo $nombre; ?>', '<?php echo $apellido ?>', '<?php echo $Inscripcion->codigo_alumno ?>')" target="_blank">
                                     <button type="button" class="btn btn-success" alt="enviar" title="enviar" v-on:click="marcar_envio(1, 23, <?php echo $i; ?>, <?php echo $Inscripcion->id ?>)"><i class="fa fa-whatsapp"></i> <?php echo __('Enviar via Whatsapp') ?></button>
@@ -1387,6 +1597,24 @@ $url_envio_de_motivacion_3 = '';
                       <div class="modal-body" id="modal-bodi-mensaje-extra">
                         <textarea id="mensaje_extra" v-model="mensaje_extra" rows="6" name="mensaje_extra" class="form-control" placeholder="<?php echo __('Indique el mensaje personalizado que quiere enviar') ?>"></textarea>
                         <p>Indique inscrito_nombre para que aparezca el nombre de la persona y inscrito_apellido para su apellido, por ejemplo si el mensaje es: "Hola inscrito_nombre inscrito_apellido queremos recordarte asistir con ropa comoda para el taller de meditación" se traduciria como "Hola Jose Perez queremos recordarte asistir con ropa comoda para el taller de meditación"</p>
+                        <h4>Puedes usar: </h4>
+                        <ul>
+                          <li>inscrito_nombre</li>
+                          <li>inscrito_apellido</li>
+                          <li>codigo_del_alumno</li>
+                          <li>nombre_de_la_institucion</li>
+                          <li>txt_tipo_de_evento</li>
+                          <li>url_form_inscripcion</li>
+                          <li>icon_4diamantes 💠</li>
+                          <li>icon_check ✅</li>
+                          <li>icon_manito 👉</li>
+                          <li>icon_explosion 💥</li>
+                          <li>icon_libros 📚</li>
+                          <li>nombre_responsable_inscripcion</li>
+                          <li>tel_responsable_inscripcion</li>
+                          <li>nombre_del_solicitante</li>
+                          <li>celular_del_solicitante</li>
+                        </ul>
                       </div>
 
                       <div class="modal-footer">
@@ -1868,6 +2096,7 @@ $url_envio_de_motivacion_3 = '';
               el: '#app-lista',
 
               data: {
+                copiado: false,
                 apellido: null,
                 nombre: null,
                 celular: null,
@@ -1992,6 +2221,8 @@ $url_envio_de_motivacion_3 = '';
                     observaciones: '<?php echo $Inscripcion->observaciones ?>',
                     obs_status_save: '',
                     sino_eleccion_modalidad_online: <?php echo sino_a_tf($Inscripcion->sino_eleccion_modalidad_online) ?>,
+                    envio_pedido_de_confirmacion_a_contenidos_avanzados: <?php echo sino_a_tf($Inscripcion->sino_envio_pedido_de_confirmacion_a_contenidos_avanzados) ?>,
+                    confirmo_a_contenidos_avanzados: <?php echo sino_a_tf($Inscripcion->sino_confirmo_a_contenidos_avanzados) ?>,
                   },
                 <?php } ?>
                 ],
@@ -2111,6 +2342,15 @@ $url_envio_de_motivacion_3 = '';
                   cadena = cadena.replace(/[/%<>]/gi, "");
                   cadena = cadena.replace(/[\\]/gi, "");
                   return cadena
+                },
+
+                copiarTexto(boton, i) {
+                  const textarea = this.$refs["textarea_" + boton +"_"+ i];
+                  //textarea.value = texto;
+                  textarea.select();
+                  document.execCommand("copy");
+                  this.copiado = true;
+                  setTimeout(() => (this.copiado = false), 1500);
                 },
 
                 codificarCadena: function (cadena) {
@@ -2435,6 +2675,18 @@ $url_envio_de_motivacion_3 = '';
                       }
                       this.estados[i].envio_de_encuesta = !estado_tf; 
                   }
+                  if (codigo == 30) {
+                      if (estado_tf == null) {
+                        estado_tf = this.estados[i].envio_pedido_de_confirmacion_a_contenidos_avanzados;
+                      }
+                      this.estados[i].envio_pedido_de_confirmacion_a_contenidos_avanzados = !estado_tf;  
+                  }
+                  if (codigo == 31) {
+                      if (estado_tf == null) {
+                        estado_tf = this.estados[i].confirmo_a_contenidos_avanzados;  
+                      }
+                      this.estados[i].confirmo_a_contenidos_avanzados = !estado_tf; 
+                  }
 
                   //console.log('estado_tf0: '+estado_tf)
                   if (estado_tf) {
@@ -2611,6 +2863,21 @@ $url_envio_de_motivacion_3 = '';
                           app["estados"][i].envio_de_encuesta = !estado_tf; 
                         }
                       }  
+                      if (codigo == 30) {
+                        if (estado_tf == null) {
+                          estado_tf = app["estados"][i].envio_pedido_de_confirmacion_a_contenidos_avanzados;
+                          //console.log('estado_tf2: '+estado_tf)
+                          app["estados"][i].envio_pedido_de_confirmacion_a_contenidos_avanzados = !estado_tf;  
+                          //console.log('estado_tf3: '+app["estados"][i].envio_pedido_de_confirmacion)
+
+                        }
+                      }
+                      if (codigo == 31) {
+                        if (estado_tf == null) {
+                          estado_tf = app["estados"][i].confirmo_a_contenidos_avanzados;  
+                          app["estados"][i].confirmo_a_contenidos_avanzados = !estado_tf; 
+                        }
+                      }
                       //console.log('paso 2')
                     },
                     error: function error(xhr, textStatus, errorThrown) {
@@ -2665,9 +2932,22 @@ $url_envio_de_motivacion_3 = '';
 
                   if (this.email_codigo == 23) {
                     var mensaje = this.mensaje_extra
+
                     mensaje = mensaje.replaceAll('inscrito_nombre', this.email_nombre.trim())
                     mensaje = mensaje.replaceAll('inscrito_apellido', this.email_apellido.trim())   
+                    mensaje = mensaje.replaceAll('codigo_del_alumno', codigo_del_alumno)
+                    mensaje = mensaje.replaceAll('nombre_de_la_institucion', '<?php echo $nombre_de_la_institucion ?>')
+                    mensaje = mensaje.replaceAll('txt_tipo_de_evento', '<?php echo $descripcion_sin_estado ?>')
+                    mensaje = mensaje.replaceAll('url_form_inscripcion', '<?php echo $url_form_inscripcion ?>')
+                    mensaje = mensaje.replaceAll(/icon_4diamantes/g, '💠')
+                    mensaje = mensaje.replaceAll(/icon_check/g, '✅')
+                    mensaje = mensaje.replaceAll(/icon_manito/g, '👉')
+                    mensaje = mensaje.replaceAll(/icon_explosion/g, '💥')
+                    mensaje = mensaje.replaceAll(/icon_libros/g, '📚')
+                    mensaje = mensaje.replaceAll(/nombre_responsable_inscripcion/g, '<?php echo $nombre_responsable_inscripcion ?>')
                     mensaje = mensaje.replaceAll('tel_responsable_inscripcion', '<?php echo $tel_responsable_inscripcion ?>')   
+                    mensaje = mensaje.replaceAll('nombre_del_solicitante', '<?php echo $nombre_del_solicitante ?>')   
+                    mensaje = mensaje.replaceAll('celular_del_solicitante', '<?php echo $celular_del_solicitante ?>')   
 
                     this.email_mensaje_extra = mensaje
                   }
@@ -3021,7 +3301,7 @@ $url_envio_de_motivacion_3 = '';
                     // total recordatorio                    
                     if (situacion == 'recordatorio') {
                       for (i = 0; i < this.estados.length; i++) { 
-                        if (this.estados[i].envio_recordatorio) {
+                        if (this.estados[i].envio_recordatorio || this.estados[i].envio_recordatorio_proxima_clase_a_no_asistente) {
                           cant = cant + 1
                         }
                       }
@@ -3130,20 +3410,36 @@ $url_envio_de_motivacion_3 = '';
                   return cant
                 },
 
-                url_mensa_extra: function (celular, nombre, apellido, codigo_del_alumno) {
-                  mensaje = encodeURI(this.mensaje_extra)
+                mensa_extra: function (encode, celular, nombre, apellido, codigo_del_alumno) {
+                  mensaje = encode ? encodeURI(this.mensaje_extra) : this.mensaje_extra
+
                   mensaje = mensaje.replaceAll('inscrito_nombre', nombre.trim())
                   mensaje = mensaje.replaceAll('inscrito_apellido', apellido.trim())
                   mensaje = mensaje.replaceAll('codigo_del_alumno', codigo_del_alumno)
+                  mensaje = mensaje.replaceAll('nombre_de_la_institucion', '<?php echo $nombre_de_la_institucion ?>')
+                  mensaje = mensaje.replaceAll('txt_tipo_de_evento', '<?php echo $descripcion_sin_estado ?>')
+                  mensaje = mensaje.replaceAll('url_form_inscripcion', '<?php echo $url_form_inscripcion ?>')
+                  mensaje = mensaje.replaceAll(/icon_4diamantes/g, '💠')
+                  mensaje = mensaje.replaceAll(/icon_check/g, '✅')
+                  mensaje = mensaje.replaceAll(/icon_manito/g, '👉')
+                  mensaje = mensaje.replaceAll(/icon_explosion/g, '💥')
+                  mensaje = mensaje.replaceAll(/icon_libros/g, '📚')
+                  mensaje = mensaje.replaceAll(/nombre_responsable_inscripcion/g, '<?php echo $nombre_responsable_inscripcion ?>')
+                  mensaje = mensaje.replaceAll('tel_responsable_inscripcion', '<?php echo $tel_responsable_inscripcion ?>')   
+                  mensaje = mensaje.replaceAll('nombre_del_solicitante', '<?php echo $nombre_del_solicitante ?>')   
+                  mensaje = mensaje.replaceAll('celular_del_solicitante', '<?php echo $celular_del_solicitante ?>')   
+
+                  return mensaje
+                },
+
+                url_mensa_extra: function (celular, nombre, apellido, codigo_del_alumno) {
+                  mensaje = this.mensa_extra(true, celular, nombre, apellido, codigo_del_alumno)
                   url_mensa_extra = 'https://api.whatsapp.com/send?phone='+celular+'&text='+mensaje;
                   return url_mensa_extra
                 },
 
                 url_sms_mensa_extra: function (celular, nombre, apellido, codigo_del_alumno) {
-                  mensaje = encodeURI(this.mensaje_extra)
-                  mensaje = mensaje.replaceAll('inscrito_nombre', nombre.trim())
-                  mensaje = mensaje.replaceAll('inscrito_apellido', apellido.trim())
-                  mensaje = mensaje.replaceAll('codigo_del_alumno', codigo_del_alumno)
+                  mensaje = this.mensa_extra(false, celular, nombre, apellido, codigo_del_alumno)
                   url_mensa_extra = 'sms:'+celular+'?body='+mensaje;
                   return url_mensa_extra
                 },
@@ -3228,7 +3524,7 @@ $url_envio_de_motivacion_3 = '';
                   j = 0
                   for (i = cant_listas; i >= 1; i--) { 
                     j++
-                    this.listas_de_contactos.push({titulo: 'Grupo '+i, url: '<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/pagina/'+j+'/1/'+this.cant_x_pagina+'/<?php echo $Solicitud->hash; ?>'})
+                    this.listas_de_contactos.push({titulo: 'Grupo '+i, url: '<?php echo $dominio_publico ?>f/contactDown/<?php echo $Solicitud->id; ?>/pagina/'+j+'/1/'+this.cant_x_pagina+'/<?php echo $hash_nuevo; ?>'})
                     }
                 },
                 
@@ -3497,7 +3793,7 @@ $url_envio_de_motivacion_3 = '';
       <?php 
       $gen_seteo = array(
         'gen_url_siguiente' => 'back', 
-        'no_mostrar_campos_abm' => 'solicitud_id|sino_notificar_proximos_eventos|sino_acepto_politica_de_privacidad|sino_envio_pedido_de_confirmacion|sino_confirmo|sino_envio_recordatorio_pedido_de_confirmacion|sino_envio_voucher|sino_envio_motivacion|sino_envio_recordatorio|sino_asistio|fecha_de_evento_id|sino_envio_recordatorio_proxima_clase|sino_envio_recordatorio_proxima_clase_a_no_asistente|sino_cancelo|sino_contesto_consulta|sino_invitado_al_curso_online|campania_id|sino_es_organico|sino_form_corto|cp_form_id|cp_campaign_name|cp_ad_set_name|cp_ad_name|sino_es_lead|pais_iso|sino_envio_1|sino_envio_2|sino_envio_3|sino_envio_4|sino_envio_5|sino_envio_6|sino_envio_7|sino_envio_8|sino_envio_9|sino_envio_10|sino_envio_certificado|causa_de_baja_id|ultima_leccion_vista|canal_de_recepcion_del_curso_id|apellido2|nombre2|grupo'
+        'no_mostrar_campos_abm' => 'solicitud_id|sino_notificar_proximos_eventos|sino_acepto_politica_de_privacidad|sino_envio_pedido_de_confirmacion|sino_confirmo|sino_envio_recordatorio_pedido_de_confirmacion|sino_envio_voucher|sino_envio_motivacion|sino_envio_recordatorio|sino_asistio|fecha_de_evento_id|sino_envio_recordatorio_proxima_clase|sino_envio_recordatorio_proxima_clase_a_no_asistente|sino_cancelo|sino_contesto_consulta|sino_invitado_al_curso_online|campania_id|sino_es_organico|sino_form_corto|cp_form_id|cp_campaign_name|cp_ad_set_name|cp_ad_name|sino_es_lead|pais_iso|sino_envio_1|sino_envio_2|sino_envio_3|sino_envio_4|sino_envio_5|sino_envio_6|sino_envio_7|sino_envio_8|sino_envio_9|sino_envio_10|sino_envio_certificado|causa_de_baja_id|ultima_leccion_vista|canal_de_recepcion_del_curso_id|apellido2|nombre2|grupo|sino_promocionado_a_contenidos_avanzados|sino_envio_pedido_de_confirmacion_a_contenidos_avanzados|sino_confirmo_a_contenidos_avanzados'
           );
       ?>   
            
@@ -3574,7 +3870,19 @@ $url_envio_de_motivacion_3 = '';
                   </div>
                   <!-- /.box-header -->
                   <div class="box-body" style="display: none;">
-                    <?php foreach ($Modelos_grupo as $Modelo) { ?>
+                    <?php 
+                      $i=0;
+                      foreach ($Modelos_grupo as $Modelo) { 
+                        $i++;
+                      ?>
+
+                      <!-- BTN COPIAR TEXTO -->
+                      <textarea id="textarea_modelo_grupo_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $Modelo['texto_modelo'] ?></textarea>
+                      <button onclick="copiarTextoJS('modelo_grupo', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                        Copiar Mensaje
+                        <i class="fa fa-copy"></i>
+                      </button>
+
                       <a class="btn btn-block btn-success btn-social" href="<?php echo $Modelo['url_texto_modelo'] ?>" target="_blank">
                         <i class="fa fa-whatsapp"></i> <?php echo $Modelo['titulo_del_mensaje'] ?>
                       </a>
@@ -3601,9 +3909,22 @@ $url_envio_de_motivacion_3 = '';
                   </div>
                   <!-- /.box-header -->
                   <div class="box-body" style="display: none;">
-                    <?php foreach ($texto_lecciones_de_curso as $texto_leccion) { ?>
-                      <a class="btn btn-block btn-success btn-social" href="<?php echo $texto_leccion['url_whatsapp_texto'] ?>" target="_blank">
-                        <i class="fa fa-whatsapp"></i> <?php echo $texto_leccion['nombre_de_la_leccion'] ?> <strong style="float: right"><?php echo __('Enviar') ?>: 
+                    <?php 
+                      $i=0;
+                      foreach ($texto_lecciones_de_curso as $texto_leccion) { 
+                        $i++;
+                      ?>
+
+                      <!-- BTN COPIAR TEXTO -->
+                      <textarea id="textarea_leccion_<?php echo $i ?>" style="position: absolute; left: -9999px;"><?php echo $texto_leccion['texto_de_mensaje'] ?></textarea>
+                      
+                      <button onclick="copiarTextoJS('leccion', <?php echo $i ?>)" class="btn btn-blanco text-black" alt="Copiar Texto del Mensaje" title="Copiar Texto del Mensaje">
+                        <i class="fa fa-copy"></i>
+                        Copiar Mensaje <?php echo $texto_leccion['nombre_de_la_leccion'] ?>
+                      </button>
+
+                      <a class="btn btn-block btn-success btn-social" href="<?php echo $texto_leccion['url_whatsapp_texto'] ?>" target="_blank" style="margin-bottom: 20px;">
+                        <i class="fa fa-whatsapp"></i> <?php echo $texto_leccion['nombre_de_la_leccion'] ?> <strong style="float: right;"><?php echo __('Enviar') ?>: 
                           <?php
                           $fecha_de_envio_de_leccion = $gCont->FormatoFecha($texto_leccion['fecha_de_envio']); 
                           if ($fecha_de_envio_de_leccion == '04/05/2020' and $Solicitud->tipo_de_curso_online_id == 5 and $texto_leccion['nombre_de_la_leccion'] == 'Introducción al Curso de Auto-Conocimiento') {
@@ -3634,5 +3955,17 @@ $url_envio_de_motivacion_3 = '';
         <!-- /.modal-dialog -->
       </div>
     <!-- MODAL FLYERS -->
+
+    <script type="text/javascript">
+        function copiarTextoJS(boton, i) {
+          const textarea = $("#textarea_" + boton +"_"+ i);
+          //textarea.value = texto;
+          textarea.select();
+          document.execCommand("copy");
+          let copiado = true;
+          setTimeout(() => (copiado = false), 1500);
+        }
+
+      </script>
     </body>
 </html>

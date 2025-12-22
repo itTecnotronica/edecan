@@ -82,7 +82,7 @@ App::setLocale($idioma);
     /></noscript-->
     <!-- End Facebook Pixel Code -->
 
-    <script>
+    <!--script>
       <?php if (isset($registracion_encuesta) and $registracion_encuesta == 'SI') {?>
         fbq('trackCustom', 'PollComplete');
       <?php }
@@ -92,15 +92,19 @@ App::setLocale($idioma);
           currency: 'USD'
           });
       <?php } ?>
-    </script>
+    </script-->
 
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook);
     }
+
+    if (isset($Solicitud->localidad->urlencode_pixel_de_facebook)) {
+      echo urldecode($Solicitud->localidad->urlencode_pixel_de_facebook);
+    }
     ?>
 
-    <script>
+    <!--script>
       <?php if (isset($registracion_encuesta) and $registracion_encuesta == 'SI') {?>
         fbq('trackCustom', 'PollComplete');
       <?php }
@@ -110,7 +114,7 @@ App::setLocale($idioma);
           currency: 'USD'
           });
       <?php } ?>
-    </script>
+    </script-->
 
 </head>
 
@@ -253,9 +257,7 @@ App::setLocale($idioma);
                       <?php } ?>
 
                     <?php } ?>
-
-
-
+                    <input type="hidden" id="inscripcion_id" value="<?php echo $inscripcion_id ?>" name="inscripcion_id">
 
 
               </div>
@@ -279,9 +281,9 @@ App::setLocale($idioma);
     <!-- Bootstrap 3.3.7 -->
     <script src="<?php echo $dominio_publico?>bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
-    <?php if (strlen($Solicitud->url_redireccionar_automaticamente_al_enlace) > 5) { ?>
+    <?php if (strlen($url_redireccionar_automaticamente_al_enlace) > 5) { ?>
       <script type="text/javascript">
-        setTimeout("location.href='<?php echo $url_redireccionar_automaticamente_al_enlace ?>'",5000)
+        setTimeout("location.href='<?php echo str_replace("'", "", $url_redireccionar_automaticamente_al_enlace) ?>'",5000)
       </script>
     <?php } ?>
 

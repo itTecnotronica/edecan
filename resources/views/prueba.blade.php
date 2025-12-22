@@ -42,12 +42,20 @@ foreach ($Campaign_leads as $lead) {
 
 
 $MauticController = new MauticController();
-$solicitud_id = 16275;
-$newCamnpaignId = $MauticController->programarCampaniaMautic($solicitud_id);
+$Solicitudes = [30313];
+
+foreach ($Solicitudes as $solicitud_id) {	
+	//CON ESTO EJECUTO LA PROGRAMACION DE LA CAMPAÑA DE EMAIL SIN CARGARLA EN LA COLA
+	$MauticController->programarCampaniaMautic($solicitud_id);
+
+	//CON ESTO SUMO LA SOLICITUD A LA COLA PARA QUE SE EJECUTE
+    //dispatch(new ColaProgramarCampaniaMautic($solicitud_id));
+
+}
 
 
 /*
-$Solicitudes = [13502];
+$Solicitudes = [18653, 18180, 18717, 18723, 18726, 18728, 18728, 18731, 18731, 18732, 18733, 18733, 18734, 18734, 18736, 18738, 18738, 18737, 18742, 18743, 18744, 18745, 18746, 18747, 18748, 18739, 18739, 18740, 18719, 18719, 18764, 18755, 18754, 18778, 18778, 18779, 18779, 18780, 18780, 18781, 18776];
 
 foreach ($Solicitudes as $solicitud_id) {	
 	dispatch(new ColaProgramarCampaniaMautic($solicitud_id));

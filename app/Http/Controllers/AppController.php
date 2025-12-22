@@ -1050,8 +1050,7 @@ class AppController extends Controller
                                 lum.city Ciudad,
                                 pro.description Provincia,
                                 mb.img_imagen,
-                                car.img_comprobante,
-                                mb.id id_federacion  ')) 
+                                car.img_comprobante  ')) 
             ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id')  
             ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.registration')  
             ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'mb.lumisialUuid') 
@@ -1531,15 +1530,12 @@ class AppController extends Controller
                                 mbr.responsable,
                                 lum.name as Lumisial,
                                 dio.name as Zona,
-                                mbr.firma,
-                                mbr.cargoPrincipal,
-                                mbr.sino_esEditor ')) 
+                                mbr.firma ')) 
             ->join('app_miembros_lumisial AS lum', 'lum.uuid', '=', 'mbr.lumisialUuid')  
              ->join('app_miembros_diocesis as dio', function($join) {
                 $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
             })
             ->where('mbr.documentNumber', $documento )    
-            ->where('mbr.sino_isActive','SI' )    
             ->get(); 
             $resultado = json_encode($Miembros);
         }
@@ -2171,21 +2167,18 @@ class AppController extends Controller
                 $whereRaw = "(mie.sino_isMissionary = 'SI' or mie.sino_isMissionaryInternational='SI')"; 
                 if ($busqueda != '-') {
                     $whereRaw =  $whereRaw . " AND (mie.documentNumber like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
-                } else {
-                        $whereRaw =  " 1=1"; 
-                    }
-            }             
-            if ($tipoMiembro == 'A'){ 
+                }
+            } else {
+                if ($tipoMiembro == 'A'){ 
                     if ($busqueda != '-') {
-                        $whereRaw =  " (mie.documentNumber like '%$busqueda%' OR mie.registration like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
+                        $whereRaw =  " (mie.documentNumber like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
                     }
                     else {
                         $whereRaw =  " 1=1"; 
                     }
-            }  
-            if ($tipoMiembro == 'L'){ 
-                    $whereRaw = "(lumi.uuid = '$busqueda')";  
-            }  
+                }  
+            }
+            
             if ($token == 'gapp') {           
                         $Miembros = DB::table('app_miembros AS mie')    
                         ->select(DB::Raw('  mie.id, 
@@ -2202,13 +2195,11 @@ class AppController extends Controller
                                            lumi.uuid idLumisial,
                                            mie.phoneNumber,
                                            mie.img_imagen,
-                                           mie.sino_esEditor,
-                                           mie.sino_isBishop  '))   
+                                           mie.sino_esEditor  '))   
                         ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
                         ->whereRaw($whereRaw)  
                         ->orderBy('mie.name', 'asc')
-                        ->limit(200)
                         ->get(); 
                         $resultado = json_encode($Miembros);            
             }
@@ -2669,12 +2660,6 @@ class AppController extends Controller
                     if ($campo == 'activo') {   
                         $temporal->sino_isActive = 'SI'; 
                     }
-                     if ($campo == 'nombre') {   
-                        $temporal->name = $valor; 
-                    }
-                     if ($campo == 'nroDocumento') {   
-                        $temporal->documentNumber = $valor; 
-                    }
                     $temporal->updated_at = $now; 
                     $temporal->save(); 
                     //
@@ -3053,7 +3038,7 @@ class AppController extends Controller
         }
     }
     //Pase y salvo
-     public function addPaseYSalvo($miembro_pase, $nombre_pase,  $id_lumisial_origen, $id_lumisial_destino, $miembro_id, $duracion,$motivo,$participacion,$token )
+     public function addPaseYSalvo($miembro_pase, $nombre_pase, $es_ungid, $es_misionero, $id_lumisial_origen, $id_lumisial_destino, $miembro_id, $token )
     { 
         $now = new \DateTime();
         if ($token == 'gapp') {  
@@ -3063,9 +3048,8 @@ class AppController extends Controller
                     $temporal->fecha = $now;
                     $temporal->miembro_pase = $miembro_pase;
                     $temporal->nombre_pase = $nombre_pase;
-                    $temporal->duracion = $duracion;
-                    $temporal->motivo = $motivo;
-                    $temporal->participacion = $participacion; 
+                    $temporal->es_ungid = $es_ungid;
+                    $temporal->es_misionero = $es_misionero;
                     $temporal->id_lumisial_origen = $id_lumisial_origen;
                     $temporal->id_lumisial_destino = $id_lumisial_destino;
                     $temporal->miembro_id = $miembro_id;
@@ -3090,32 +3074,16 @@ public function getPaseYSalvo(  $miembro_id , $token) {
                         $contable = DB::table('app_miembros_pases AS pas')    
                         ->select(DB::Raw('  pas.id, 
                                             pas.fecha, 
-                                            pas.miembro_pase,
-                                            mie.documentNumber PaseNroDocumento, 
-                                            pas.nombre_pase PaseNombre, 
-                                            pas.duracion PaseDuracion, 
-                                            pas.motivo PaseMotivo, 
-                                            pas.participacion PaseParticipacion,
+                                            pas.miembro_pase, 
+                                            pas.nombre_pase, 
+                                            pas.es_ungido, 
+                                            pas.es_misionero, 
                                             pas.id_lumisial_origen, 
-                                            pas.id_lumisial_destino,
-                                             ori.`name` PaseLumisialOrigenNombre, 
-                                            ori.city PaseLumisialOrigenCiudad,
-                                            oripro.`name` PaseLumisialOrigenProvincia,
-                                            des.`name` PaseLumisialDestinoNombre,
-                                            des.city PaseLumisialDestinoCiudad,
-                                            despro.`name` PaseLumisialDestinoProvincia, 
-                                            pas.miembro_id,
-                                            mie2.documentNumber NroDocumento,  
+                                            pas.id_lumisial_destino, 
+                                            pas.miembro_id, 
                                             pas.updated_at, 
-                                            pas.created_at   ')) 
-                        ->leftjoin('app_miembros_lumisial as ori', 'ori.uuid', '=', 'pas.id_lumisial_origen')
-                        ->leftjoin('app_miembros_lumisial as des', 'des.uuid', '=', 'pas.id_lumisial_destino')
-                        ->leftjoin('app_miembros_provincia as oripro', 'oripro.uuid', '=', 'ori.stateUuid') 
-                        ->leftjoin('app_miembros_provincia as despro', 'despro.uuid', '=', 'des.stateUuid') 
-                        ->leftjoin('app_miembros as mie', 'mie.registration', '=', 'pas.miembro_pase') 
-                        ->leftjoin('app_miembros as mie2', 'mie2.registration', '=', 'pas.miembro_id') 
-                        ->where('pas.miembro_id', $miembro_id )
-                        ->orWhere('pas.miembro_pase', $miembro_id)   
+                                            pas.created_at   '))  
+                        ->where('pas.miembro_id', $miembro_id )    
                         ->get(); 
                         $resultado = json_encode($contable);            
             }

@@ -63,7 +63,9 @@ App::setLocale($idioma);
 
                     <br><?php echo __('Nombre'); ?>: <?php echo $Inscripcion->nombre; ?> 
                     <br><?php echo __('Apellido'); ?>: <?php echo $Inscripcion->apellido; ?> 
-                    <br><?php echo __('Horario'); ?>: <?php echo $Inscripcion->fecha_de_evento->armarDetalleFechasDeEventos(); ?><br><br>
+                    <?php if ($Inscripcion->fecha_de_evento_id > 0) { ?>
+                        <br><?php echo __('Horario'); ?>: <?php echo $Inscripcion->fecha_de_evento->armarDetalleFechasDeEventos(); ?><br><br>
+                    <?php } ?>
                               
                 <div class="alert alert-success alert-dismissible">
                   <h4><i class="icon fa fa-check"></i> <?php echo __('Felicitaciones'); ?>!</h4>

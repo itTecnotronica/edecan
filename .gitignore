@@ -2,6 +2,7 @@
 /public/hot
 /public/storage
 /public/AdminLTE-2.4.4
+/storage/debugbar
 /storage/*.key
 /storage/geo/*.zip
 /storage/logs/*.*
@@ -13,13 +14,13 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 /bkp_db
-.env-web
-.env
+.env*
+_composer.json
 local-ok.env
-.env-web-debug
 *.txt
 phpinfo.php
 /Fuentes
 /.env
 /temp-y-txt
 /Fuentes
+/bd

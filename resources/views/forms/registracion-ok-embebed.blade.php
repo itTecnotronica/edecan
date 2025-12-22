@@ -57,7 +57,7 @@ App::setLocale($idioma);
 
 
     <!-- Facebook Pixel Code -->
-    <script>
+    <!--script>
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -72,10 +72,10 @@ App::setLocale($idioma);
 
     <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=<?php echo env('PIXEL_AC_MUNDIAL')?>&ev=PageView&noscript=1"
-    /></noscript>
+    /></noscript-->
     <!-- End Facebook Pixel Code -->
 
-    <script>
+    <!--script>
       <?php if (isset($registracion_encuesta) and $registracion_encuesta == 'SI') {?>
         fbq('trackCustom', 'PollComplete');
       <?php }
@@ -85,15 +85,19 @@ App::setLocale($idioma);
           currency: 'USD'
           });
       <?php } ?>
-    </script>
+    </script-->
 
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook);
     }
+
+    if (isset($Solicitud->localidad->urlencode_pixel_de_facebook)) {
+      echo urldecode($Solicitud->localidad->urlencode_pixel_de_facebook);
+    }
     ?>
 
-    <script>
+    <!--script>
       <?php if (isset($registracion_encuesta) and $registracion_encuesta == 'SI') {?>
         fbq('trackCustom', 'PollComplete');
       <?php }
@@ -103,7 +107,7 @@ App::setLocale($idioma);
           currency: 'USD'
           });
       <?php } ?>
-    </script>
+    </script-->
 
 </head>
 

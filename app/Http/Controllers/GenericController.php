@@ -1113,6 +1113,7 @@ class GenericController extends Controller
         $gen_opcion = $_POST['gen_opcion'];
         $acciones_extra = '';
         $filtro_user = '';
+        $filtro_where = '';
 
         $gen_seteo = unserialize(stripslashes($_POST['gen_seteo']));
 
@@ -1153,6 +1154,11 @@ class GenericController extends Controller
                 if ($seteo[0] == 'filtro_user') {
                     $filtro_user = $seteo[1];
                 }
+
+                if ($seteo[0] == 'filtro_where') {
+                    $filtro_where = $seteo[1];
+                }
+
             }
 
         }    
@@ -1216,6 +1222,16 @@ class GenericController extends Controller
             }
             
             $gen_filas = $gen_filas->where($filtro_user, Auth::user()->$filtro_campo_tb_user);
+        }
+
+
+
+        if ($filtro_where <> '') {
+            $valor_filtro_where = explode(',', $filtro_where);     
+            if ($valor_filtro_where[1] == ':') {
+                $valor_filtro_where[1] = '=';
+            }   
+            $gen_filas = $gen_filas->where($valor_filtro_where[0], $valor_filtro_where[1], $valor_filtro_where[2]);
         }
 
 

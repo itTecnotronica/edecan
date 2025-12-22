@@ -82,6 +82,20 @@ return [
             'engine' => null,
         ],
 
+        'gnosis-ar-wp' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_GNOSIS_ARG_WP'),
+            'port' => env('DB_PORT_GNOSIS_ARG_WP'),
+            'database' => env('DB_DATABASE_GNOSIS_ARG_WP'),
+            'username' => env('DB_USERNAME_GNOSIS_ARG_WP'),
+            'password' => env('DB_PASSWORD_GNOSIS_ARG_WP'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mysql-schemata' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST', '127.0.0.1'),

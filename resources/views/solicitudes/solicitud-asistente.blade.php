@@ -545,7 +545,7 @@ $.ajax({
                 id: "sino_solicitar_responsable_de_inscripcion_switch",  
                 inputName: "sino_solicitar_responsable_de_inscripcion_switch",          
                 textOn: "SI", textOff: "NO", valueOn: true, valueOff: false
-              }
+              },
             ]
           },
 
@@ -1123,6 +1123,31 @@ $.ajax({
                 },
               <?php } ?>             
               {
+                type: "switch", 
+                model: "sino_es_campania_organica",     
+                label: "<?php echo __('Es una campaña orgánica') ?>",   
+                id: "sino_es_campania_organica_switch",  
+                inputName: "sino_es_campania_organica_switch",          
+                textOn: "SI", textOff: "NO", valueOn: "SI", valueOff: "NO"
+              },
+              {
+                type: "switch", 
+                model: "sino_la_campania_paga_la_haremos_localmente",     
+                label: "<?php echo __('La campaña paga la haremos localmente (no solicitar al equipo de campaña la publicidad)') ?>",   
+                id: "sino_la_campania_paga_la_haremos_localmente_switch",  
+                inputName: "sino_la_campania_paga_la_haremos_localmente_switch",          
+                textOn: "SI", textOff: "NO", valueOn: "SI", valueOff: "NO",
+                visible(model) {
+                      if (model.sino_es_campania_organica == 'NO' || !model.sino_es_campania_organica) {
+                          mostrar = true
+                      }
+                      else {
+                          mostrar = false
+                      }
+                      return mostrar
+                  }
+              },
+              {
                 type: "selectEx",
                 label: "<?php echo __('Moneda del monto a invertir') ?>",
                 model: "moneda_id",
@@ -1145,6 +1170,37 @@ $.ajax({
                     ] 
                 },
                 validator: VueFormGenerator.validators.required,
+                visible(model) {
+                      if (model.sino_es_campania_organica == 'NO' || !model.sino_es_campania_organica) {
+                          mostrar = true
+                      }
+                      else {
+                          mostrar = false
+                      }
+                      return mostrar
+                  }
+                },
+
+              {
+                type: "input",       
+                inputType: "number",     
+                model: "monto_a_invertir",    
+                label: "<?php echo __('Monto a Invertir') ?>",    
+                required: true,    
+                inputName: "monto_a_invertir",
+                id: "monto_a_invertir",
+                step: 1,
+                min: 1,
+                validator: VueFormGenerator.validators.required,
+                visible(model) {
+                      if (model.sino_es_campania_organica == 'NO' || !model.sino_es_campania_organica) {
+                          mostrar = true
+                      }
+                      else {
+                          mostrar = false
+                      }
+                      return mostrar
+                  }
               },
 
               {
@@ -1184,8 +1240,8 @@ $.ajax({
                     },
                     success: function success(data, status) {     
                       var monto_a_invertir_sugerido = Number(data)
-                      $( "#monto_a_invertir" ).before( '<p style="color: blue">Monto a Invertir Sugerido: $'+monto_a_invertir_sugerido+"</p>" )
-                      model.monto_a_invertir = monto_a_invertir_sugerido;
+                      //$( "#monto_a_invertir" ).before( '<p style="color: blue">Monto a Invertir Sugerido: $'+monto_a_invertir_sugerido+"</p>" )
+                      //model.monto_a_invertir = monto_a_invertir_sugerido;
                     },
                     error: function error(xhr, textStatus, errorThrown) {
                         alert(errorThrown);
@@ -1195,19 +1251,6 @@ $.ajax({
 
                 },
               },
-
-            {
-              type: "input",       
-              inputType: "number",     
-              model: "monto_a_invertir",    
-              label: "<?php echo __('Monto a Invertir') ?>",    
-              required: true,    
-              inputName: "monto_a_invertir",
-              id: "monto_a_invertir",
-              step: 1,
-              min: 1,
-              validator: VueFormGenerator.validators.required
-            },
 
 
               {

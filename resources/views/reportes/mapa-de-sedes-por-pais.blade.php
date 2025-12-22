@@ -33,7 +33,7 @@ $gCont = new GenericController();
             options);
 
         var iconBase =
-            "<?php echo env('PATH_PUBLIC')?>img/";
+            "<?php echo env('PATH_PUBLIC_MAPS')?>img/";
 
         var icons = {
           marker: {

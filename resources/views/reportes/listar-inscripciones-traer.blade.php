@@ -45,18 +45,19 @@ $gCont = new GenericController;
                 <tbody>                  
                   <?php foreach ($Inscripciones as $Inscripcion) { ?>
                     <tr>
-                      <td><a href="<?php echo env('PATH_PUBLIC')?>f/iinscripto/<?php echo $Inscripcion->solicitud_id ?>/<?php echo $Inscripcion->id ?>/<?php echo $Inscripcion->hash ?>" target="_blank"><button type="button" class="btn btn-sm btn-primary"><i class="fa fa-file-text-o"></i></button></td>
+                      <td><a href="<?php echo env('PATH_PUBLIC')?>f/iinscripto/<?php echo $Inscripcion->solicitud_id ?>/<?php echo $Inscripcion->id ?>/<?php echo $Inscripcion->hash_inscripto ?>" target="_blank"><button type="button" class="btn btn-sm btn-primary"><i class="fa fa-file-text-o"></i></button></td>
+                      <td><?php echo $Inscripcion->id ?></td>
                       <td><?php echo $Inscripcion->codigo_alumno ?></td>
                       <td><?php echo $Inscripcion->solicitud_id ?></td>
                       <td><?php echo $Inscripcion->solicitud_original ?></td>
-                      <td>
+                      <!--td>
                         <?php echo $Inscripcion->solicitud_original ?>
                         <?php 
                         if ($Inscripcion->causa_de_cambio_de_solicitud <> '') {
                           echo '('.$Inscripcion->causa_de_cambio_de_solicitud.')';
                         }
                         ?>
-                      </td>
+                      </td-->
                       <td><?php echo $Inscripcion->nombre ?></td>
                       <td><?php echo $Inscripcion->apellido ?></td>
                       <td><?php echo $Inscripcion->celular ?></td>
