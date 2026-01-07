@@ -3051,40 +3051,51 @@ class AppController extends Controller
                 'message' => 'Error al obtener las preguntas: ' . $e->getMessage(),
             ], 500);
         }
-    }
-    //Pase y salvo
-     public function addPaseYSalvo($miembro_pase, $nombre_pase,  $id_lumisial_origen, $id_lumisial_destino, $miembro_id, $duracion,$motivo,$participacion,$token )
+    } 
+    // Pase y salvo 
+    public function addPaseYSalvo(Request $request, $token)
     { 
         $now = new \DateTime();
+        
         if ($token == 'gapp') {  
             try {  
-            
-                    $temporal = New Miembros_pases;
-                    $temporal->fecha = $now;
-                    $temporal->miembro_pase = $miembro_pase;
-                    $temporal->nombre_pase = $nombre_pase;
-                    $temporal->duracion = $duracion;
-                    $temporal->motivo = $motivo;
-                    $temporal->participacion = $participacion; 
-                    $temporal->id_lumisial_origen = $id_lumisial_origen;
-                    $temporal->id_lumisial_destino = $id_lumisial_destino;
-                    $temporal->miembro_id = $miembro_id;
-                    $temporal->created_at = $now;  
-                    //
-                    $temporal->save(); 
-                    //
-                    $mensaje_salida = json_encode('Nuevo pase registrado para' . $miembro_pase); 
-            } 
-            catch(\Illuminate\Database\QueryException $ex){  
-            $mensaje_salida = $ex->getMessage();
+                $temporal = new Miembros_pases;
+                $temporal->fecha = $now; 
+
+                // Asignación desde el POST
+                $temporal->miembro_pase        = $request->input('miembro_pase');
+                $temporal->nombre_pase         = $request->input('pasesNombres');
+                $temporal->duracion            = $request->input('paseDias');
+                $temporal->motivo              = $request->input('paseMotivo');
+                $temporal->participacion       = $request->input('paseParticipacion');  
+                $temporal->miembro_id          = $request->input('paseMiembroId'); 
+                $temporal->gender              = $request->input('paseEsGender'); // Corregido para no sobrescribir miembro_id
+
+                // Campos de Ubicación
+                $temporal->tipo_lugar_destino      = $request->input('tipoLugarDestino');
+                $temporal->lumisial_nombre_origen  = $request->input('lumisialNombreOrigen');
+                $temporal->lumisial_ciudad_origen  = $request->input('lumisialCiudadOrigen');
+                $temporal->lumisial_provincia_origen = $request->input('lumisialProvinciaOrigen');
+                $temporal->lumisial_nombre_destino = $request->input('lumisialNombreDestino');
+                $temporal->lumisial_ciudad_destino = $request->input('lumisialCiudadDestino');
+                $temporal->lumisial_provincia_destino = $request->input('lumisialProvinciaDestino');
+
+                $temporal->created_at = $now;  
+                
+                $temporal->save(); 
+
+                $mensaje_salida = "Nuevo pase registrado para " . $temporal->miembro_pase;
+                return response()->json($mensaje_salida, 201);
+
+            } catch(\Illuminate\Database\QueryException $ex){  
+                return response()->json(['error' => $ex->getMessage()], 500);
             }
-        }
-        else {
-            $mensaje_salida = 'ERROR';
+        } else {
+            return response()->json(['error' => 'Token inválido'], 401);
         }        
-        return response($mensaje_salida,200);
     }
-public function getPaseYSalvo(  $miembro_id , $token) {
+
+    public function getPaseYSalvo(  $miembro_id , $token) {
         try {               
             if ($token == 'gapp') {           
                         $contable = DB::table('app_miembros_pases AS pas')    

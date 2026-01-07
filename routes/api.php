@@ -150,7 +150,7 @@ Route::get('GAPP/ENCUESTAS/{id}/dni', 'AppController@getResultadosDni');
 // My Gnosis
 Route::post('MG/asistencia/notificar', 'ExtController@registrarAsistencia');
 //Pase y salvo --  
-Route::get('GAPP/ADDPASEYSALVO/{miembro_pase}/{nombre_pase}/{id_lumisial_origen}/{id_lumisial_destino}/{miembro_id}/{dias}/{motivo}/{participacion}/{token}', 'AppController@addPaseYSalvo');
+Route::post('GAPP/ADDPASEYSALVO/{token}', 'AppController@addPaseYSalvo');
 Route::get('GAPP/GETPASEYSALVO/{id}/{token}', 'AppController@getPaseYSalvo');
 Route::get('GAPP/DELETEPASEYSALVO/{id}/{token}', 'AppController@deletePaseYSalvo');
 
