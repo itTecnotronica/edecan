@@ -3064,7 +3064,7 @@ class AppController extends Controller
 
                 // Asignación desde el POST
                 $temporal->miembro_pase        = $request->input('miembro_pase');
-                $temporal->nombre_pase         = $request->input('pasesNombres');
+                $temporal->nombre_pase         = $request->input('pasesNombresConcatenados');
                 $temporal->duracion            = $request->input('paseDias');
                 $temporal->motivo              = $request->input('paseMotivo');
                 $temporal->participacion       = $request->input('paseParticipacion');  
@@ -3101,30 +3101,22 @@ class AppController extends Controller
                         $contable = DB::table('app_miembros_pases AS pas')    
                         ->select(DB::Raw('  pas.id, 
                                             pas.fecha, 
-                                            pas.miembro_pase,
-                                            mie.documentNumber PaseNroDocumento, 
+                                            pas.miembro_pase, 
                                             pas.nombre_pase PaseNombre, 
                                             pas.duracion PaseDuracion, 
                                             pas.motivo PaseMotivo, 
-                                            pas.participacion PaseParticipacion,
-                                            pas.id_lumisial_origen, 
-                                            pas.id_lumisial_destino,
-                                             ori.`name` PaseLumisialOrigenNombre, 
-                                            ori.city PaseLumisialOrigenCiudad,
-                                            oripro.`name` PaseLumisialOrigenProvincia,
-                                            des.`name` PaseLumisialDestinoNombre,
-                                            des.city PaseLumisialDestinoCiudad,
-                                            despro.`name` PaseLumisialDestinoProvincia, 
-                                            pas.miembro_id,
-                                            mie2.documentNumber NroDocumento,  
+                                            pas.participacion PaseParticipacion, 
+                                            pas.miembro_id, 
                                             pas.updated_at, 
-                                            pas.created_at   ')) 
-                        ->leftjoin('app_miembros_lumisial as ori', 'ori.uuid', '=', 'pas.id_lumisial_origen')
-                        ->leftjoin('app_miembros_lumisial as des', 'des.uuid', '=', 'pas.id_lumisial_destino')
-                        ->leftjoin('app_miembros_provincia as oripro', 'oripro.uuid', '=', 'ori.stateUuid') 
-                        ->leftjoin('app_miembros_provincia as despro', 'despro.uuid', '=', 'des.stateUuid') 
-                        ->leftjoin('app_miembros as mie', 'mie.registration', '=', 'pas.miembro_pase') 
-                        ->leftjoin('app_miembros as mie2', 'mie2.registration', '=', 'pas.miembro_id') 
+                                            pas.created_at, 
+                                            pas.gender, 
+                                            pas.tipo_lugar_destino, 
+                                            pas.lumisial_nombre_origen lumisialNombreOrigen, 
+                                            pas.lumisial_ciudad_origen limsialCiudadOrigen, 
+                                            pas.lumisial_provincia_origen lumisialProvinciaOrigen, 
+                                            pas.lumisial_nombre_destino lumisialNombreDestino, 
+                                            pas.lumisial_ciudad_destino lumisialCiudadDestino, 
+                                            pas.lumisial_provincia_destino lumisialProvinciaDestino '))  
                         ->where('pas.miembro_id', $miembro_id )
                         ->orWhere('pas.miembro_pase', $miembro_id)   
                         ->get(); 
