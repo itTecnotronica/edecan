@@ -152,6 +152,7 @@ Route::post('MG/asistencia/notificar', 'ExtController@registrarAsistencia');
 //Pase y salvo --  
 Route::post('GAPP/ADDPASEYSALVO/{token}', 'AppController@addPaseYSalvo');
 Route::get('GAPP/GETPASEYSALVO/{id}/{token}', 'AppController@getPaseYSalvo');
+Route::get('GAPP/GETPAZYSALVOBYID/{id}/{token}', 'AppController@getPaseYSalvoById');
 Route::get('GAPP/DELETEPASEYSALVO/{id}/{token}', 'AppController@deletePaseYSalvo');
 
 //INSCRIPCIONES EDECAN

@@ -2706,7 +2706,24 @@ class AppController extends Controller
                         $lumisiales = DB::table('app_miembros as mie')    
                         ->select(DB::Raw('  mie.name  , 
                                             mie.registration  , 
-                                            mie.documentNumber     '))  
+                                            mie.documentNumber ,
+                                            mie.id,   
+                                            mie.name nombre,
+                                            mie.documentNumber documento,  
+                                            mie.email, 	 
+                                            mie.sino_isPriest ,
+                                            mie.sino_isInstructor,
+                                            mie.sino_isMissionary,
+                                            mie.sino_isActive,
+                                            pro.description Provincia,
+                                            lumi.name Lumisial,
+                                            lumi.uuid idLumisial,
+                                            mie.phoneNumber,
+                                            mie.img_imagen,
+                                            mie.sino_esEditor,
+                                            mie.sino_isBishop    '))  
+                        ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
+                        ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
                          ->whereRaw($whereRaw) 
                          ->where('mie.sino_isActive', 'SI' )   
                         ->orderBy('mie.name', 'asc')
@@ -3132,7 +3149,41 @@ class AppController extends Controller
             
         return response($resultado,200);
     }
-     public function deletePaseYSalvo($id, $token )
+
+    public function getPaseYSalvoById(  $id , $token) {
+        try {                          
+                $pase = DB::table('app_miembros_pases AS pas')    
+                ->select(DB::Raw('  pas.id, 
+                                    pas.fecha, 
+                                    pas.miembro_pase, 
+                                    pas.nombre_pase PaseNombre, 
+                                    pas.duracion PaseDuracion, 
+                                    pas.motivo PaseMotivo, 
+                                    pas.participacion PaseParticipacion, 
+                                    pas.miembro_id, 
+                                    pas.updated_at, 
+                                    pas.created_at, 
+                                    pas.gender, 
+                                    pas.tipo_lugar_destino, 
+                                    pas.lumisial_nombre_origen lumisialNombreOrigen, 
+                                    pas.lumisial_ciudad_origen limsialCiudadOrigen, 
+                                    pas.lumisial_provincia_origen lumisialProvinciaOrigen, 
+                                    pas.lumisial_nombre_destino lumisialNombreDestino, 
+                                    pas.lumisial_ciudad_destino lumisialCiudadDestino, 
+                                    pas.lumisial_provincia_destino lumisialProvinciaDestino '))  
+                ->where('pas.id', $id )   
+                ->get(); 
+                $resultado = json_encode($pase);            
+             
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+        }
+            
+        return response($resultado,200);
+    } 
+
+    public function deletePaseYSalvo($id, $token )
     {
             if ($token == 'gapp') {  
                 try { 
