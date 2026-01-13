@@ -2694,6 +2694,69 @@ class AppController extends Controller
         }        
         return response($mensaje_salida,200);
     }  
+    public function storeOrUpdateMiembro(Request $request)
+    {
+        
+        // 1. Intentar buscar el miembro si viene un ID, de lo contrario crear instancia vacía
+        if ($request->has('id') && $request->id != null) {
+            $miembro = Miembros::find($request->id);
+            if (!$miembro) {
+                return response()->json(['message' => 'Miembro no encontrado'], 404);
+            }
+        } else {
+            $miembro = new Miembros();
+        }
+        try {            
+            // 2. Asignación de campos (Mapeo manual)
+            // Datos Personales
+            $miembro->sino_isActive  = $request->isActive;
+            $miembro->name           = $request->name;
+            $miembro->documentType   = $request->documentType;
+            $miembro->documentNumber = $request->documentNumber;
+            $miembro->gender         = $request->gender;
+            $miembro->phoneNumber    = $request->phoneNumber;
+            $miembro->email          = $request->email;
+            $miembro->birth          = $request->birth;
+            $miembro->consecration   = $request->consecration;
+            $miembro->lumisialUuid   = $request->lumisialUuid;
+
+            // Instructor
+            $miembro->sino_isInstructor         = $request->isInstructor;
+            $miembro->instructorCourseYear      = $request->instructorCourseYear;
+            $miembro->instructorCoursePlace     = $request->instructorCoursePlace;
+
+            // Misionero
+            $miembro->sino_isMissionary         = $request->isMissionary;
+            $miembro->sino_isMissionActive      = $request->isMissionActive;
+            $miembro->missionaryCoursePlace     = $request->missionaryCoursePlace;
+            $miembro->missionaryCourseYear      = $request->missionaryCourseYear;
+
+            // Misionero Internacional
+            $miembro->sino_isMissionaryInternational     = $request->isMissionaryInternational;
+            $miembro->missionaryInternationalCoursePlace = $request->missionaryInternationalCoursePlace;
+            $miembro->missionaryInternationalCourseYear  = $request->missionaryInternationalCourseYear;
+
+            // Sacerdocio / Episcopado
+            $miembro->sino_isPriest             = $request->isPriest;
+            $miembro->sino_isPriestActive       = $request->isPriestActive;
+            $miembro->priestType                = $request->priestType;
+            $miembro->priestConsecration        = $request->priestConsecration;
+            $miembro->sino_isBishop             = $request->isBishop;
+            $miembro->bishopConsecration         = $request->bishopConsecration;
+
+            // 3. Guardar en la base de datos
+            $miembro->save();
+        }
+        catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json(['message' => $ex->getMessage()], 500);
+        }
+
+        return response()->json([
+            'message' => 'Operación exitosa',
+            'data' => $miembro
+        ], 200);
+       
+    }
     public function getMiembroLumisial(  $lumisial , $token) {
 
         try {  
@@ -2721,7 +2784,8 @@ class AppController extends Controller
                                             mie.phoneNumber,
                                             mie.img_imagen,
                                             mie.sino_esEditor,
-                                            mie.sino_isBishop    '))  
+                                            mie.sino_isBishop,
+                                            mie.priestType    '))  
                         ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
                          ->whereRaw($whereRaw) 
