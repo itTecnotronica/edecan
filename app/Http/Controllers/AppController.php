@@ -2312,13 +2312,15 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
-    public function saveMiembroObservacion($id_usuario, $nota, $opcion, $token )
+    public function saveMiembroObservacion($id_usuario, $nota, $opcion,$fecha=null, $token )
     {
-            $now = new \DateTime();
+            if($fecha==null){
+                $fecha = new \DateTime();
+            }            
             if ($token == 'gapp') {  
                 try { 
                     $observacion = New Miembros_observacion;
-                    $observacion->fecha = $now;
+                    $observacion->fecha = $fecha;
                     $observacion->observacion = $nota;
                     $observacion->miembro_id = $id_usuario; 
                     $observacion->opcion = $opcion; 
@@ -2335,6 +2337,36 @@ class AppController extends Controller
             }        
             return response($mensaje_salida,200);
     } 
+    public function saveMiembroObservacionPost(Request $request, $token )
+    {
+            if($fecha==null){
+                $fecha = new \DateTime();
+            }            
+            else{
+                $fecha = $request->fecha;
+            }
+                
+            if ($token == 'gapp') {  
+                try { 
+                    $observacion = New Miembros_observacion;
+                    $observacion->fecha = $fecha;
+                    $observacion->observacion = $request->texto;
+                    $observacion->miembro_id = $request->id_usuario; 
+                    $observacion->opcion = $request->atributo; 
+                    //
+                    $observacion->save(); 
+                    //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id_usuario);
+                } catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    } 
+ 
 
     public function deleteMiembroObservacion($id, $token )
     {
@@ -2694,7 +2726,7 @@ class AppController extends Controller
         }        
         return response($mensaje_salida,200);
     }  
-    public function storeOrUpdateMiembro(Request $request)
+    public function storeOrUpdateMiembro(Request $request, $id = null)
     {
         
         // 1. Intentar buscar el miembro si viene un ID, de lo contrario crear instancia vacía

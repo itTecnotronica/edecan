@@ -114,6 +114,7 @@ Route::put('GAPP/MIEMBROS/{id}', 'AppController@storeOrUpdateMiembro');
 
 //MIEMBROS OBSERVACION
 Route::get('GAPP/SAVEMIEMBROOBSERVACION/{id_usuario}/{notas}/{opcion}/{token}', 'AppController@saveMiembroObservacion');
+Route::post('GAPP/SAVEMIEMBROOBSERVACION/{token}', 'AppController@saveMiembroObservacionPost');
 Route::get('GAPP/DELETEMIEMBROOBSERVACION/{id}/{token}', 'AppController@deleteMiembroObservacion');
 Route::get('GAPP/GETMIEMBROSOBSERVACIONES/{token}', 'AppController@getMiembrosObservaciones');
 Route::get('GAPP/GETMIEMBROOBSERVACIONES/{id_usuario}/{token}', 'AppController@getMiembroObservaciones');
