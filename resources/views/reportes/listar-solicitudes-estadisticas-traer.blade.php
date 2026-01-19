@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-use \App\Http\Controllers\GenericController; 
+use \App\Http\Controllers\GenericController;
 $gCont = new GenericController;
 
 use App\Http\Controllers\HomeController;
@@ -28,7 +28,7 @@ $HomeController = new HomeController();
                     <th><?php echo __('ID') ?></th>
                     <th><?php echo __('Estado') ?></th>
                     <th><?php echo __('Tipo de evento') ?></th>
-                    <th><?php echo __('Título de la Conferencia Pública') ?></th>
+                    <th><?php echo __('Evento') ?></th>
                     <th><?php echo __('Fecha de solicitud') ?></th>
                     <th><?php echo __('Fecha de inicio') ?></th>
                     <th><?php echo __('Hora de inicio') ?></th>
@@ -39,9 +39,10 @@ $HomeController = new HomeController();
                     <th><?php echo __('importe') ?></th>
                     <th><?php echo __('Saldo') ?></th>
                     <th><?php echo __('Observaciones') ?></th>
-                    <th><?php echo __('Inscriptos') ?> <?php echo __('Fecha') ?></th>
-                    <th><?php echo __('Inscriptos') ?> <?php echo __('Campaña') ?></th>
-                    <th><?php echo __('Inscriptos') ?> <?php echo __('No pueden asistir') ?></th>
+                    <th><?php echo __('Inscriptos') ?> <?php echo __('Evento') ?></th>
+                    <th><?php echo __('Inscriptos') ?> con <?php echo __('Fecha') ?></th>
+                    <th><?php echo __('Inscriptos') ?> <?php echo __('Total') ?> <?php echo __('Formulario') ?></th>
+                    <th><?php echo __('Inscriptos') ?> <?php echo __('Total') ?> <?php echo __('No pueden asistir') ?></th>
                     <th><?php echo __('Contactados') ?></th>
                     <th><?php echo __('Confirmados') ?></th>
                     <th><?php echo __('Voucher') ?></th>
@@ -54,7 +55,7 @@ $HomeController = new HomeController();
                     <th><?php echo __('Visualizaciones') ?>/<?php echo __('Inscriptos') ?> <?php echo __('Campaña') ?></th>
                   </tr>
                 </thead>
-                <tbody>                  
+                <tbody>
                   <?php foreach ($Solicitudes as $Solicitud) { ?>
                     <tr>
                       <td><?php echo $Solicitud->id ?></td>
@@ -64,11 +65,11 @@ $HomeController = new HomeController();
                         $estado = $array_estado['estado'];
                         $class_estado = $array_estado['class_estado'];
                         $span_estado = $array_estado['span_estado'];
-                        ?>                
+                        ?>
                         <?php echo $span_estado; ?>
                       </td>
                       <td><?php echo $Solicitud->tipo_de_evento ?></td>
-                      <td><?php echo $Solicitud->titulo_de_conferencia_publica ?></td>
+                      <td><?php echo $Solicitud->evento ?></td>
                       <td><?php echo $gCont->FormatoFecha($Solicitud->fecha_de_solicitud) ?></td>
                       <td><?php echo $gCont->FormatoFecha($Solicitud->fecha_de_inicio) ?></td>
                       <td><?php echo $Solicitud->hora_de_inicio ?></td>
@@ -80,6 +81,7 @@ $HomeController = new HomeController();
                       <td><?php echo $Solicitud->importe ?></td>
                       <td><?php echo $paypal_neto-$Solicitud->importe ?></td>
                       <td><?php echo $Solicitud->observaciones ?></td>
+                      <td><?php echo $Solicitud->cant_inscriptos_del_evento ?></td>
                       <td><?php echo $Solicitud->cant_inscriptos ?></td>
                       <td><?php echo $Solicitud->cant_inscriptos_total ?></td>
                       <td><?php echo $Solicitud->cant_inscriptos_sin_evento ?></td>
@@ -91,16 +93,17 @@ $HomeController = new HomeController();
                       <td><?php echo $Solicitud->cant_asistio ?></td>
                       <td><?php echo $Solicitud->cant_recordatorio_prox ?></td>
                       <td><?php echo $Solicitud->cant_cancelo ?></td>
-                      <td><?php echo $Solicitud->cant_visualizaciones ?></td>     
+                      <td><?php echo $Solicitud->cant_visualizaciones ?></td>
                       <td>
-                        <?php 
+                        <?php
                         if ($Solicitud->cant_inscriptos_total > 0) {
-                          echo $gCont->formatoNumero($Solicitud->cant_visualizaciones/$Solicitud->cant_inscriptos_total, 'decimal'); 
+                          echo round($Solicitud->cant_visualizaciones/$Solicitud->cant_inscriptos_total);
+                          //echo $gCont->formatoNumero($Solicitud->cant_visualizaciones/$Solicitud->cant_inscriptos_total, 'decimal');
                         }
                         else {
                           echo 0;
                         }
-                        ?></td>                  
+                        ?></td>
                     </tr>
                   <?php } ?>
                 </tbody>
@@ -137,13 +140,13 @@ $HomeController = new HomeController();
         ],
         'searching': true,
         'autoWidth': true,
-        'pageLength': 100, 
+        'pageLength': 100,
         'paging': true,
         'order': [[ 1, 'asc' ]],
         'columnDefs': [
           { width: "100px", targets: 0 },
           { className: "table_td_condensada", targets: "_all" },
-        ], 
+        ],
         'language': {
               'autoWidth': true,
               'lengthMenu': '<?php echo __('Mostrar') ?> _MENU_ <?php echo __('Registros por pagina') ?>',
@@ -161,7 +164,7 @@ $HomeController = new HomeController();
           },
 
 
-        
+
     })
   })
 

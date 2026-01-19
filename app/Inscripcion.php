@@ -338,6 +338,15 @@ class Inscripcion extends Model
         $inscripto_id = $this->id;
         $hash = md5(ENV('PREFIJO_HASH').$inscripto_id);
         $url_voucher = $this->solicitud->dominioPublico()."f/v/$inscripto_id/$hash";
+        $grupo_whatsapp_localidad = '';
+        if ($this->solicitud->localidad_id > 1) {
+            if (strlen(trim($this->solicitud->localidad->url_invitacion_grupo_whatsapp)) > 6) {
+                $grupo_whatsapp_localidad = 'Unite al grupo de Whatsapp de GNOSIS '.$this->solicitud->localidad->localidad."\n";
+                $grupo_whatsapp_localidad .= 'Compartimos contenido, libros, videos, conferencias y actividades gratuitas'."\n";
+                $grupo_whatsapp_localidad .= '👉 '.trim($this->solicitud->localidad->url_invitacion_grupo_whatsapp);
+            }
+        }
+
 
         if ($tipo_de_evento_id == null) {
             $tipo_de_evento_id = $fecha_de_evento->solicitud->tipo_de_evento_id;
@@ -477,6 +486,7 @@ class Inscripcion extends Model
         $patrones[30] = '/titulo_del_curso/';
         $patrones[31] = '/nombre_del_solicitante/';
         $patrones[32] = '/celular_del_solicitante/';
+        $patrones[33] = '/grupo_whatsapp_localidad/';
 
         $sustituciones = array();
         $sustituciones[0] = $nombre_de_la_institucion;
@@ -512,6 +522,7 @@ class Inscripcion extends Model
         $sustituciones[30] = $titulo_del_curso;
         $sustituciones[31] = $nombre_del_solicitante;
         $sustituciones[32] = $celular_del_solicitante;
+        $sustituciones[33] = $grupo_whatsapp_localidad;
         
 
 

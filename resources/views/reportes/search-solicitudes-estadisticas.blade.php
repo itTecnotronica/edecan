@@ -103,6 +103,16 @@ $pais_id = Auth::user()->pais_id;
               <input type="hidden" name="periodo" id="periodo" class="form-control">
             </div>
 
+
+            <div class="form-group">
+              <label><?php echo __('Detalle por eventos') ?></label>
+              <select name="detalle_por_eventos" id="detalle_por_eventos" class="form-control">
+                <option vlaue="NO">NO</option>
+                <option vlaue="SI">SI</option>
+              </select>
+            </div>
+
+
             
 
           </div>
@@ -178,6 +188,7 @@ $pais_id = Auth::user()->pais_id;
         localidades: $("#localidades").val(),
         tipo_de_evento_id: $("#tipo_de_evento_id").val(),
         titulo_de_conferencia_publica: $("#titulo_de_conferencia_publica").val(),
+        detalle_por_eventos: $("#detalle_por_eventos").val(),
         periodo: $("#periodo").val()
       },
       success: function success(data, status) {        

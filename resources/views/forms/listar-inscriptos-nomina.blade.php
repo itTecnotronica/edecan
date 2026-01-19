@@ -1,5 +1,7 @@
 <?php
 use \App\Http\Controllers\GenericController; 
+use Carbon\Carbon;
+
 $gCont = new GenericController();
 
 $idioma = $Solicitud->idioma->mnemo;
@@ -266,10 +268,12 @@ $url_envio_de_motivacion_3 = '';
                             <td v-show="show_col_apellido"><?php echo $apellido; ?></td>
                             <td v-show="show_col_nombre"><?php echo $nombre; ?></td>
                             <td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
-                            <td v-show="show_col_celular">                     
+                            <td v-show="show_col_celular">         
+                                @if (Carbon::today()->gte(Carbon::parse($Inscripcion->fecha_de_evento->fecha_de_inicio)))
                                 <a href="https://api.whatsapp.com/send?phone=<?php echo $Inscripcion->celular_wa($codigo_tel); ?>" target="_blank">
                                   <button type="button" class="btn btn-success btn-xs"><i class="fa fa-fw fa-whatsapp" style="font-size: 19px"></i></button>
-                                </a>                    
+                                </a>     
+                                @endif               
                             </td>
                             <td v-show="show_col_email_correo"><?php echo $Inscripcion->email_correo; ?></td>
                             <td v-show="show_col_fecha_de_evento">
@@ -413,7 +417,7 @@ $url_envio_de_motivacion_3 = '';
                 show_col_fecha: false,
                 show_col_apellido: true,
                 show_col_nombre: true,
-                show_col_celular: false,
+                show_col_celular: true,
                 show_col_email_correo: false,
                 show_col_fecha_de_evento: true,
                 <?php if ($tipo_de_evento_id == 3) { ?>
