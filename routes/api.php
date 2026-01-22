@@ -108,9 +108,10 @@ Route::post('GAPP/UPDATEMIEMBROFIRMA', 'AppController@updateMiembroFirma');
 Route::get('GAPP/GETMIEMBROS/{busqueda}/{tipoMiembro}/{token}', 'AppController@getMiembros');
 Route::get('GAPP/GETMIEMBROID/{id_usuario}/{token}', 'AppController@getMiembroId');
 Route::get('GAPP/SAVEMIEMBROTELEFONO/{id_usuario}/{telefono}/{token}', 'AppController@updateMiembroTelefono');
-Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppController@updateMiembro');
+Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppController@updateMiembro'); 
 Route::post('GAPP/MIEMBROS',   'AppController@storeOrUpdateMiembro'); 
 Route::put('GAPP/MIEMBROS/{id}', 'AppController@storeOrUpdateMiembro');
+
 //MIEMBROS OBSERVACION
 Route::get('GAPP/SAVEMIEMBROOBSERVACION/{id_usuario}/{notas}/{opcion}/{token}', 'AppController@saveMiembroObservacion');
 Route::post('GAPP/SAVEMIEMBROOBSERVACION/{token}', 'AppController@saveMiembroObservacionPost');

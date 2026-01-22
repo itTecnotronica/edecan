@@ -29,6 +29,7 @@ use App\Respuesta;
 use App\Encuesta;
 use App\Miembros_pases;
 use App\Http\Controllers\GenericController;
+use App\Http\Controllers\NotificationController;
 
 use Auth;
 
@@ -1053,7 +1054,7 @@ class AppController extends Controller
                                 car.img_comprobante,
                                 mb.id id_federacion  ')) 
             ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id')  
-            ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.registration')  
+            ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.id')  
             ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'mb.lumisialUuid') 
             ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lum.stateUuid')
             ->whereRaw($whereRaw)   
@@ -2191,9 +2192,12 @@ class AppController extends Controller
                         ->select(DB::Raw('  mie.id, 
                                             mie.registration, 
                                             mie.name nombre,
+                                            mie.name,
                                             mie.documentNumber documento,  
+                                            mie.documentNumber , 
                                             mie.email, 	 
                                             mie.sino_isPriest ,
+                                            mie.priestType,
                                             mie.sino_isInstructor,
                                             mie.sino_isMissionary,
                                             mie.sino_isActive,
@@ -2312,60 +2316,83 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
-    public function saveMiembroObservacion($id_usuario, $nota, $opcion,$fecha=null, $token )
-    {
-            if($fecha==null){
-                $fecha = new \DateTime();
-            }            
-            if ($token == 'gapp') {  
-                try { 
-                    $observacion = New Miembros_observacion;
-                    $observacion->fecha = $fecha;
-                    $observacion->observacion = $nota;
-                    $observacion->miembro_id = $id_usuario; 
-                    $observacion->opcion = $opcion; 
-                    //
-                    $observacion->save(); 
-                    //
-                    $mensaje_salida = json_encode('Guardado. Id ' . $id_usuario);
-                } catch(\Illuminate\Database\QueryException $ex){  
-                    $mensaje_salida = $ex->getMessage();
-                }
-            }
-            else {
-                $mensaje_salida = 'ERROR';
-            }        
-            return response($mensaje_salida,200);
-    } 
-    public function saveMiembroObservacionPost(Request $request, $token )
-    {
-            if($fecha==null){
-                $fecha = new \DateTime();
-            }            
-            else{
-                $fecha = $request->fecha;
-            }
+  public function saveMiembroObservacion($id_usuario, $nota, $opcion , $token)
+{
+    // 1. Validar token rápido
+    if ($token !== 'gapp') {
+        return response()->json(['error' => 'Token inválido'], 401);
+    }
+
+    // 2. Manejo de fecha con Carbon (más seguro en Laravel)
+    $fecha = new \DateTime();
+
+    try {
+        $observacion = new Miembros_observacion;
+        $observacion->fecha = $fecha ; // Formato DB
+        $observacion->observacion = $nota;
+        $observacion->miembro_id = $id_usuario;
+        $observacion->opcion = $opcion;
+        $observacion->save();
+
+        return response()->json([
+            'res' => 'Guardado',
+            'id' => $id_usuario
+        ], 200);
+
+    } catch (\Exception $ex) {
+        // Capturamos cualquier error, no solo de Query
+        return response()->json([
+            'error' => 'Error al guardar',
+            'detalle' => $ex->getMessage()
+        ], 500);
+    }
+}
+
+  public function saveMiembroObservacionPost(Request $request, $token)
+{
+    if ($token !== 'gapp') {
+        return response('ERROR', 401);
+    }
+
+    $id_usuario = $request->id_usuario;
+    $notas = $request->notas;
+
+    if (!$id_usuario) {
+        return response('ID de usuario requerido ' . $notas, 400);
+    }
+
+    try {
+        // Iniciamos una transacción para seguridad de datos
+        \DB::beginTransaction();
+
+        // 1. Borramos todas las notas previas de este miembro
+        Miembros_observacion::where('miembro_id', $id_usuario)->delete();
+
+        // 2. Si el usuario envió notas, las insertamos
+        if (is_array($notas) && count($notas) > 0) {
+            foreach ($notas as $nota) {
+                $observacion = new Miembros_observacion;
                 
-            if ($token == 'gapp') {  
-                try { 
-                    $observacion = New Miembros_observacion;
-                    $observacion->fecha = $fecha;
-                    $observacion->observacion = $request->texto;
-                    $observacion->miembro_id = $request->id_usuario; 
-                    $observacion->opcion = $request->atributo; 
-                    //
-                    $observacion->save(); 
-                    //
-                    $mensaje_salida = json_encode('Guardado. Id ' . $id_usuario);
-                } catch(\Illuminate\Database\QueryException $ex){  
-                    $mensaje_salida = $ex->getMessage();
-                }
+                // Procesar fecha: si es string de ISO (Ionic), convertir a formato DB
+                $fecha = isset($nota['fecha']) ? new \DateTime($nota['fecha']) : new \DateTime();
+                
+                $observacion->fecha = $fecha;
+                $observacion->observacion = $nota['observacion'];
+                $observacion->miembro_id = $id_usuario; 
+                $observacion->opcion = $nota['opcion']; 
+                 $observacion->sector = $nota['sector']; 
+                $observacion->save();
             }
-            else {
-                $mensaje_salida = 'ERROR';
-            }        
-            return response($mensaje_salida,200);
-    } 
+        }
+
+        \DB::commit();
+        return response(json_encode('Sincronizado con éxito'), 200);
+
+    } catch(\Exception $ex){  
+        \DB::rollBack(); // Si algo falla, deshace el borrado
+        return response($ex->getMessage(), 500);
+    }
+}
  
 
     public function deleteMiembroObservacion($id, $token )
@@ -2393,7 +2420,11 @@ class AppController extends Controller
                         ->select(DB::Raw('  mie.`name` nombre,
                                             mie.registration,
                                             mie.documentNumber,
-                                            mie.phoneNumber ')) 
+                                            mie.phoneNumber,
+                                            mie.id,
+                                            mie.sino_isInstructor isInstructor,  
+                                            mie.sino_isMissionActive isMissionActive, 
+                                            mie.sino_isMissionary ')) 
                                             ->leftjoin('app_miembros_observaciones AS obs', 'mie.registration', '=', 'obs.miembro_id')
                                             ->leftjoin('app_respuestas AS res', 'res.respuesta', '=', 'mie.documentNumber')
                                             ->where('mie.sino_isActive', 'SI')
@@ -2427,7 +2458,8 @@ class AppController extends Controller
                                             mie.opcion,
                                             mie.observacion,
                                             mie.miembro_id,
-                                            mie.id '))  
+                                            mie.id,
+                                            mie.sector '))  
                         ->where('mie.miembro_id', $idMiembro)
                         ->get(); 
                         $resultado = json_encode($Notas);            
@@ -2671,61 +2703,80 @@ class AppController extends Controller
         }        
         return response($mensaje_salida,200);
     }   
-    public function updateMiembro($registration, $campo, $valor, $token )
-    { 
-        $now = new \DateTime();
-        if ($token == 'gapp') {  
-            try {  
-                $temporal_count = Miembros::where('registration', $registration)->count();
-                if($temporal_count>0)
-                {
-                    $temporal = Miembros::where('registration', $registration)->first();
-                    if ($campo == 'telefono') {                         
-                        $temporal->phoneNumber = $valor; 
-                    }
-                    if ($campo == 'email') {   
-                        $temporal->email = $valor; 
-                    }
-                    if ($campo == 'editor') {   
-                        $temporal->sino_esEditor = $valor; 
-                    }
-                    if ($campo == 'noeditor') {   
-                        $temporal->sino_esEditor = null; 
-                    }
-                    if ($campo == 'lumisial') {   
-                        $temporal->lumisialUuid = $valor; 
-                    }
-                    if ($campo == 'inactivo') {   
-                        $temporal->sino_isActive = 'NO'; 
-                    }
-                    if ($campo == 'activo') {   
-                        $temporal->sino_isActive = 'SI'; 
-                    }
-                     if ($campo == 'nombre') {   
-                        $temporal->name = $valor; 
-                    }
-                     if ($campo == 'nroDocumento') {   
-                        $temporal->documentNumber = $valor; 
-                    }
-                    $temporal->updated_at = $now; 
-                    $temporal->save(); 
-                    //
-                    $mensaje_salida = json_encode('Se actualizo valor ' . $valor);
-                 }
-                else
-                {  
-                    $mensaje_salida = json_encode('NroRegistration incorrecto ' . $registration);
-                } 
-            } 
-            catch(\Illuminate\Database\QueryException $ex){  
-            $mensaje_salida = $ex->getMessage();
-            }
+    public function updateMiembro($registration, $campo, $valor, $token)
+    {
+         $now = new \DateTime();
+        if ($token !== 'gapp') {
+            return response()->json('ERROR: Token inválido', 401);
         }
-        else {
-            $mensaje_salida = 'ERROR';
-        }        
-        return response($mensaje_salida,200);
-    }  
+
+        try {
+            $miembro = Miembros::where('registration', $registration)->first();
+
+            if (!$miembro) {
+                return response()->json('NroRegistration incorrecto ' . $registration, 404);
+            }
+
+            // Normalizamos el valor a mayúsculas para campos de tipo SI/NO
+            $valorUpper = strtoupper($valor);
+
+            switch ($campo) {
+                case 'telefono':
+                    $miembro->phoneNumber = $valor;
+                    break;
+                case 'email':
+                    $miembro->email = $valor;
+                    break;
+                case 'nombre':
+                    $miembro->name = $valor;
+                    break;
+                case 'nroDocumento':
+                    $miembro->documentNumber = $valor;
+                    break;
+                case 'lumisial':
+                    $miembro->lumisialUuid = $valor;
+                    break;
+                case 'editor':
+                    $miembro->sino_esEditor = $valor;
+                    break;
+                case 'noeditor':
+                    $miembro->sino_esEditor = null;
+                    break;
+                case 'activo':
+                case 'inactivo':
+                    $miembro->sino_isActive = ($campo == 'activo') ? 'SI' : 'NO';
+                    break;
+
+                // --- NUEVOS CAMPOS ---
+                case 'misionero':
+                    $miembro->sino_isMissionary = ($valorUpper == 'SI') ? 'SI' : 'NO';
+                    break;
+                case 'instructor':
+                    $miembro->sino_isInstructor = ($valorUpper == 'SI') ? 'SI' : 'NO';
+                    break;
+                case 'ungido':
+                    $miembro->sino_isPriest = ($valorUpper == 'SI') ? 'SI' : 'NO';
+                    break;                 
+                case 'tipoUngido':
+                    $miembro->priestType = $valor;
+                    break; 
+                default:
+                    return response()->json('Campo no reconocido: ' . $campo, 400);
+            }
+
+            $miembro->updated_at =$now; 
+            $miembro->save();
+
+            return response()->json('Se actualizo campo ' . $campo . ' con el valor ' . $valor, 200);
+
+        } catch (\Exception $ex) {
+            // Esto te dirá si el error es "Column not found" o "Data too long"
+            return response()->json([
+                'error' => $ex->getMessage(),
+                'line' => $ex->getLine()
+            ], 500);
+        }
+    } 
     public function storeOrUpdateMiembro(Request $request, $id = null)
     {
         
@@ -3294,7 +3345,7 @@ class AppController extends Controller
                 $mensaje_salida = 'ERROR';
             }        
             return response($mensaje_salida,200);
-    } 
+    }  
 
 }//fin de archivo
 
