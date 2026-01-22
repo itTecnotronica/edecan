@@ -146,8 +146,11 @@ function sino_a_tf($sino) {
               <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Estado') ?> Paypal:</span> <?php echo $Solicitud->payment_status ?><br>
               <?php 
               $paypal_neto = $Solicitud->paypal_value*(1-0.0479)-0.60;
+              $paypal_neto_tasa_meta = round($paypal_neto*0.8785, 2);
+              $paypal_neto_tasa_meta_variacion = round($paypal_neto_tasa_meta*0.97, 2);
+
               ?>
-              <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Importe') ?> Paypal:</span> $ <?php echo $Solicitud->paypal_value ?> (Neto: $<?php echo $paypal_neto ?>)<br>
+              <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Importe') ?> Paypal:</span> $ <?php echo $Solicitud->paypal_value ?> | Neto: $<?php echo $paypal_neto ?> | - 12,15% taxas Meta: <?php echo $paypal_neto_tasa_meta ?> | - 3% variação: <?php echo $paypal_neto_tasa_meta_variacion ?><br>
               <?php } ?>
               <?php if ($Solicitud->ejecutivo <> '') { ?>
               <span class="badge bg-light-blue datos-finales-asistente"><?php echo __('Ejecutivo de Campaña Asignado') ?>:</span> <?php echo $Solicitud->ejecutivo_asignado()->name ?><br>

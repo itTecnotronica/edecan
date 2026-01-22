@@ -4,7 +4,7 @@ use \App\Http\Controllers\SolicitudController;
 use App\Equipo;
 use App\User;
 
-if ($_SERVER['HTTP_HOST'] == 'localhost:1010' or $_SERVER['HTTP_HOST'] == 'ac.gnosis.is') {
+if ($_SERVER['HTTP_HOST'] == 'localhost' or $_SERVER['HTTP_HOST'] == 'ac.gnosis.is') {
   $path_public = env('PATH_PUBLIC');
 }
 else {

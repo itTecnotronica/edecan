@@ -4490,7 +4490,7 @@ class FormController extends Controller
             'version'          => 'OAuth2', // Version of the OAuth can be OAuth2 or OAuth1a. OAuth2 is the default value.
             'clientKey'        => '4s264vn96xic0w848wc00og04ksco0wok4g8cw8cwgo0c4k84k',       // Client/Consumer key from Mautic
             'clientSecret'     => 'dfanhdcxxao8c4ogg4ck4os4kc00oskwwoo00sww04c80kkw0',       // Client/Consumer secret key from Mautic
-            'callback'         => 'http://localhost:1010/ac/public/'        // Redirect URI/Callback URI for this script
+            'callback'         => 'http://localhost/ac/public/'        // Redirect URI/Callback URI for this script
         );
 
         session_start();

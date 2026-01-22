@@ -91,20 +91,46 @@ class ReportesController extends Controller
             $where_filtros .= " (s.fecha_de_solicitud >= '$desde' AND s.fecha_de_solicitud <= '$hasta')";
         }
 
+        $detalle_por_eventos = $_POST['detalle_por_eventos'];
+        $groupBy = 's.id';
+        $evento_case = '';
+        if ($detalle_por_eventos == 'SI') {
+            $groupBy .= ', fe.id';
+            $evento_case = 'CASE WHEN s.tipo_de_evento_id = 2 THEN fe.titulo_de_conferencia_publica WHEN s.tipo_de_evento_id = 1 THEN CONCAT(
+                IFNULL(CONCAT(" Lunes: ", LEFT(hora_lunes,5)),""),
+                IFNULL(CONCAT(" Martes: ", LEFT(hora_martes,5)),""),
+                IFNULL(CONCAT(" Miercoles: ", LEFT(hora_miercoles,5)),""),
+                IFNULL(CONCAT(" Jueves: ", LEFT(hora_jueves,5)),""),
+                IFNULL(CONCAT(" Viernes: ", LEFT(hora_viernes,5)),""),
+                IFNULL(CONCAT(" Sabado: ", LEFT(hora_sabado,5)),""),
+                IFNULL(CONCAT(" Domingo: ", LEFT(hora_domingo,5)),"")
+            ) ELSE NULL END as evento, ';
+        }
+        else {
+            $evento_case = 'fe.titulo_de_conferencia_publica as evento, fe.fecha_de_inicio, fe.hora_de_inicio, fe.hora_de_inicio, ';
+        }
+
+
         if ($where_filtros == '') {  
             $where_filtros = "1=1";
         }
 
         $where_filtros = "($where_filtros)";
 
-        //dd($where_filtros );
+        //dd($_POST['detalle_por_eventos']);
 
-        $select = 's.id, te.tipo_de_evento, fe.titulo_de_conferencia_publica, s.fecha_de_solicitud, pr.provincia, l.localidad, s.sino_aprobado_administracion, s.sino_aprobado_solicitar_revision, s.sino_cancelada, s.sino_aprobado_finalizada, ';
+        $select = 's.id, fe.id fecha_de_evento_id, te.tipo_de_evento, '.$evento_case.'s.fecha_de_solicitud, pr.provincia, l.localidad, s.sino_aprobado_administracion, s.sino_aprobado_solicitar_revision, s.sino_cancelada, s.sino_aprobado_finalizada, ';
         $select .= 's.paypal_value, s.observaciones, ';
         $select .= 'CASE WHEN s.importe_gastado = 0 THEN s.monto_a_invertir ELSE s.importe_gastado END importe, ';
         $select .= '(SELECT COUNT(vf.id) FROM visualizaciones_de_formulario vf WHERE vf.solicitud_id = s.id) cant_visualizaciones, ';
         $select .= '(SELECT COUNT(i2.id) FROM inscripciones i2 WHERE i2.solicitud_id = s.id) cant_inscriptos_total, ';
         $select .= '(SELECT COUNT(i2.id) FROM inscripciones i2 WHERE i2.solicitud_id = s.id AND i2.fecha_de_evento_id IS NULL) cant_inscriptos_sin_evento, ';
+        if ($detalle_por_eventos == 'SI') {
+            $select .= '(SELECT COUNT(i2.id) FROM inscripciones i2 WHERE i2.fecha_de_evento_id = fe.id AND i2.fecha_de_evento_id IS NOT NULL) cant_inscriptos_del_evento, ';
+        }
+        else {
+            $select .= 'COUNT(DISTINCT i.id) cant_inscriptos_del_evento, ';
+        }
         $select .= 'fe.fecha_de_inicio, fe.hora_de_inicio, fe.hora_de_inicio, COUNT(DISTINCT i.id) cant_inscriptos, ';
         $select .= "SUM(CASE WHEN i.sino_envio_pedido_de_confirmacion = 'SI' IS NOT NULL THEN 1 ELSE 0 END) cant_contactados, ";
         $select .= "SUM(CASE WHEN i.sino_confirmo = 'SI' THEN 1 ELSE 0 END) cant_confirmo, ";
@@ -134,8 +160,8 @@ class ReportesController extends Controller
         //->whereRaw('s.id in (44, 144, 193, 198)')
         ->whereRaw($where_filtros)
         //->limit(10)
-        ->groupBy('s.id')
-        ->orderBy('s.id')
+        ->groupBy(DB::Raw($groupBy))
+        ->orderBy(DB::Raw($groupBy))
         ->get();
 
         //dd(DB::getQueryLog());

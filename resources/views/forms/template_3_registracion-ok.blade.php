@@ -241,7 +241,7 @@ App::setLocale($idioma);
                 </div>
             </div>
             
-            <a href="https://chat.whatsapp.com/..." target="_blank" class="inline-flex items-center justify-center w-full md:w-auto bg-green-600 hover:bg-green-500 text-white font-bold text-lg py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.4)] transition transform hover:-translate-y-1 uppercase tracking-wide gap-3 group">
+            <a href="{{$Solicitud->url_enlace_de_invitacion_al_grupo_de_whatsapp_del_aula_virtual}}" target="_blank" class="inline-flex items-center justify-center w-full md:w-auto bg-green-600 hover:bg-green-500 text-white font-bold text-lg py-4 px-8 rounded-lg shadow-[0_0_20px_rgba(34,197,94,0.4)] transition transform hover:-translate-y-1 uppercase tracking-wide gap-3 group">
                 <i class="fab fa-whatsapp text-2xl group-hover:scale-110 transition duration-300"></i>
                 ÚNETE AL GRUPO DE WHATSAPP AHORA
             </a>

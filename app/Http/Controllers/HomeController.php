@@ -86,7 +86,7 @@ class HomeController extends Controller
     {   
         $Roles = Auth::user()->roles();
 
-        if(in_array(7, $Roles) or in_array(9, $Roles)) {
+        // if(in_array(7, $Roles) or in_array(9, $Roles)) {
 
             if (in_array(7, $Roles)) {
                 $pais_id = Auth::user()->pais_id;
@@ -102,8 +102,9 @@ class HomeController extends Controller
             return View('dashboard/dash-oe')
             ->with('home', 'SI')
             ->with('pais', $pais);
-        }
+        //}
 
+        /*
         else {
             $registros_home = $this->registros_home();
 
@@ -115,6 +116,7 @@ class HomeController extends Controller
             ->with('cant_autorizaciones', $registros_home['cant_autorizaciones'])
             ->with('mensaje_welcome', $registros_home['mensaje_welcome']);
         }
+        */
 
     }
 
@@ -1047,7 +1049,7 @@ class HomeController extends Controller
     {   
         $Roles = Auth::user()->roles();
 
-        if(in_array(7, $Roles) or in_array(9, $Roles)) {
+        //if(in_array(7, $Roles) or in_array(9, $Roles)) {
 
             if (in_array(7, $Roles)) {
                 $pais_id = Auth::user()->pais_id;
@@ -1063,6 +1065,7 @@ class HomeController extends Controller
             return View('dashboard/ranking-m')
             ->with('home', 'SI')
             ->with('pais', $pais);
+        /*
         }
 
         else {
@@ -1076,6 +1079,7 @@ class HomeController extends Controller
             ->with('cant_autorizaciones', $registros_home['cant_autorizaciones'])
             ->with('mensaje_welcome', $registros_home['mensaje_welcome']);
         }
+        */
 
     }
 

@@ -1051,8 +1051,7 @@ class AppController extends Controller
                                 lum.city Ciudad,
                                 pro.description Provincia,
                                 mb.img_imagen,
-                                car.img_comprobante,
-                                mb.id id_federacion  ')) 
+                                car.img_comprobante  ')) 
             ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id')  
             ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.id')  
             ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'mb.lumisialUuid') 
@@ -1532,15 +1531,12 @@ class AppController extends Controller
                                 mbr.responsable,
                                 lum.name as Lumisial,
                                 dio.name as Zona,
-                                mbr.firma,
-                                mbr.cargoPrincipal,
-                                mbr.sino_esEditor ')) 
+                                mbr.firma ')) 
             ->join('app_miembros_lumisial AS lum', 'lum.uuid', '=', 'mbr.lumisialUuid')  
              ->join('app_miembros_diocesis as dio', function($join) {
                 $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
             })
             ->where('mbr.documentNumber', $documento )    
-            ->where('mbr.sino_isActive','SI' )    
             ->get(); 
             $resultado = json_encode($Miembros);
         }
@@ -2172,21 +2168,18 @@ class AppController extends Controller
                 $whereRaw = "(mie.sino_isMissionary = 'SI' or mie.sino_isMissionaryInternational='SI')"; 
                 if ($busqueda != '-') {
                     $whereRaw =  $whereRaw . " AND (mie.documentNumber like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
-                } else {
-                        $whereRaw =  " 1=1"; 
-                    }
-            }             
-            if ($tipoMiembro == 'A'){ 
+                }
+            } else {
+                if ($tipoMiembro == 'A'){ 
                     if ($busqueda != '-') {
-                        $whereRaw =  " (mie.documentNumber like '%$busqueda%' OR mie.registration like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
+                        $whereRaw =  " (mie.documentNumber like '%$busqueda%' OR mie.name like '%$busqueda%') " ;
                     }
                     else {
                         $whereRaw =  " 1=1"; 
                     }
-            }  
-            if ($tipoMiembro == 'L'){ 
-                    $whereRaw = "(lumi.uuid = '$busqueda')";  
-            }  
+                }  
+            }
+            
             if ($token == 'gapp') {           
                         $Miembros = DB::table('app_miembros AS mie')    
                         ->select(DB::Raw('  mie.id, 
@@ -2206,13 +2199,11 @@ class AppController extends Controller
                                            lumi.uuid idLumisial,
                                            mie.phoneNumber,
                                            mie.img_imagen,
-                                           mie.sino_esEditor,
-                                           mie.sino_isBishop  '))   
+                                           mie.sino_esEditor  '))   
                         ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
                         ->whereRaw($whereRaw)  
                         ->orderBy('mie.name', 'asc')
-                        ->limit(200)
                         ->get(); 
                         $resultado = json_encode($Miembros);            
             }
@@ -2852,25 +2843,7 @@ class AppController extends Controller
                         $lumisiales = DB::table('app_miembros as mie')    
                         ->select(DB::Raw('  mie.name  , 
                                             mie.registration  , 
-                                            mie.documentNumber ,
-                                            mie.id,   
-                                            mie.name nombre,
-                                            mie.documentNumber documento,  
-                                            mie.email, 	 
-                                            mie.sino_isPriest ,
-                                            mie.sino_isInstructor,
-                                            mie.sino_isMissionary,
-                                            mie.sino_isActive,
-                                            pro.description Provincia,
-                                            lumi.name Lumisial,
-                                            lumi.uuid idLumisial,
-                                            mie.phoneNumber,
-                                            mie.img_imagen,
-                                            mie.sino_esEditor,
-                                            mie.sino_isBishop,
-                                            mie.priestType    '))  
-                        ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
-                        ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
+                                            mie.documentNumber     '))  
                          ->whereRaw($whereRaw) 
                          ->where('mie.sino_isActive', 'SI' )   
                         ->orderBy('mie.name', 'asc')
@@ -3215,74 +3188,54 @@ class AppController extends Controller
                 'message' => 'Error al obtener las preguntas: ' . $e->getMessage(),
             ], 500);
         }
-    } 
-    // Pase y salvo 
-    public function addPaseYSalvo(Request $request, $token)
+    }
+    //Pase y salvo
+     public function addPaseYSalvo($miembro_pase, $nombre_pase, $es_ungid, $es_misionero, $id_lumisial_origen, $id_lumisial_destino, $miembro_id, $token )
     { 
         $now = new \DateTime();
-        
         if ($token == 'gapp') {  
             try {  
-                $temporal = new Miembros_pases;
-                $temporal->fecha = $now; 
-
-                // Asignación desde el POST
-                $temporal->miembro_pase        = $request->input('miembro_pase');
-                $temporal->nombre_pase         = $request->input('pasesNombresConcatenados');
-                $temporal->duracion            = $request->input('paseDias');
-                $temporal->motivo              = $request->input('paseMotivo');
-                $temporal->participacion       = $request->input('paseParticipacion');  
-                $temporal->miembro_id          = $request->input('paseMiembroId'); 
-                $temporal->gender              = $request->input('paseEsGender'); // Corregido para no sobrescribir miembro_id
-
-                // Campos de Ubicación
-                $temporal->tipo_lugar_destino      = $request->input('tipoLugarDestino');
-                $temporal->lumisial_nombre_origen  = $request->input('lumisialNombreOrigen');
-                $temporal->lumisial_ciudad_origen  = $request->input('lumisialCiudadOrigen');
-                $temporal->lumisial_provincia_origen = $request->input('lumisialProvinciaOrigen');
-                $temporal->lumisial_nombre_destino = $request->input('lumisialNombreDestino');
-                $temporal->lumisial_ciudad_destino = $request->input('lumisialCiudadDestino');
-                $temporal->lumisial_provincia_destino = $request->input('lumisialProvinciaDestino');
-
-                $temporal->created_at = $now;  
-                
-                $temporal->save(); 
-
-                $mensaje_salida = "Nuevo pase registrado para " . $temporal->miembro_pase;
-                return response()->json($mensaje_salida, 201);
-
-            } catch(\Illuminate\Database\QueryException $ex){  
-                return response()->json(['error' => $ex->getMessage()], 500);
+            
+                    $temporal = New Miembros_pases;
+                    $temporal->fecha = $now;
+                    $temporal->miembro_pase = $miembro_pase;
+                    $temporal->nombre_pase = $nombre_pase;
+                    $temporal->es_ungid = $es_ungid;
+                    $temporal->es_misionero = $es_misionero;
+                    $temporal->id_lumisial_origen = $id_lumisial_origen;
+                    $temporal->id_lumisial_destino = $id_lumisial_destino;
+                    $temporal->miembro_id = $miembro_id;
+                    $temporal->created_at = $now;  
+                    //
+                    $temporal->save(); 
+                    //
+                    $mensaje_salida = json_encode('Nuevo pase registrado para' . $miembro_pase); 
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+            $mensaje_salida = $ex->getMessage();
             }
-        } else {
-            return response()->json(['error' => 'Token inválido'], 401);
+        }
+        else {
+            $mensaje_salida = 'ERROR';
         }        
+        return response($mensaje_salida,200);
     }
-
-    public function getPaseYSalvo(  $miembro_id , $token) {
+public function getPaseYSalvo(  $miembro_id , $token) {
         try {               
             if ($token == 'gapp') {           
                         $contable = DB::table('app_miembros_pases AS pas')    
                         ->select(DB::Raw('  pas.id, 
                                             pas.fecha, 
                                             pas.miembro_pase, 
-                                            pas.nombre_pase PaseNombre, 
-                                            pas.duracion PaseDuracion, 
-                                            pas.motivo PaseMotivo, 
-                                            pas.participacion PaseParticipacion, 
+                                            pas.nombre_pase, 
+                                            pas.es_ungido, 
+                                            pas.es_misionero, 
+                                            pas.id_lumisial_origen, 
+                                            pas.id_lumisial_destino, 
                                             pas.miembro_id, 
                                             pas.updated_at, 
-                                            pas.created_at, 
-                                            pas.gender, 
-                                            pas.tipo_lugar_destino, 
-                                            pas.lumisial_nombre_origen lumisialNombreOrigen, 
-                                            pas.lumisial_ciudad_origen limsialCiudadOrigen, 
-                                            pas.lumisial_provincia_origen lumisialProvinciaOrigen, 
-                                            pas.lumisial_nombre_destino lumisialNombreDestino, 
-                                            pas.lumisial_ciudad_destino lumisialCiudadDestino, 
-                                            pas.lumisial_provincia_destino lumisialProvinciaDestino '))  
-                        ->where('pas.miembro_id', $miembro_id )
-                        ->orWhere('pas.miembro_pase', $miembro_id)   
+                                            pas.created_at   '))  
+                        ->where('pas.miembro_id', $miembro_id )    
                         ->get(); 
                         $resultado = json_encode($contable);            
             }
@@ -3296,41 +3249,7 @@ class AppController extends Controller
             
         return response($resultado,200);
     }
-
-    public function getPaseYSalvoById(  $id , $token) {
-        try {                          
-                $pase = DB::table('app_miembros_pases AS pas')    
-                ->select(DB::Raw('  pas.id, 
-                                    pas.fecha, 
-                                    pas.miembro_pase, 
-                                    pas.nombre_pase PaseNombre, 
-                                    pas.duracion PaseDuracion, 
-                                    pas.motivo PaseMotivo, 
-                                    pas.participacion PaseParticipacion, 
-                                    pas.miembro_id, 
-                                    pas.updated_at, 
-                                    pas.created_at, 
-                                    pas.gender, 
-                                    pas.tipo_lugar_destino, 
-                                    pas.lumisial_nombre_origen lumisialNombreOrigen, 
-                                    pas.lumisial_ciudad_origen limsialCiudadOrigen, 
-                                    pas.lumisial_provincia_origen lumisialProvinciaOrigen, 
-                                    pas.lumisial_nombre_destino lumisialNombreDestino, 
-                                    pas.lumisial_ciudad_destino lumisialCiudadDestino, 
-                                    pas.lumisial_provincia_destino lumisialProvinciaDestino '))  
-                ->where('pas.id', $id )   
-                ->get(); 
-                $resultado = json_encode($pase);            
-             
-        }
-        catch(\Illuminate\Database\QueryException $ex){  
-            $resultado = $ex->getMessage();
-        }
-            
-        return response($resultado,200);
-    } 
-
-    public function deletePaseYSalvo($id, $token )
+     public function deletePaseYSalvo($id, $token )
     {
             if ($token == 'gapp') {  
                 try { 

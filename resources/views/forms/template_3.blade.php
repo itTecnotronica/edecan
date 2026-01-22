@@ -363,7 +363,7 @@ else {
                               <div class="flex flex-col">
                                   <?php
                                   $tipo = 'con_resumen';
-                                    $con_inicio = false;
+                                    $con_inicio = true;
                                     $ver_mapa = false;
                                     $con_dir_inicio_distinto = false;
                                   ?>
