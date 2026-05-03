@@ -111,6 +111,7 @@ Route::get('GAPP/SAVEMIEMBROTELEFONO/{id_usuario}/{telefono}/{token}', 'AppContr
 Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppController@updateMiembro'); 
 Route::post('GAPP/MIEMBROS',   'AppController@storeOrUpdateMiembro'); 
 Route::put('GAPP/MIEMBROS/{id}', 'AppController@storeOrUpdateMiembro');
+Route::get('GAPP/SAVEMIEMBROCLAVE/{documento}/{password}/{token}', 'AppController@updateMiembroClave'); 
 
 //MIEMBROS OBSERVACION
 Route::get('GAPP/SAVEMIEMBROOBSERVACION/{id_usuario}/{notas}/{opcion}/{token}', 'AppController@saveMiembroObservacion');
@@ -161,3 +162,6 @@ Route::get('GAPP/DELETEPASEYSALVO/{id}/{token}', 'AppController@deletePaseYSalvo
 
 //INSCRIPCIONES EDECAN
 Route::post('EDECAN/INSCRIPCION/CREATE', 'FormController@RegistrarInscripcionAPI');
+
+//RESUMEN COMUNIDADES
+Route::get('resumen-comunidades', 'AppController@ResumenComunidades');

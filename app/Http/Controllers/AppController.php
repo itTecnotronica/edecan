@@ -1534,12 +1534,13 @@ class AppController extends Controller
                                 dio.name as Zona,
                                 mbr.firma,
                                 mbr.cargoPrincipal,
-                                mbr.sino_esEditor ')) 
+                                mbr.sino_esEditor,
+                                mbr.password ')) 
             ->join('app_miembros_lumisial AS lum', 'lum.uuid', '=', 'mbr.lumisialUuid')  
              ->join('app_miembros_diocesis as dio', function($join) {
                 $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
             })
-            ->where('mbr.documentNumber', $documento )    
+            ->where('mbr.documentNumber', $documento )   
             ->where('mbr.sino_isActive','SI' )    
             ->get(); 
             $resultado = json_encode($Miembros);
@@ -1549,6 +1550,23 @@ class AppController extends Controller
         }
         return response($resultado,200);
     }
+
+    public function updateMiembroClave($documento, $password, $token) {
+
+        if ($token == 'gapp') {
+            $Miembro = Miembros::where('documentNumber', $documento)->first();
+            $Miembro->password = ($password);
+            $Miembro->save();
+
+            $resultado = json_encode('Registro guardado');
+        }
+        else {
+            $resultado = 'ERROR';
+        }
+
+        return response($resultado,200);
+    }   
+
     public function updateMiembroFoto(Request $request) {
         
         $file = $request->file('file');
@@ -1723,8 +1741,6 @@ class AppController extends Controller
 
         return response($resultado,200);
     }
-
-
 
     public function getPaises($idioma_id) {
         
@@ -2792,6 +2808,8 @@ class AppController extends Controller
         try {            
             // 2. Asignación de campos (Mapeo manual)
             // Datos Personales
+            $miembro->uuid           = $request->uuid;
+            $miembro->registration   = $request->registration;
             $miembro->sino_isActive  = $request->isActive;
             $miembro->name           = $request->name;
             $miembro->documentType   = $request->documentType;
@@ -2888,33 +2906,30 @@ class AppController extends Controller
         return response($resultado,200);
     }
     public function getAportesPorLumisial($year, $token) {
-
         try {   
             if ($token == 'gapp') {           
-                        $lumisiales = DB::table('app_miembros_aportes as apor')    
-                        ->select(DB::Raw(' lumi.`name` lumisial, 
-                                            COUNT(*) cantidad,
-                                            sum( monto) monto , 
-                                            apor.moneda,
-                                            apor.ejercicio        '))  
-                        ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'apor.id_lumisial')
-                        ->where('apor.ejercicio', $year ) 
-                        ->groupBy('lumi.name')
-                        ->groupBy('apor.moneda')
-                        ->groupBy('apor.ejercicio')
-                        ->orderBy('lumi.name', 'asc')
-                        ->get(); 
-                        $resultado = json_encode($lumisiales);            
+                $lumisiales = DB::table('app_miembros_aportes as apor')    
+                    ->select(DB::raw("
+                        CONCAT(lumi.name, ' - ', lumi.city) AS lumisial,  
+                        COUNT(*) as cantidad,
+                        SUM(monto) as monto, 
+                        apor.moneda,
+                        apor.ejercicio
+                    "))  
+                    ->leftJoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'apor.id_lumisial')
+                    ->where('apor.ejercicio', $year) 
+                    ->groupBy('lumi.name', 'lumi.city', 'apor.moneda', 'apor.ejercicio')
+                    ->orderBy('lumi.name', 'asc')
+                    ->get(); 
+
+                // En Laravel es mejor usar response()->json() directamente
+                return response()->json($lumisiales, 200);           
+            } else {
+                return response()->json(['error' => 'TOKEN_INVALID'], 401);
             }
-            else {
-                $resultado = 'ERROR';
-            }
+        } catch(\Illuminate\Database\QueryException $ex) {  
+            return response($ex->getMessage(), 500);
         }
-        catch(\Illuminate\Database\QueryException $ex){  
-            $resultado = $ex->getMessage();
-            }
-            
-        return response($resultado,200);
     }
     public function updateMovimientosContables(Request $request){ 
      
@@ -2943,11 +2958,11 @@ class AppController extends Controller
                 if ($contable_count > 0) {
                     $tb_movimiento = Movimientos_Contables::find( $request->input('id'));
                     $tb_movimiento->fecha = $request->input('fecha');
-                    $tb_movimiento->numero_comprobante = $request->input('numero_comprobante');
-                    $tb_movimiento->descripcion = $request->input('descripcion');
+                    $tb_movimiento->numero_comprobante = $request->input('numero_comprobante') ?? '';
+                    $tb_movimiento->descripcion = $request->input('descripcion') ?? '';
                     $tb_movimiento->tipo_movimiento = $request->input('tipo_movimiento');
                     $tb_movimiento->monto = $request->input('monto');
-                    $tb_movimiento->cliente_proveedor = $request->input('cliente_proveedor');
+                    $tb_movimiento->cliente_proveedor = $request->input('cliente_proveedor') ?? '';
                     $tb_movimiento->moneda = $request->input('moneda');
                     $tb_movimiento->tipo_cambio = $request->input('tipo_cambio'); 
                     $tb_movimiento->responsable = $request->input('responsable');
@@ -2958,11 +2973,11 @@ class AppController extends Controller
                 else {
                     $tb_movimiento = New Movimientos_Contables;
                     $tb_movimiento->fecha = $request->input('fecha');
-                    $tb_movimiento->numero_comprobante = $request->input('numero_comprobante');
-                    $tb_movimiento->descripcion = $request->input('descripcion');
+                    $tb_movimiento->numero_comprobante = $request->input('numero_comprobante') ?? '';
+                    $tb_movimiento->descripcion = $request->input('descripcion') ?? '';
                     $tb_movimiento->tipo_movimiento = $request->input('tipo_movimiento');
                     $tb_movimiento->monto = $request->input('monto');
-                    $tb_movimiento->cliente_proveedor = $request->input('cliente_proveedor');
+                    $tb_movimiento->cliente_proveedor = $request->input('cliente_proveedor') ?? '';
                     $tb_movimiento->moneda = $request->input('moneda');
                     $tb_movimiento->tipo_cambio = $request->input('tipo_cambio'); 
                     $tb_movimiento->responsable = $request->input('responsable');
@@ -2972,7 +2987,7 @@ class AppController extends Controller
                 } 
             } 
             catch(\Illuminate\Database\QueryException $ex){  
-            $mensaje_salida = $ex->getMessage();
+                $mensaje_salida = $ex->getMessage();
             }
         }
         else {
@@ -3248,7 +3263,7 @@ class AppController extends Controller
                 
                 $temporal->save(); 
 
-                $mensaje_salida = "Nuevo pase registrado para " . $temporal->miembro_pase;
+                $mensaje_salida = $temporal->id;
                 return response()->json($mensaje_salida, 201);
 
             } catch(\Illuminate\Database\QueryException $ex){  
@@ -3347,5 +3362,99 @@ class AppController extends Controller
             return response($mensaje_salida,200);
     }  
 
+    public function ResumenComunidades()
+    {
+        $provinces = [
+            [
+                'id' => 'AR-B',
+                'name' => 'Buenos Aires',
+                'santuarios' => 5,
+                'academias' => 3,
+                'comunidades' => 8,
+                'santuariosCuracion' => 2,
+                'integrantes' => 150,
+                'lumisial' => true,
+                'huertas' => true,
+                'lugares' => ['La Plata', 'Mar del Plata', 'Bahía Blanca']
+            ],
+            [
+                'id' => 'AR-X',
+                'name' => 'Córdoba',
+                'santuarios' => 3,
+                'academias' => 2,
+                'comunidades' => 5,
+                'santuariosCuracion' => 1,
+                'integrantes' => 80,
+                'lumisial' => true,
+                'huertas' => false,
+                'lugares' => ['Córdoba Capital', 'Villa Carlos Paz']
+            ],
+            [
+                'id' => 'AR-S',
+                'name' => 'Santa Fe',
+                'santuarios' => 2,
+                'academias' => 1,
+                'comunidades' => 4,
+                'santuariosCuracion' => 1,
+                'integrantes' => 60,
+                'lumisial' => true,
+                'huertas' => true,
+                'lugares' => ['Rosario', 'Santa Fe']
+            ],
+            [
+                'id' => 'AR-M',
+                'name' => 'Mendoza',
+                'santuarios' => 2,
+                'academias' => 2,
+                'comunidades' => 3,
+                'santuariosCuracion' => 0,
+                'integrantes' => 45,
+                'lumisial' => false,
+                'huertas' => true,
+                'lugares' => ['Mendoza Capital', 'San Rafael']
+            ]
+        ];
+
+        $photos = [
+            [
+                'url' => 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=600',
+                'title' => 'Actividad de Academia',
+                'lugar' => 'La Plata'
+            ],
+            [
+                'url' => 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=600',
+                'title' => 'Huerta Comunitaria',
+                'lugar' => 'Córdoba Capital'
+            ],
+            [
+                'url' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600',
+                'title' => 'Santuario en la Montaña',
+                'lugar' => 'Mendoza Capital'
+            ],
+            [
+                'url' => 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=600',
+                'title' => 'Reunión de Comunidad',
+                'lugar' => 'La Plata'
+            ],
+            [
+                'url' => 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600',
+                'title' => 'Clase de Meditación',
+                'lugar' => 'Córdoba Capital'
+            ]
+        ];
+
+        $documents = [
+            ['id' => 1, 'name' => 'Escritura local Central.pdf', 'date' => '20-10-2023', 'lugar' => 'La Plata'],
+            ['id' => 2, 'name' => 'Contrato Compra Academia Sur.pdf', 'date' => '05-12-2024', 'lugar' => 'Córdoba Capital'],
+            ['id' => 3, 'name' => 'Planos Sede Mendoza.pdf', 'date' => '12-01-2024', 'lugar' => 'Mendoza Capital'],
+            ['id' => 4, 'name' => 'Habilitación Municipal Municipalidad.pdf', 'date' => '15-03-2024', 'lugar' => 'La Plata']
+        ];
+
+        return response()->json([
+            'provinces' => $provinces,
+            'photos' => $photos,
+            'documents' => $documents
+        ]);
+    }
 }//fin de archivo
 
