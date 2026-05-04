@@ -159,9 +159,10 @@ Route::post('GAPP/ADDPASEYSALVO/{token}', 'AppController@addPaseYSalvo');
 Route::get('GAPP/GETPASEYSALVO/{id}/{token}', 'AppController@getPaseYSalvo');
 Route::get('GAPP/GETPAZYSALVOBYID/{id}/{token}', 'AppController@getPaseYSalvoById');
 Route::get('GAPP/DELETEPASEYSALVO/{id}/{token}', 'AppController@deletePaseYSalvo');
-
-//INSCRIPCIONES EDECAN
-Route::post('EDECAN/INSCRIPCION/CREATE', 'FormController@RegistrarInscripcionAPI');
-
+ 
 //RESUMEN COMUNIDADES
 Route::get('resumen-comunidades', 'AppController@ResumenComunidades');
+
+//EDECAN
+Route::post('EDECAN/INSCRIPCION/CREATE', 'FormController@RegistrarInscripcionAPI');
+Route::get('/EDECAN/SEDES/GET', 'ExtController@getSedesPaises');

@@ -1703,7 +1703,9 @@ class AppController extends Controller
                 i.consulta, 
                 i.sino_confirmo,
                 i.sino_cancelo,
-                i.sino_envio_voucher
+                i.sino_envio_voucher,
+                i.created_at,
+                i.sino_asistio
                 '))
             ->whereRaw($whereRaw)
             ->orderBy('i.id', 'asc')
