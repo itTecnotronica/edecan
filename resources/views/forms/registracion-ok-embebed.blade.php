@@ -119,6 +119,11 @@ App::setLocale($idioma);
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_script_body);
     }
     ?>
+    <?php
+    if (isset($Solicitud->urlencode_script_personalizado_en_form_de_resultado_de_registro)) {
+      echo urldecode($Solicitud->urlencode_script_personalizado_en_form_de_resultado_de_registro);
+    }
+    ?>
                     <div class="alert alert-warning alert-dismissible">
                       <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
                       <?php echo $mensaje_box ?></h4>

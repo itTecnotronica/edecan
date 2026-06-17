@@ -52,6 +52,17 @@ else {
 <!DOCTYPE html>
 <html lang="<?php echo $idioma ?>">
 <head>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!--script async src="https://www.googletagmanager.com/gtag/js?id=UA-46601315-3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-46601315-3');
+    </script-->
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="index, follow">
@@ -194,6 +205,34 @@ else {
     })(window,document,'script','dataLayer','GTM-WWP64FV');</script>
     <!-- End Google Tag Manager -->
 
+    <!-- Facebook Pixel Code -->
+    <!--script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '<?php echo env('PIXEL_AC_MUNDIAL')?>');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=<?php echo env('PIXEL_AC_MUNDIAL')?>&ev=PageView&noscript=1"
+    /></noscript-->
+    <!-- End Facebook Pixel Code -->
+
+    <?php
+    if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
+      echo urldecode($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook);
+    }
+
+    if (isset($Solicitud->localidad->urlencode_pixel_de_facebook)) {
+      echo urldecode($Solicitud->localidad->urlencode_pixel_de_facebook);
+    }
+    ?>
+
 </head>
 <body class="font-body bg-light-bg text-gray-800 dark:bg-gnosis-dark dark:text-white overflow-x-hidden transition-colors duration-500">
 
@@ -205,6 +244,11 @@ else {
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_script_body)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_script_body);
+    }
+    ?>
+    <?php
+    if (isset($Solicitud->urlencode_script_personalizado_en_form_donde_completan_datos)) {
+      echo urldecode($Solicitud->urlencode_script_personalizado_en_form_donde_completan_datos);
     }
     ?>
 
@@ -321,7 +365,7 @@ else {
                   <div class="bg-white dark:bg-white/5 p-3 rounded-2xl border-4 border-[#8430ce] dark:border-gnosis-gold/30 shadow-2xl dark:shadow-lg transition-all transform hover:scale-[1.01] duration-300">
                     <div class="flex items-center gap-2 mb-2 border-b border-gray-200 dark:border-white/10 pb-1">
                         <i class="fas fa-certificate text-gnosis-accent dark:text-gnosis-gold text-lg"></i>
-                        <span class="text-xs font-bold uppercase tracking-wide text-gnosis-purple dark:text-white">Con materiales de apoyo y certificado</span>
+                        <span class="text-xs font-bold uppercase tracking-wide text-gnosis-purple dark:text-white">Con materiales de apoyo</span>
                     </div>
 
                     <p class="text-sm font-bold text-gray-800 dark:text-gnosis-gold mb-2 flex items-center">
@@ -356,10 +400,22 @@ else {
                           @else
                               @php $nombre_campo = 'fecha_de_evento_id_'.$Fecha_de_evento->id; @endphp
                           @endif
+                        
+                        <?php 
+                        if ($Fecha_de_evento->sino_agotado == 'NO' or $Fecha_de_evento->sino_agotado == '') { 
+                            $class_disabled = '';
+                            $text_agotado = '';
+                        }
+                        else {
+                            $class_disabled = 'disabled';
+                            $text_agotado = __('CUPO AGOTADO');                            
+                        }
+
+                        ?>
 
                           <!-- Opción -->
                           <label class="flex items-start gap-3 p-2 rounded-xl border-2 border-[#8430ce] hover:border-gnosis-accent dark:border-white/10 dark:hover:border-gnosis-gold bg-slate-50 dark:bg-black/40 cursor-pointer transition-all group hover:shadow-md">
-                              <input type="radio" id="fecha_de_evento_id" name="{{$nombre_campo}}" value="{{$Fecha_de_evento->id}}" class="mt-1 w-4 h-4 text-gnosis-accent focus:ring-gnosis-accent border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:checked:bg-gnosis-gold" checked>
+                              <input type="radio" id="fecha_de_evento_id" name="{{$nombre_campo}}" value="{{$Fecha_de_evento->id}}" class="mt-1 w-4 h-4 text-gnosis-accent focus:ring-gnosis-accent border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:checked:bg-gnosis-gold" <?php echo $class_disabled ?> checked>
                               <div class="flex flex-col">
                                   <?php
                                   $tipo = 'con_resumen';
@@ -368,7 +424,8 @@ else {
                                     $con_dir_inicio_distinto = false;
                                   ?>
 
-                                  {!! nl2br($Fecha_de_evento->armarDetalleFechasDeEventos($tipo, $con_inicio, $idioma_por_pais, $Solicitud, $idioma, $ver_mapa, $con_dir_inicio_distinto)) !!}
+                                  {!! nl2br($Fecha_de_evento->armarDetalleFechasDeEventos($tipo, $con_inicio, $idioma_por_pais, $Solicitud, $idioma, $ver_mapa, $con_dir_inicio_distinto)).' '.$text_agotado !!} 
+
                               </div>
                           </label>
 
@@ -378,7 +435,7 @@ else {
 
                         <!-- Opción NO PUEDO-->
                         <label class="flex items-center gap-3 p-1.5 rounded-lg border border-dashed border-[#8430ce] dark:border-gray-600 hover:border-gnosis-accent dark:hover:border-gray-400 bg-transparent cursor-pointer transition-all opacity-80 hover:opacity-100">
-                            <input type="radio" name="fecha_de_evento_id" value="interesado_futuro" class="w-3 h-3 text-gray-500 focus:ring-gray-500 border-gray-300 dark:border-gray-500 dark:bg-gray-700">
+                            <input type="radio" name="fecha_de_evento_id" value="NP" class="w-3 h-3 text-gray-500 focus:ring-gray-500 border-gray-300 dark:border-gray-500 dark:bg-gray-700">
                             <span class="text-[10px] font-semibold text-gray-600 dark:text-gray-300">No puedo en estos horarios pero estoy interesado/a</span>
                         </label>
 

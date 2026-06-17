@@ -139,37 +139,6 @@ App::setLocale($idioma);
     })(window,document,'script','dataLayer','GTM-WWP64FV');</script>
     <!-- End Google Tag Manager -->
 
-    <!-- Facebook Pixel Code -->
-    <!--script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '<?php echo env('PIXEL_AC_MUNDIAL')?>');
-      fbq('track', 'PageView');
-    </script>
-
-    <noscript><img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=<?php echo env('PIXEL_AC_MUNDIAL')?>&ev=PageView&noscript=1"
-    /></noscript-->
-    <!-- End Facebook Pixel Code -->
-
-    <!--script>
-      <?php if (isset($registracion_encuesta) and $registracion_encuesta == 'SI') {?>
-        fbq('trackCustom', 'PollComplete');
-      <?php }
-      else {?>
-        fbq('track', 'CompleteRegistration', {
-          value: 1,
-          currency: 'USD'
-          });
-      <?php } ?>
-    </script-->
-
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook);
@@ -180,7 +149,7 @@ App::setLocale($idioma);
     }
     ?>
 
-    <!--script>
+    <script>
       <?php if (isset($registracion_encuesta) and $registracion_encuesta == 'SI') {?>
         fbq('trackCustom', 'PollComplete');
       <?php }
@@ -190,7 +159,7 @@ App::setLocale($idioma);
           currency: 'USD'
           });
       <?php } ?>
-    </script-->
+    </script>
 
 
 </head>
@@ -206,6 +175,11 @@ App::setLocale($idioma);
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_script_body)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_script_body);
+    }
+    ?>
+    <?php
+    if (isset($Solicitud->urlencode_script_personalizado_en_form_de_resultado_de_registro)) {
+      echo urldecode($Solicitud->urlencode_script_personalizado_en_form_de_resultado_de_registro);
     }
     ?>
 
@@ -236,7 +210,7 @@ App::setLocale($idioma);
                         <a href="{{$Solicitud->url_enlace_de_invitacion_al_grupo_de_whatsapp_del_aula_virtual}}">Únete al grupo exclusivo de WhatsApp</a>
                     </p>
                     <p class="text-gray-600 dark:text-gray-300 text-xs md:text-sm">
-                        El grupo es silenciado y se usará exclusivamente para enviarte los enlaces a las clases.
+                        El grupo es silenciado y se usará exclusivamente para enviarte recordatorios del inicio del curso.
                     </p>
                 </div>
             </div>
@@ -270,7 +244,7 @@ App::setLocale($idioma);
                         </div>
                         <div>
                             <!-- Título agrandado a text-2xl -->
-                            <h3 class="text-gnosis-purple dark:text-gnosis-gold font-bold text-2xl mb-2">Material Exclusivo</h3>
+                            <h3 class="text-gnosis-purple dark:text-gnosis-gold font-bold text-2xl mb-2">Material Exclusivo en la Comunidad</h3>
                             <!-- Descripción agrandada a text-lg -->
                             <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
                                 Guías, audios y lecturas.

@@ -667,15 +667,19 @@ class Solicitud extends Model
         if ($Idioma_por_pais == null) {
             $Idioma_por_pais = $this->idioma_por_pais();
         }
-    
+        
         if ($dominio_publico == null) {
-            if (strpos($Idioma_por_pais->dominio_publico, $_SERVER['HTTP_HOST'])) {
+            if (strpos($Idioma_por_pais->dominio_publico, request()->getHttpHost())) {
                 $dominio_publico = $Idioma_por_pais->dominio_publico;    
             }
             else {
                 $dominio_publico = env('PATH_PUBLIC');
             }
         }
+        
+        
+        //$dominio_publico = env('PATH_PUBLIC');
+        //$dominio_publico = $Idioma_por_pais->dominio_publico;    
     
         return $dominio_publico;
     }
@@ -790,7 +794,7 @@ class Solicitud extends Model
     {
         $Idioma_por_pais = $this->idioma_por_pais();
         $dominio_publico = $Idioma_por_pais->dominio_publico;
-        $url = env('PATH_PUBLIC').'f/igrupo/'.$this->id.'/'.$this->hash.'/'.$grupo_id;
+        $url = env('PATH_PUBLIC').'f/igrupo/'.$this->id.'/'.$this->hash_nuevo($grupo_id).'/'.$grupo_id;
         return $url;
     }
 
@@ -1438,6 +1442,14 @@ class Solicitud extends Model
 
 
         return $emailsMauticCampaign;
+    }
+
+
+    public function hash_nuevo($parametro_extra = null)
+    {
+        $hash_nuevo = $parametro_extra == null ? md5(strval($this->id).strval($this->hash).strval($this->id)) : md5(strval($this->id).strval($this->hash).strval($this->id).strval($parametro_extra));
+        
+        return $hash_nuevo;
     }
     
 

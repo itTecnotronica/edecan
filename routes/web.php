@@ -138,6 +138,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 	Route::get('/procesarRegistrosEugenioAsistencia', 'ExtController@procesarRegistrosEugenioAsistencia');
 
+	Route::get('/f/h/{solicitud_id}/{hash}', 'FormController@listInscriptosHistoricos');
 
 
 });
@@ -240,7 +241,6 @@ Route::get('/f/ibuscar/{solicitudes}/{hash}', 'FormController@listInscriptosBusq
 Route::get('/f/iinscripto/{solicitud_id}/{inscripcion_id}/{hash}', 'FormController@verInscriptoEnPlanilla');
 Route::post('/buscar-inscriptos', 'FormController@buscarInscriptos');
 Route::post('/buscar-alumnos-avanzandos', 'FormController@buscarAlumnosAvanzandos');
-Route::get('/f/h/{solicitud_id}/{hash}', 'FormController@listInscriptosHistoricos');
 Route::get('/f/recupero/{tipo}/{id}/{cant_dias}/{hash}', 'FormController@listInscriptosRecupero');
 Route::get('/f/raw/{solicitud_id}/{hash}', 'ExtController@paginaEnlacesAsistenciaWabot');
 Route::get('/f/rawx/{solicitud_id}/{hash}', 'ExtController@paginaEnlacesAsistenciaExtraWabot');
@@ -261,6 +261,12 @@ Route::get('/data/paises-cod-tel', 'FormController@paisesCodTelJson');
 Route::get('/traer-lecciones-vistas/{inscripcion_id}/{hash}', 'FormController@traerLeccionesVistas');
 Route::get('/traer-tp-realizados/{inscripcion_id}/{hash}', 'FormController@traerTPRealizados');
 Route::get('/forzar-promocion/{inscripcion_id}', 'FormController@forzarPromocion');
+
+
+//MANYCHAT
+Route::get('/findBySystemField/phone/{phone}', 'ManychatController@findSubscriberByPhone');
+Route::get('/registrarContactoEnManychat/{inscripcion_id}', 'ManychatController@registrarContactoEnManychat');
+Route::get('/existeTagSolicitud/{solicitud_id}', 'ManychatController@existeTagSolicitud');
 
 
 

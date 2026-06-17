@@ -294,7 +294,7 @@ else {
                                         <div class="form-group">
                                           <div class="checkbox">
                                             <label>
-                                              <input type="checkbox" id="sino_notificar_proximos_eventos" name="sino_notificar_proximos_eventos" v-model="sino_notificar_proximos_eventos" placeholder="Correo" v-bind:disabled="desabilitar"><?php echo __('Me gustaría recibir información sobre los próximos cursos y eventos gratuitos') ?>
+                                              <input type="checkbox" id="sino_notificar_proximos_eventos" name="sino_notificar_proximos_eventos" v-model="sino_notificar_proximos_eventos" placeholder="Correo" v-bind:disabled="desabilitar"><?php echo __('Me gustaría recibir notificaciones o información sobre los próximos cursos y eventos gratuitos (WhatsApp o email)') ?>
                                             </label>
                                             <span v-show="errors.has('sino_notificar_proximos_eventos')" class="text-danger">@{{ errors.first('sino_notificar_proximos_eventos') }}</span>
                                           </div>

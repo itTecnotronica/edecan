@@ -1,4 +1,4 @@
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <!-- jQuery 3 -->
 <script src="<?php echo env('PATH_PUBLIC')?>bower_components/jquery/dist/jquery.min.js"></script>
@@ -17,6 +17,8 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
+
+
                 <div class="card-header">Paises y Mapas por Pais</div>
                 <div class="card-body">
 
@@ -26,6 +28,8 @@
                           <th v-show="show_col_id"><?php echo __('Pais') ?></th>
                           <th v-show="show_col_id"><?php echo __('Mapa de Sedes') ?></th>
                           <th v-show="show_col_id"><?php echo __('Listado de Sedes') ?></th>
+                          <th v-show="show_col_id">Web</th>
+                          <th v-show="show_col_id">Redes</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -36,6 +40,42 @@
                           <td><?php echo $Pais->pais ?></td>
                           <td><a href="<?php echo env('PATH_PUBLIC_MAPS')?>mapa-de-sedes/<?php echo $Pais->id ?>" target="_blank"><?php echo env('PATH_PUBLIC_MAPS')?>mapa-de-Paises/<?php echo $Pais->id ?></a></td>
                           <td><a href="<?php echo env('PATH_PUBLIC')?>lista-de-sedes/<?php echo $Pais->id ?>" target="_blank"><?php echo env('PATH_PUBLIC')?>lista-de-sedes/<?php echo $Pais->id ?></a></td>
+                          <td>
+                            @if($Pais->idioma_por_pais[0]->url_sitio_web <> '')
+                            <a href="<?php echo $Pais->idioma_por_pais[0]->url_sitio_web ?>" target="_blank" class="btn btn-social-icon btn-dropbox"><i class="fa fa-tv"></i></a>
+                            @endif
+                          </td>
+                          <td>
+                            <table>
+                              <tr>
+                                @if($Pais->idioma_por_pais[0]->url_fanpage <> '')
+                                <td style="padding: 5px;">
+                                  <a href="<?php echo $Pais->idioma_por_pais[0]->url_fanpage ?>" target="_blank" class="btn btn-social-icon btn-facebook"><i class="fa fa-facebook"></i></a>
+                                </td>
+                                @endif
+                                @if($Pais->idioma_por_pais[0]->url_instagram <> '')
+                                <td style="padding: 5px;">
+                                  <a href="<?php echo $Pais->idioma_por_pais[0]->url_instagram ?>" target="_blank" class="btn btn-social-icon btn-flickr"><i class="fa fa-instagram"></i></a>
+                                </td>
+                                @endif
+                                @if($Pais->idioma_por_pais[0]->url_youtube <> '')
+                                <td>
+                                  <a href="<?php echo $Pais->idioma_por_pais[0]->url_youtube ?>" target="_blank" class="btn btn-social-icon btn-google"><i class="fa fa-youtube-play"></i></a>
+                                </td>
+                                @endif
+                                @if($Pais->idioma_por_pais[0]->url_twitter <> '')
+                                <td style="padding: 5px;">
+                                  <a href="<?php echo $Pais->idioma_por_pais[0]->url_twitter ?>" target="_blank" class="btn btn-social-icon btn-twitter"><i class="fa fa-twitter"></i></a>
+                                </td>
+                                @endif
+                                @if($Pais->idioma_por_pais[0]->url_tiktok <> '')
+                                <td style="padding: 5px;">
+                                  <a href="<?php echo $Pais->idioma_por_pais[0]->url_tiktok ?>" target="_blank" class="btn btn-social-icon"><img src="https://gnosisargentina.org.ar/fonts/tiktok.svg" style="width: 24px; height: 24px"></a>
+                                </td>
+                                @endif
+                              </tr>
+                            </table>
+                          </td>
                         </tr>
                       <?php } ?>
                       </tbody>

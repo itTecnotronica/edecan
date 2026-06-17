@@ -106,23 +106,6 @@ else {
     })(window,document,'script','dataLayer','GTM-WWP64FV');</script>
     <!-- End Google Tag Manager -->
 
-    <!-- Facebook Pixel Code -->
-    <!--script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '<?php echo env('PIXEL_AC_MUNDIAL')?>');
-      fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=<?php echo env('PIXEL_AC_MUNDIAL')?>&ev=PageView&noscript=1"
-    /></noscript-->
-    <!-- End Facebook Pixel Code -->
 
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_pixel_de_facebook)) {
@@ -145,6 +128,11 @@ else {
     <?php
     if (isset($Solicitud->idioma_por_pais()->urlencode_script_body)) {
       echo urldecode($Solicitud->idioma_por_pais()->urlencode_script_body);
+    }
+    ?>
+    <?php
+    if (isset($Solicitud->urlencode_script_personalizado_en_form_donde_completan_datos)) {
+      echo urldecode($Solicitud->urlencode_script_personalizado_en_form_donde_completan_datos);
     }
     ?>
 
@@ -511,7 +499,7 @@ else {
                                       <div class="form-group">
                                         <div class="checkbox">
                                           <label>
-                                            <input type="checkbox" id="sino_notificar_proximos_eventos" name="sino_notificar_proximos_eventos" v-model="sino_notificar_proximos_eventos" placeholder="Correo" v-bind:disabled="desabilitar"><?php echo __('Me gustaría recibir información sobre los próximos cursos y eventos gratuitos') ?>
+                                            <input type="checkbox" id="sino_notificar_proximos_eventos" name="sino_notificar_proximos_eventos" v-model="sino_notificar_proximos_eventos" placeholder="Correo" v-bind:disabled="desabilitar"><?php echo __('Me gustaría recibir notificaciones o información sobre los próximos cursos y eventos gratuitos (WhatsApp o email)') ?>
                                           </label>
                                           <span v-show="errors.has('sino_notificar_proximos_eventos')" class="errores-invisibles text-danger" v-bind:style="class_errores">@{{ errors.first('sino_notificar_proximos_eventos') }}</span>
                                         </div>

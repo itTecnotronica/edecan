@@ -1315,6 +1315,10 @@ function sino_a_tf($sino) {
       $gen_seteo['no_mostrar_campos_abm'] .= '|fecha_de_solicitud';
     }
   }
+  
+  if (Auth::user()->id > 1) {
+    $gen_seteo['no_mostrar_campos_abm'] .= '|sino_habilitar_manychat';
+  }
 
   /*
   if ($rol_de_usuario_id > 3) {

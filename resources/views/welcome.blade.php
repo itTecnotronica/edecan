@@ -8,7 +8,8 @@ $equipo_id = Auth::user()->equipo_id;
 
 
 $tituloApp = 'Tecnotronica';
-if ($_SERVER['HTTP_HOST'] == 'ac.igca.com.ar') {
+
+if (request()->getHttpHost() == 'ac.igca.com.ar') {
     $tituloApp = 'IGCA';
 }
 

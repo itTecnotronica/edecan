@@ -42,7 +42,7 @@ foreach ($Campaign_leads as $lead) {
 
 
 $MauticController = new MauticController();
-$Solicitudes = [30313];
+$Solicitudes = [32399];
 
 foreach ($Solicitudes as $solicitud_id) {	
 	//CON ESTO EJECUTO LA PROGRAMACION DE LA CAMPAÑA DE EMAIL SIN CARGARLA EN LA COLA

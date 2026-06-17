@@ -584,11 +584,20 @@ class ExtController extends Controller
 
     public function urlSedesPaises()
     {
-        $Paises = Pais::whereRaw('id in (SELECT s.pais_id FROM sedes s)')->orderBy('pais', 'DESC')->get();
+        $Paises = Pais::whereRaw('id in (SELECT s.pais_id FROM sedes s)')->with('idioma_por_pais')->orderBy('pais', 'ASC')->get();
 
         return View('reportes/url-sedes-paises')
         ->with('mostrar_inscriptos', 'SI')
         ->with('Paises', $Paises);
+
+    }
+
+
+    public function getSedesPaises()
+    {
+        $Paises = Pais::whereRaw('id in (SELECT s.pais_id FROM sedes s)')->with('idioma_por_pais')->orderBy('pais', 'ASC')->get();
+
+        return response()->json($Paises, 201);
 
     }
 
@@ -810,6 +819,7 @@ class ExtController extends Controller
             'gnosis_pre_pt',
             'gnosis_pre_en',
             'gnosis_pre_fr',
+            'gnosis_pre_ar',
             'gnosis_dn',
         ];
 
@@ -912,7 +922,7 @@ class ExtController extends Controller
                 }                
             }
         
-            if ($palabra_clave == 'gnosis_pre' or $palabra_clave == 'gnosis_pre_pt' or $palabra_clave == 'gnosis_pre_en' or $palabra_clave == 'gnosis_pre_fr') {
+            if ($palabra_clave == 'gnosis_pre' or $palabra_clave == 'gnosis_pre_pt' or $palabra_clave == 'gnosis_pre_en' or $palabra_clave == 'gnosis_pre_fr' or $palabra_clave == 'gnosis_pre_ar') {
                 
                 $aula_array = explode('#', $palabra_clave_array[1]);
                 $aula = $aula_array[1];
@@ -977,7 +987,7 @@ class ExtController extends Controller
                 $es_leccion_normal = true;
                 if ($Solicitud->count() > 0) {
 
-                    if ( ($palabra_clave == 'gnosis_pre' and (strpos($sino, 'S') !== false)) or ($palabra_clave == 'gnosis_pre_pt' and (strpos($sino, 'S') !== false)) or ($palabra_clave == 'gnosis_pre_en' and (strpos($sino, 'Y') !== false)) or ($palabra_clave == 'gnosis_pre_fr' and (strpos($sino, 'OU') !== false)) ) {
+                    if ( ($palabra_clave == 'gnosis_pre' and (strpos($sino, 'S') !== false)) or ($palabra_clave == 'gnosis_pre_pt' and (strpos($sino, 'S') !== false)) or ($palabra_clave == 'gnosis_pre_en' and (strpos($sino, 'Y') !== false)) or ($palabra_clave == 'gnosis_pre_fr' and (strpos($sino, 'OU') !== false)) or $palabra_clave == 'gnosis_pre_ar' ) {
 
                         $primera_letra_clase = substr($clase, 0, 1);
                         if ($primera_letra_clase == 'X') {

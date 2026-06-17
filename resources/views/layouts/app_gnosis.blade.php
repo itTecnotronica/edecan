@@ -30,7 +30,7 @@
         <div class="container">
             <div class="row">
                 <br>
-                <?php if (!strpos($_SERVER['HTTP_HOST'], 'asoprovida')) { ?>     
+                <?php if (!strpos(request()->getHttpHost(), 'asoprovida')) { ?>     
                 <p align="center"><a href="<?php echo ENV('PATH_PUBLIC') ?>"><img src="<?php echo env('PATH_PUBLIC')?>img/sol-de-acuario-chico-isologo.png"></a></p>
                 <?php } ?>
             </div>

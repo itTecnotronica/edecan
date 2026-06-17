@@ -4,12 +4,14 @@ use \App\Http\Controllers\SolicitudController;
 use App\Equipo;
 use App\User;
 
-if ($_SERVER['HTTP_HOST'] == 'localhost' or $_SERVER['HTTP_HOST'] == 'ac.gnosis.is') {
+
+if (request()->getHttpHost() == 'localhost' or request()->getHttpHost() == 'ac.gnosis.is') {
   $path_public = env('PATH_PUBLIC');
 }
 else {
-  $path_public = 'https://'.$_SERVER['HTTP_HOST'].'/';  
+  $path_public = 'https://'.request()->getHttpHost().'/';  
 }
+
 
 
 $SolicitudController = new SolicitudController;
@@ -83,7 +85,7 @@ function permisoAutorizado($Roles, $permisos) {
 
 $titleHead = 'Tecnotronica'.__('Solicitudes de Campañas');
 $tituloApp = 'Tecnotronica';
-if ($_SERVER['HTTP_HOST'] == 'ac.igca.com.ar') {
+if (request()->getHttpHost() == 'ac.igca.com.ar') {
     $titleHead = 'IGCA';
     $tituloApp = 'IGCA';
 }

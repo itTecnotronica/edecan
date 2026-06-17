@@ -232,8 +232,8 @@ $url_envio_de_motivacion_3 = '';
                           <th v-show="show_col_fecha"><?php echo __('Fecha') ?></th>
                           <th v-show="show_col_apellido"><?php echo __('Apellido') ?></th>
                           <th v-show="show_col_nombre"><?php echo __('Nombre') ?></th>
-                          <th v-show="show_col_celular"><?php echo __('Celular') ?></th>
-                          <th v-show="show_col_celular"></th>
+                          <!--th v-show="show_col_celular"><?php echo __('Celular') ?></th>
+                          <th v-show="show_col_celular"></th-->
                           <th v-show="show_col_email_correo"><?php echo __('Correo') ?></th>
                           <th v-show="show_col_fecha_de_evento && mostrar_fechas"><?php echo __('Horario') ?></th>
                           <?php if ($tipo_de_evento_id == 3) { ?>
@@ -267,14 +267,16 @@ $url_envio_de_motivacion_3 = '';
                             <td v-show="show_col_fecha"><?php echo $gCont->FormatoFechayYHora($Inscripcion->created_at); ?></td>
                             <td v-show="show_col_apellido"><?php echo $apellido; ?></td>
                             <td v-show="show_col_nombre"><?php echo $nombre; ?></td>
-                            <td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
-                            <td v-show="show_col_celular">         
+                            <!--td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
+                            <td v-show="show_col_celular">  
+                              @if ($Inscripcion->fecha_de_evento_id > 0)       
                                 @if (Carbon::today()->gte(Carbon::parse($Inscripcion->fecha_de_evento->fecha_de_inicio)))
                                 <a href="https://api.whatsapp.com/send?phone=<?php echo $Inscripcion->celular_wa($codigo_tel); ?>" target="_blank">
                                   <button type="button" class="btn btn-success btn-xs"><i class="fa fa-fw fa-whatsapp" style="font-size: 19px"></i></button>
                                 </a>     
                                 @endif               
-                            </td>
+                              @endif               
+                            </td-->
                             <td v-show="show_col_email_correo"><?php echo $Inscripcion->email_correo; ?></td>
                             <td v-show="show_col_fecha_de_evento">
                               <?php 

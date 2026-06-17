@@ -81,6 +81,10 @@ class Leccion extends Model
             if ($Idioma_por_pais->idioma_id == 3) {
                 $url_notificacion_leccion_finalizada = 'https://api.whatsapp.com/send?phone=558003843646&text=gnosis_pre_fr%20a%23'.$solicitud_id.'%20c%23'.$this->codigo_de_la_leccion; 
             }
+
+            if ($Idioma_por_pais->idioma_id == 12) {
+                $url_notificacion_leccion_finalizada = 'https://api.whatsapp.com/send?phone=558003843646&text=gnosis_pre_ar%20a%23'.$solicitud_id.'%20c%23'.$this->codigo_de_la_leccion; 
+            }
                        
         }
         

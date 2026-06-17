@@ -1,6 +1,6 @@
 <?php 
 $imgLogo = 'logo.jpg';
-if ($_SERVER['HTTP_HOST'] == 'ac.igca.com.ar') {
+if (request()->getHttpHost() == 'ac.igca.com.ar') {
     $imgLogo = 'igca.png';
 }
 ?>

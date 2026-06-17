@@ -284,12 +284,12 @@ class MauticController extends Controller
 
                     //dd($newCampaign);
 
-                    $descripcion_sin_estado = mb_substr($descripcion_sin_estado, 0, 60, "UTF-8");
+                    $descripcion_sin_estado_acortado = mb_substr($descripcion_sin_estado, 0, 60, "UTF-8");
 
 
-                    $title = 'GNOSIS '.$descripcion_sin_estado;
-                    $name = 'AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado;
-                    $subject = 'GNOSIS '.$descripcion_sin_estado;
+                    $title = 'GNOSIS '.$descripcion_sin_estado_acortado;
+                    $name = 'AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado_acortado;
+                    $subject = 'GNOSIS '.$descripcion_sin_estado_acortado;
 
                     $data = array(
                         'title' => $title,
@@ -322,7 +322,7 @@ class MauticController extends Controller
                     $data['isPublished'] = true;
                     $data['publishUp'] = $fecha_de_publicacion_de_campania." 00:00";
                     //$data['publishUp'] = "2021-12-12 15:00";
-                    $data['name'] = 'AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado;
+                    $data['name'] = 'AC Invitacion Solicitud: '.$Solicitud->id.' - '.$descripcion_sin_estado_acortado;
                     //$data['events'][0]['id'] = null;
                     $data['events'][0]['channelId'] = $email_id;
                     $data['events'][0]['properties']['properties']['email'] = $email_id;

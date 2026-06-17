@@ -46,6 +46,8 @@ use Filesystem;
 use App\Http\Controllers\Mautic\MauticApi;
 use App\Http\Controllers\Mautic\Auth\AuthInterface;
 use App\Http\Controllers\Mautic\Auth\ApiAuth;
+use App\Http\Controllers\ManychatController;
+
 //use App\Libraries\mauticApi\lib\MauticApi;
 //use Alkoumi\LaravelHijriDate\Hijri;
 
@@ -605,6 +607,10 @@ class FormController extends Controller
         // TRAIGO LAS REGLAS PARA VALIDAR
         $reglas = $this->reglasInscripcion($solicitud_id);
 
+        if ($solicitud_id == 32189) {
+                //dd($reglas);
+        }
+
         // VALIDO LOS CAMPOS QUE VIENEN
         //$validator = Validator::make($request->all(), $reglas);
         //dd($validator->errors());
@@ -640,19 +646,19 @@ class FormController extends Controller
         $Solicitud = Solicitud::find($solicitud_id);
             
         $cel_requerido = 'required|';
-        $mail_requerido = '';
+        $mail_requerido = 'nullable';
         $canal_de_recepcion_del_curso_id_requerido = '';
-        $pais_id_requerido = '';
-        $ciudad_requerido = '';
-        $localidad_id_requerido = '';
+        $pais_id_requerido = 'nullable|';
+        $ciudad_requerido = 'nullable|';
+        $localidad_id_requerido = 'nullable|';
 
         if ($Solicitud->idioma_por_pais() <> null) {
             $idioma_por_pais = $Solicitud->idioma_por_pais(); 
             if ($idioma_por_pais->sino_cel_obligatorio == 'NO') {
-                $cel_requerido = '';
+                $cel_requerido = 'nullable|';
             }
-            if ($idioma_por_pais->sino_mail_obligatorio == 'NO') {
-                $mail_requerido = '';
+            if ($idioma_por_pais->sino_mail_obligatorio == 'NO' or $idioma_por_pais->sino_mail_obligatorio == '') {
+                $mail_requerido = 'nullable|';
             }
             else {
                 $mail_requerido = 'required|';
@@ -676,11 +682,11 @@ class FormController extends Controller
             //'app_usuario_id' => 'numeric|min:0',
             //'embebed' => 'string',
             'nombre' => 'required|max:45',
-            'apellido' => 'max:45',
+            'apellido' => 'nullable|max:45',
             'celular' => $cel_requerido.'max:45',
             //'celular_completo' => 'string|max:45',
             'email_correo' => $mail_requerido.'max:80|email',
-            'fecha_de_evento_id' => 'numeric|min:0',
+            //'fecha_de_evento_id' => 'numeric|min:0',
             //'canal_de_recepcion_del_curso_id' => $canal_de_recepcion_del_curso_id_requerido,
             'consulta' => 'max:2000',
             'pais_id' => $pais_id_requerido.'numeric|min:0',
@@ -1327,9 +1333,20 @@ class FormController extends Controller
             $mensaje_box = '<h4>'.mb_strtoupper($nombre, 'UTF-8').'</h4>'.__('hay algun error con su inscripción, intentelo nuevamente, y si persiste comuníquese con nuestro responsable de inscripción para inscribirse telefónicamente').': <br><h3>'.$Solicitud->nombre_responsable_de_inscripciones.' '.__('Celular').': '.$Solicitud->celular_responsable_de_inscripciones.'</h3>';   
         }
         else {
+
+
+            if ($Solicitud->sino_habilitar_manychat == 'SI' and $inscripcion_id > 0) {
+                
+                $ManychatController = new ManychatController();
+                $ManychatController->registrarContactoEnManychat($inscripcion_id);
+                
+            }
+
+            //SI SE REGISTRO ALGUNA INSCRIPCION
             if ($se_registro_alguna_inscripcion == 'S') {
+
                  
-                 $mensaje_box = '<h4> <i class="icon fa fa-check"> </i> '.__('Felicitaciones').' '.mb_strtoupper($nombre, 'UTF-8').'</h4>'.__('Inscripción registrada');
+                $mensaje_box = '<h4> <i class="icon fa fa-check"> </i> '.__('Felicitaciones').' '.mb_strtoupper($nombre, 'UTF-8').'</h4>'.__('Inscripción registrada');
                 
                 
                 if ($solicitud_id == 9467) {
@@ -1346,6 +1363,7 @@ class FormController extends Controller
 
             }
             else {
+                //SI NO SE REGISTRO UNA INSCRIPCION
                 $mensaje_box = '<h4> <i class="icon fa fa-check"> </i> '.mb_strtoupper($nombre, 'UTF-8').'</h4>'.__('su inscripción ya ha sido registrada');
 
                 $mensaje_box .= '<br><br>';
@@ -1390,11 +1408,6 @@ class FormController extends Controller
                     $mensaje_box .= 'Descarga tu libro mediante este enlace: <br><br><a href ="'.ENV('PATH_PUBLIC').'storage/books/'.$nombre_archivo_pdf.'" target="_blank">'.ENV('PATH_PUBLIC').'storage/books/'.$nombre_archivo_pdf.'</a> <br><br>';
                 }   
 
-
-                
-
-
-
             }
 
             if ($mensaje_box_fecha_de_evento <> '') {
@@ -1429,6 +1442,8 @@ class FormController extends Controller
         }
 
 
+
+        // SETEO LAS URL DE REDES SOCIALES
         $url_redes = $this->urlRedesEspeciales($solicitud_id);
 
         if (count($url_redes) > 0) {
@@ -1468,6 +1483,7 @@ class FormController extends Controller
                 }
             }
         }
+        // FIN SETEO LAS URL DE REDES SOCIALES
 
         // DETERMINO EL TITULO
         $titulo = '';
@@ -1493,6 +1509,7 @@ class FormController extends Controller
         else {
             $titulo = $Solicitud->titulo_del_formulario_personalizado;
         }
+        // FIN DETERMINO EL TITULO
 
         if ($embebed == 'embebed') {
             $blade_de_formulario = 'registracion-ok-embebed';
@@ -2204,10 +2221,8 @@ class FormController extends Controller
         $this->procesosEspeciales('listInscriptos', $solicitud_id);       
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
 
-        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
-
         //if ($Solicitud->hash == $hash or $hash == $hash_nuevo) {              
-        if ($hash == $hash_nuevo) {              
+        if ($hash == $Solicitud->hash_nuevo()) {              
 
 
             if (in_array($solicitud_id, [7542, 7543, 7544, 7536])) {
@@ -2394,11 +2409,10 @@ class FormController extends Controller
        
 
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
-        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
 
 
         //if ($Solicitud->hash == $hash) {
-        if ($hash == $hash_nuevo) {    
+        if ($hash == $Solicitud->hash_nuevo()) {    
             $campania_id = NULL;
             $offset = 0;
             $cant_x_pagina = null;
@@ -2600,10 +2614,8 @@ class FormController extends Controller
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
 
 
-        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
-
         //if ($Solicitud->hash == $hash) {
-        if ($hash == $hash_nuevo) {     
+        if ($hash == $Solicitud->hash_nuevo()) {     
 
 
 
@@ -2867,8 +2879,8 @@ class FormController extends Controller
     {  
        
         $Solicitud = Solicitud::where('id', $solicitud_id)->first();
-        if ($Solicitud->hash == $hash) {   
-            
+
+        if ($Solicitud->hash_nuevo($grupo) == $hash) {              
             
             $now = new \DateTime();
             $fecha_now = $now->format('Y-m-d H:i:s');
@@ -3074,9 +3086,9 @@ class FormController extends Controller
         }
 
         $Solicitud = Solicitud::find($solicitud_id);
-        $hash_nuevo = md5(strval($solicitud_id).strval($Solicitud->hash).strval($solicitud_id));
 
-        if ($hash_nuevo == $hash) {              
+
+        if ($Solicitud->hash_nuevo() == $hash) {              
 
 
             $campania_id = NULL;
@@ -5577,6 +5589,11 @@ class FormController extends Controller
 
         return $GrupoAsignado;
     }
+
+
+
+
+
  
 
 }

@@ -177,8 +177,8 @@ else {
                           <th v-show="show_col_fecha"><?php echo __('Fecha') ?></th>
                           <th v-show="show_col_apellido"><?php echo __('Apellido') ?></th>
                           <th v-show="show_col_nombre"><?php echo __('Nombre') ?></th>
-                          <!--th v-show="show_col_celular"><?php echo __('Celular') ?></th>
-                          <th v-show="show_col_celular"></th-->
+                          <th v-show="show_col_celular"><?php echo __('Celular') ?></th>
+                          <th v-show="show_col_celular"></th>
                           <th v-show="show_col_email_correo"><?php echo __('Correo') ?></th>
                           <th v-show="show_col_fecha_de_evento && mostrar_fechas"><?php echo __('Horario') ?></th>
                           <?php if ($Solicitud->tipo_de_evento_id == 3) { ?>
@@ -246,12 +246,12 @@ else {
                             <td v-show="show_col_fecha"><?php echo $gCont->FormatoFechayYHora($Inscripcion->created_at); ?></td>
                             <td v-show="show_col_apellido"><?php echo $Inscripcion->apellido; ?></td>
                             <td v-show="show_col_nombre"><?php echo $Inscripcion->nombre; ?></td>
-                            <!--td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
+                            <td v-show="show_col_celular"><?php echo $Inscripcion->celular; ?></td>
                             <td v-show="show_col_celular">                     
                                 <a href="http://api.whatsapp.com/send?phone=<?php echo $Inscripcion->celular_wa(); ?>" target="_blank">
                                   <button type="button" class="btn btn-success btn-xs"><i class="fa fa-fw fa-whatsapp" style="font-size: 19px"></i></button>
                                 </a>                    
-                            </td-->
+                            </td>
                             <td v-show="show_col_email_correo"><?php echo $Inscripcion->email_correo; ?></td>
                             <td v-show="show_col_fecha_de_evento && mostrar_fechas">
                               <?php 

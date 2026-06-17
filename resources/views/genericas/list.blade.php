@@ -1,10 +1,10 @@
 <?php 
 
-if ($_SERVER['HTTP_HOST'] == 'localhost' or $_SERVER['HTTP_HOST'] == 'ac.gnosis.is') {
+if (request()->getHttpHost() == 'localhost' or request()->getHttpHost() == 'ac.gnosis.is') {
   $path_public = env('PATH_PUBLIC');
 }
 else {
-  $path_public = 'https://'.$_SERVER['HTTP_HOST'].'/';  
+  $path_public = 'https://'.request()->getHttpHost().'/';  
 }
 
 ?>

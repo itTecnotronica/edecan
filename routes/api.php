@@ -154,5 +154,6 @@ Route::get('GAPP/ADDPASEYSALVO/{miembro_pase}/{nombre_pase}/{id_lumisial_origen}
 Route::get('GAPP/GETPASEYSALVO/{id}/{token}', 'AppController@getPaseYSalvo');
 Route::get('GAPP/DELETEPASEYSALVO/{id}/{token}', 'AppController@deletePaseYSalvo');
 
-//INSCRIPCIONES EDECAN
+//EDECAN
 Route::post('EDECAN/INSCRIPCION/CREATE', 'FormController@RegistrarInscripcionAPI');
+Route::get('/EDECAN/SEDES/GET', 'ExtController@getSedesPaises');
