@@ -108,9 +108,14 @@ Route::post('GAPP/UPDATEMIEMBROFIRMA', 'AppController@updateMiembroFirma');
 Route::get('GAPP/GETMIEMBROS/{busqueda}/{tipoMiembro}/{token}', 'AppController@getMiembros');
 Route::get('GAPP/GETMIEMBROID/{id_usuario}/{token}', 'AppController@getMiembroId');
 Route::get('GAPP/SAVEMIEMBROTELEFONO/{id_usuario}/{telefono}/{token}', 'AppController@updateMiembroTelefono');
-Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppController@updateMiembro');
+Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppController@updateMiembro'); 
+Route::post('GAPP/MIEMBROS',   'AppController@storeOrUpdateMiembro'); 
+Route::put('GAPP/MIEMBROS/{id}', 'AppController@storeOrUpdateMiembro');
+Route::get('GAPP/SAVEMIEMBROCLAVE/{documento}/{password}/{token}', 'AppController@updateMiembroClave'); 
+
 //MIEMBROS OBSERVACION
 Route::get('GAPP/SAVEMIEMBROOBSERVACION/{id_usuario}/{notas}/{opcion}/{token}', 'AppController@saveMiembroObservacion');
+Route::post('GAPP/SAVEMIEMBROOBSERVACION/{token}', 'AppController@saveMiembroObservacionPost');
 Route::get('GAPP/DELETEMIEMBROOBSERVACION/{id}/{token}', 'AppController@deleteMiembroObservacion');
 Route::get('GAPP/GETMIEMBROSOBSERVACIONES/{token}', 'AppController@getMiembrosObservaciones');
 Route::get('GAPP/GETMIEMBROOBSERVACIONES/{id_usuario}/{token}', 'AppController@getMiembroObservaciones');
@@ -150,9 +155,13 @@ Route::get('GAPP/ENCUESTAS/{id}/dni', 'AppController@getResultadosDni');
 // My Gnosis
 Route::post('MG/asistencia/notificar', 'ExtController@registrarAsistencia');
 //Pase y salvo --  
-Route::get('GAPP/ADDPASEYSALVO/{miembro_pase}/{nombre_pase}/{id_lumisial_origen}/{id_lumisial_destino}/{miembro_id}/{dias}/{motivo}/{participacion}/{token}', 'AppController@addPaseYSalvo');
+Route::post('GAPP/ADDPASEYSALVO/{token}', 'AppController@addPaseYSalvo');
 Route::get('GAPP/GETPASEYSALVO/{id}/{token}', 'AppController@getPaseYSalvo');
+Route::get('GAPP/GETPAZYSALVOBYID/{id}/{token}', 'AppController@getPaseYSalvoById');
 Route::get('GAPP/DELETEPASEYSALVO/{id}/{token}', 'AppController@deletePaseYSalvo');
+ 
+//RESUMEN COMUNIDADES
+Route::get('resumen-comunidades', 'AppController@ResumenComunidades');
 
 //EDECAN
 Route::post('EDECAN/INSCRIPCION/CREATE', 'FormController@RegistrarInscripcionAPI');
