@@ -25,3 +25,5 @@ phpinfo.php
 /Fuentes
 /bd
 AGENTS.md
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
