@@ -1535,7 +1535,9 @@ class AppController extends Controller
                                 mbr.firma,
                                 mbr.cargoPrincipal,
                                 mbr.sino_esEditor,
-                                mbr.password ')) 
+                                mbr.password,
+                                mbr.lumisialesHabilitados ,
+                                mbr.diocesisUuid ')) 
             ->join('app_miembros_lumisial AS lum', 'lum.uuid', '=', 'mbr.lumisialUuid')  
              ->join('app_miembros_diocesis as dio', function($join) {
                 $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
@@ -2205,6 +2207,25 @@ class AppController extends Controller
             if ($tipoMiembro == 'L'){ 
                     $whereRaw = "(lumi.uuid = '$busqueda')";  
             }  
+            if ($tipoMiembro == 'ML') {
+                // Busqueda trae un string de UUIDs separados por coma: "uuid1,uuid2"
+                $uuidsArray = explode(',', $busqueda);
+                $uuidsStr = "'" . implode("','", $uuidsArray) . "'";
+                $whereRaw = "(lumi.uuid IN ($uuidsStr))";
+            }
+            if ($tipoMiembro == 'D') {
+                // Busqueda trae el UUID de la diocesis
+                // Filtramos si el lumisial tiene esa diocesisUuid, o si el lumisial tiene un stateUuid que está en la diocesis
+                $diocesis = DB::table('app_miembros_diocesis')->where('UUID', $busqueda)->first();
+                if ($diocesis) {
+                    $lumisiales = $diocesis->Lumisial ? "'" . str_replace(",", "','", $diocesis->Lumisial) . "'" : "''";
+                    $states = $diocesis->State ? "'" . str_replace(",", "','", $diocesis->State) . "'" : "''";
+                    
+                    $whereRaw = "(lumi.uuid IN ($lumisiales))";
+                } else {
+                    $whereRaw = "(1=0)"; // No diocesis found, return none
+                }
+            }
             if ($token == 'gapp') {           
                         $Miembros = DB::table('app_miembros AS mie')    
                         ->select(DB::Raw('  mie.id, 
@@ -2225,7 +2246,10 @@ class AppController extends Controller
                                            mie.phoneNumber,
                                            mie.img_imagen,
                                            mie.sino_esEditor,
-                                           mie.sino_isBishop  '))   
+                                           mie.sino_isBishop,
+                                           mie.cargoPrincipal,
+                                           mie.lumisialesHabilitados, 
+                                           mie.diocesisUuid  '))   
                         ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
                         ->whereRaw($whereRaw)  
@@ -2501,7 +2525,8 @@ class AppController extends Controller
                         ->select(DB::Raw(' pro.description Provincia,
                                            lum.city Ciudad,
                                            lum.name Lumisial,
-                                           lum.uuid Id '))
+                                           lum.uuid Id,
+                                           lum.diocesisUuid '))
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lum.stateUuid')
                         ->orderBy('Lumisial', 'asc')
                          ->get(); 
@@ -2728,6 +2753,10 @@ class AppController extends Controller
             return response()->json('ERROR: Token inválido', 401);
         }
 
+        if ($valor === 'NULL' || $valor === 'null') {
+            $valor = null;
+        }
+
         try {
             $miembro = Miembros::where('registration', $registration)->first();
 
@@ -2778,6 +2807,15 @@ class AppController extends Controller
                 case 'tipoUngido':
                     $miembro->priestType = $valor;
                     break; 
+                case 'cargoPrincipal':
+                    $miembro->cargoPrincipal = trim($valor);
+                    break; 
+                case 'diocesisUuid':
+                    $miembro->diocesisUuid = $valor;
+                    break;
+                case 'lumisialesHabilitados':
+                    $miembro->lumisialesHabilitados = $valor;
+                    break;
                 default:
                     return response()->json('Campo no reconocido: ' . $campo, 400);
             }

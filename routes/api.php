@@ -166,3 +166,13 @@ Route::get('resumen-comunidades', 'AppController@ResumenComunidades');
 //EDECAN
 Route::post('EDECAN/INSCRIPCION/CREATE', 'FormController@RegistrarInscripcionAPI');
 Route::get('/EDECAN/SEDES/GET', 'ExtController@getSedesPaises');
+
+// ABM Lumisiales y Diocesis
+Route::get('GAPP/DIOCESIS/{token}', 'API\DiocesisController@index');
+Route::post('GAPP/DIOCESIS/{token}', 'API\DiocesisController@storeOrUpdate');
+Route::delete('GAPP/DIOCESIS/{id}/{token}', 'API\DiocesisController@destroy');
+
+Route::get('GAPP/LUMISIALES_ABM/{token}', 'API\LumisialController@index');
+Route::post('GAPP/LUMISIALES_ABM/{token}', 'API\LumisialController@storeOrUpdate');
+Route::delete('GAPP/LUMISIALES_ABM/{id}/{token}', 'API\LumisialController@destroy');
+Route::get('GAPP/PROVINCIAS/{token}', 'API\LumisialController@getProvincias');
