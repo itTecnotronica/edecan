@@ -8,8 +8,9 @@ class AppMiembrosLumisial extends Model
 {
     protected $table = 'app_miembros_lumisial';
     
-    // Asumiendo que la PK es 'uuid' o id autonumerico, pero como hay uuid lo definiremos:
-    // protected $primaryKey = 'id';
+    protected $primaryKey = 'uuid';
+    public $incrementing = false;
+    protected $keyType = 'string';
     
     public $timestamps = false; // si la tabla no tiene created_at/updated_at
 

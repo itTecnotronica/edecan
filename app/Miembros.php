@@ -9,4 +9,9 @@ class Miembros extends Model
 	protected $guarded = ['id'];    
 
     protected $table = 'app_miembros';  
+
+    public function historialIngresos()
+    {
+        return $this->hasMany(HistorialIngreso::class, 'miembro_id', 'id');
+    }
 }

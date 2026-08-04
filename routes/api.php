@@ -112,10 +112,14 @@ Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppControll
 Route::post('GAPP/MIEMBROS',   'AppController@storeOrUpdateMiembro'); 
 Route::put('GAPP/MIEMBROS/{id}', 'AppController@storeOrUpdateMiembro');
 Route::get('GAPP/SAVEMIEMBROCLAVE/{documento}/{password}/{token}', 'AppController@updateMiembroClave'); 
+Route::get('GAPP/DELETEMIEMBRO/{id}/{token}', 'AppController@deleteMiembro');
 
 //MIEMBROS OBSERVACION
 Route::get('GAPP/SAVEMIEMBROOBSERVACION/{id_usuario}/{notas}/{opcion}/{token}', 'AppController@saveMiembroObservacion');
 Route::post('GAPP/SAVEMIEMBROOBSERVACION/{token}', 'AppController@saveMiembroObservacionPost');
+
+// Ruta para guardar logs de mi_espacio (o cualquier app externa)
+Route::post('GAPP/SAVELOG/{token}', 'AppController@saveApiLog');
 Route::get('GAPP/DELETEMIEMBROOBSERVACION/{id}/{token}', 'AppController@deleteMiembroObservacion');
 Route::get('GAPP/GETMIEMBROSOBSERVACIONES/{token}', 'AppController@getMiembrosObservaciones');
 Route::get('GAPP/GETMIEMBROOBSERVACIONES/{id_usuario}/{token}', 'AppController@getMiembroObservaciones');
@@ -176,3 +180,8 @@ Route::get('GAPP/LUMISIALES_ABM/{token}', 'API\LumisialController@index');
 Route::post('GAPP/LUMISIALES_ABM/{token}', 'API\LumisialController@storeOrUpdate');
 Route::delete('GAPP/LUMISIALES_ABM/{id}/{token}', 'API\LumisialController@destroy');
 Route::get('GAPP/PROVINCIAS/{token}', 'API\LumisialController@getProvincias');
+Route::put('GAPP/miembros/{id}/inactivar', 'API\MiembrosControlController@inactivar');
+Route::post('GAPP/miembros/{id}/readmitir', 'API\MiembrosControlController@readmitir');
+
+// API Logs
+Route::get('GAPP/logs', 'API\ApiLogController@index');

@@ -1052,7 +1052,8 @@ class AppController extends Controller
                                 pro.description Provincia,
                                 mb.img_imagen,
                                 car.img_comprobante,
-                                mb.id id_federacion  ')) 
+                                mb.id id_federacion,
+                                mb.registration registration  ')) 
             ->leftjoin('app_tipos_de_carnets AS tTip', 'car.tb_tipo_de_carnet_id', '=', 'tTip.id')  
             ->leftjoin('app_miembros AS mb', 'car.tb_persona_id', '=', 'mb.id')  
             ->leftjoin('app_miembros_lumisial as lum', 'lum.uuid', '=', 'mb.lumisialUuid') 
@@ -1492,6 +1493,7 @@ class AppController extends Controller
         if ($token == 'gapp') {
             $Miembros = DB::table('app_miembros AS mbr')    
             ->select(DB::Raw('  mbr.id,
+                                mbr.cantidad_ingresos,
                                 mbr.country, 
                                 mbr.birth, 
                                 mbr.consecration, 
@@ -1543,7 +1545,6 @@ class AppController extends Controller
                 $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
             })
             ->where('mbr.documentNumber', $documento )   
-            ->where('mbr.sino_isActive','SI' )    
             ->get(); 
             $resultado = json_encode($Miembros);
         }
@@ -2229,6 +2230,7 @@ class AppController extends Controller
             if ($token == 'gapp') {           
                         $Miembros = DB::table('app_miembros AS mie')    
                         ->select(DB::Raw('  mie.id, 
+                                            mie.cantidad_ingresos,
                                             mie.registration, 
                                             mie.name nombre,
                                             mie.name,
@@ -2249,7 +2251,10 @@ class AppController extends Controller
                                            mie.sino_isBishop,
                                            mie.cargoPrincipal,
                                            mie.lumisialesHabilitados, 
-                                           mie.diocesisUuid  '))   
+                                           mie.diocesisUuid ,
+                                           mie.responsable,
+                                           lumi.city Ciudad,
+                                           mie.uuid UUID '))   
                         ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
                         ->whereRaw($whereRaw)  
@@ -2311,7 +2316,8 @@ class AppController extends Controller
 
         if ($token == 'gapp') {
             $Miembros = DB::table('app_miembros AS mbr')    
-            ->select(DB::Raw('  mbr.country, 
+            ->select(DB::Raw('  mbr.cantidad_ingresos,
+                                mbr.country, 
                                 mbr.birth, 
                                 mbr.consecration, 
                                 mbr.documentNumber, 
@@ -2436,6 +2442,23 @@ class AppController extends Controller
     }
 }
  
+
+    public function deleteMiembro($id, $token)
+    {
+        if ($token == 'gapp') {  
+            try { 
+                $cant_persona = Miembros::where('id', $id)->delete(); 
+                $mensaje_salida = json_encode('Se Borra Id ' . $id);
+            } 
+            catch(\Illuminate\Database\QueryException $ex){  
+                $mensaje_salida = $ex->getMessage();
+            }
+        }
+        else {
+            $mensaje_salida = 'ERROR';
+        }        
+        return response($mensaje_salida,200);
+    }
 
     public function deleteMiembroObservacion($id, $token )
     {
@@ -2803,7 +2826,10 @@ class AppController extends Controller
                     break;
                 case 'ungido':
                     $miembro->sino_isPriest = ($valorUpper == 'SI') ? 'SI' : 'NO';
-                    break;                 
+                    break; 
+                case 'obispo':
+                    $miembro->sino_isBishop = ($valorUpper == 'SI') ? 'SI' : 'NO';
+                    break;                
                 case 'tipoUngido':
                     $miembro->priestType = $valor;
                     break; 
@@ -3496,5 +3522,35 @@ class AppController extends Controller
             'documents' => $documents
         ]);
     }
-}//fin de archivo
 
+    public function saveApiLog(Request $request, $token)
+    {
+        if ($token !== 'gapp') {
+            return response()->json('ERROR: Token inválido', 401);
+        }
+
+        try {
+            $log = new \App\AppApiLog();
+            $log->app_source = $request->input('app_source', 'mi_espacio');
+            $log->url = $request->input('url');
+            $log->method = $request->input('method', 'POST');
+            $log->nivel_error = $request->input('nivel_error', 'info');
+            
+            // Si mandan un JSON, lo guardamos como string
+            $requestPayload = $request->input('request_payload');
+            $log->request_payload = is_array($requestPayload) ? json_encode($requestPayload) : $requestPayload;
+            
+            $responsePayload = $request->input('response_payload');
+            $log->response_payload = is_array($responsePayload) ? json_encode($responsePayload) : $responsePayload;
+            
+            $log->save();
+
+            return response()->json('Log guardado correctamente', 200);
+        } catch (\Exception $ex) {
+            return response()->json([
+                'error' => $ex->getMessage(),
+                'line' => $ex->getLine()
+            ], 500);
+        }
+    }
+}//fin de archivo
