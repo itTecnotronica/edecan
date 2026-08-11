@@ -13,6 +13,7 @@ class AppApiLog extends Model
         'url',
         'method',
         'nivel_error',
+        'requestHeaders',
         'request_payload',
         'response_payload'
     ];

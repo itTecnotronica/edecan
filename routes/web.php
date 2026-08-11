@@ -196,7 +196,6 @@ Route::get('/delcache', function () {
     echo 'Cache Borrada';
 });
 
-
 //FORMS
 Route::group(['middleware' => 'sesion'], function () {	
 	Route::get('/f/{solicitud_id}/{hash}', 'FormController@formShow');

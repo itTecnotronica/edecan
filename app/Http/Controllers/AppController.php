@@ -1155,7 +1155,9 @@ class AppController extends Controller
                         //
                         $enCarnet->save(); 
                     }
-                $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                // Si es un carnet nuevo, $id era 0, así que debemos obtener el ID que generó la base de datos
+                $idReal = $enCarnet->id;
+                $mensaje_salida = json_encode('Guardado. Id ' . $idReal);
                 } catch(\Illuminate\Database\QueryException $ex){  
                     $mensaje_salida = $ex->getMessage();
                 }
@@ -1176,6 +1178,26 @@ class AppController extends Controller
                     // 
                     $enCarnet->save();  
                     //
+                    $mensaje_salida = json_encode('Guardado. Id ' . $id);
+                } 
+                catch(\Illuminate\Database\QueryException $ex){  
+                    $mensaje_salida = $ex->getMessage();
+                }
+            }
+            else {
+                $mensaje_salida = 'ERROR';
+            }        
+            return response($mensaje_salida,200);
+    }
+    public function saveCarnetEstadoRechazado($id,  $token )
+    {
+            if ($token == 'gapp') {  
+                try {  
+                    $enCarnet = Carnet::find($id);
+                    if ($enCarnet) {
+                        $enCarnet->estado = 9; // 9 = Error Pagado / Rechazado
+                        $enCarnet->save();  
+                    }
                     $mensaje_salida = json_encode('Guardado. Id ' . $id);
                 } 
                 catch(\Illuminate\Database\QueryException $ex){  
@@ -3536,6 +3558,9 @@ class AppController extends Controller
             $log->method = $request->input('method', 'POST');
             $log->nivel_error = $request->input('nivel_error', 'info');
             
+            $requestHeaders = $request->input('requestHeaders');
+            $log->requestHeaders = is_array($requestHeaders) ? json_encode($requestHeaders) : $requestHeaders;
+            
             // Si mandan un JSON, lo guardamos como string
             $requestPayload = $request->input('request_payload');
             $log->request_payload = is_array($requestPayload) ? json_encode($requestPayload) : $requestPayload;
@@ -3552,5 +3577,145 @@ class AppController extends Controller
                 'line' => $ex->getLine()
             ], 500);
         }
+    }
+
+    public function mpCreatePreference($id_carnet, $monto, $token)
+    {
+        if ($token != 'gapp') {
+            return response()->json(['error' => 'Token invalido'], 401);
+        }
+        
+        $access_token = env('MP_ACCESS_TOKEN', 'APP_USR-3812662368372243-080612-f48b634d47a0401d2a6d805b47a65ed2-3026491'); 
+        
+        $data = [
+            "items" => [
+                [
+                    "title" => "Carnet ID " . $id_carnet,
+                    "quantity" => 1,
+                    "currency_id" => "ARS",
+                    "unit_price" => (float)$monto
+                ]
+            ],
+            "external_reference" => (string)$id_carnet,
+            "notification_url" => "https://ac.gnosis.is/api/GAPP/MP_WEBHOOK"
+        ];
+        
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/json\r\nAuthorization: Bearer " . $access_token . "\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+                'ignore_errors' => true
+            )
+        );
+        $context  = stream_context_create($options);
+        $response = file_get_contents('https://api.mercadopago.com/checkout/preferences', false, $context);
+        
+        if ($response) {
+            $result = json_decode($response, true);
+            if (isset($result['id'])) {
+                return response()->json(['pref_id' => $result['id']]);
+            }
+            return response()->json(['error' => 'Error al generar preferencia', 'details' => $result], 500);
+        }
+        
+        return response()->json(['error' => 'Error de conexion'], 500);
+    }
+
+    public function mpCreatePayment(\Illuminate\Http\Request $request, $token)
+    {
+        if ($token != 'gapp') {
+            return response()->json(['error' => 'Token invalido'], 401);
+        }
+        
+        $access_token = env('MP_ACCESS_TOKEN', 'APP_USR-3812662368372243-080612-f48b634d47a0401d2a6d805b47a65ed2-3026491'); 
+        
+        // El payload ya viene del frontend (mi espacio)
+        // Puede incluir: token (de tarjeta), transaction_amount, payment_method_id, installments, payer, etc.
+        $data = $request->all();
+        
+        if (!isset($data['notification_url'])) {
+            $data['notification_url'] = "https://ac.gnosis.is/api/GAPP/MP_WEBHOOK";
+        }
+        
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/json\r\nAuthorization: Bearer " . $access_token . "\r\nX-Idempotency-Key: " . uniqid() . "\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+                'ignore_errors' => true
+            )
+        );
+        $context  = stream_context_create($options);
+        $response = file_get_contents('https://api.mercadopago.com/v1/payments', false, $context);
+        
+        if ($response) {
+            $result = json_decode($response, true);
+            return response()->json($result);
+        }
+        
+        return response()->json(['error' => 'Error de conexion con Mercado Pago'], 500);
+    }
+
+    public function mpGetPayments($token)
+    {
+        if ($token != 'gapp') {
+            return response()->json(['error' => 'Token invalido'], 401);
+        }
+        
+        $access_token = env('MP_ACCESS_TOKEN', 'APP_USR-3812662368372243-080612-f48b634d47a0401d2a6d805b47a65ed2-3026491'); 
+        
+        $options = array(
+            'http' => array(
+                'header'  => "Authorization: Bearer " . $access_token . "\r\n",
+                'method'  => 'GET',
+                'ignore_errors' => true
+            )
+        );
+        $context  = stream_context_create($options);
+        $response = file_get_contents('https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&limit=50', false, $context);
+        
+        if ($response) {
+            $result = json_decode($response, true);
+            return response()->json($result);
+        }
+        
+        return response()->json(['error' => 'Error de conexion con Mercado Pago'], 500);
+    }
+
+    public function mpWebhook(\Illuminate\Http\Request $request)
+    {
+        $access_token = env('MP_ACCESS_TOKEN', 'APP_USR-3812662368372243-080612-f48b634d47a0401d2a6d805b47a65ed2-3026491'); 
+        
+        $topic = $request->input('topic', $request->input('type'));
+        if ($topic == 'payment') {
+            $payment_id = $request->input('data.id', $request->input('id'));
+            
+            if ($payment_id) {
+                $options = array(
+                    'http' => array(
+                        'header'  => "Authorization: Bearer " . $access_token . "\r\n",
+                        'method'  => 'GET',
+                        'ignore_errors' => true
+                    )
+                );
+                $context  = stream_context_create($options);
+                $response = file_get_contents("https://api.mercadopago.com/v1/payments/" . $payment_id, false, $context);
+                
+                if ($response) {
+                    $paymentInfo = json_decode($response, true);
+                    if (isset($paymentInfo['status']) && !empty($paymentInfo['external_reference'])) {
+                        $id_carnet = $paymentInfo['external_reference'];
+                        if ($paymentInfo['status'] == 'approved') {
+                            $this->saveCarnetEstadoPagado($id_carnet, 'gapp');
+                        } elseif ($paymentInfo['status'] == 'rejected') {
+                            $this->saveCarnetEstadoRechazado($id_carnet, 'gapp');
+                        }
+                    }
+                }
+            }
+        }
+        
+        return response('OK', 200);
     }
 }//fin de archivo

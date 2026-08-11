@@ -25,6 +25,9 @@ class AppMiembrosLumisial extends Model
         'totalMembers',
         'uuid',
         'valid',
-        'lumisialesHabilitados'
+        'lumisialesHabilitados',
+        'es_propio',
+        'latitud',
+        'longitud'
     ];
 }

@@ -18,6 +18,7 @@ class ApiLogController extends Controller
                 'nivel_error',
                 'url',
                 'method',
+                'requestHeaders',
                 'request_payload',
                 'response_payload',
                 DB::raw('(created_at - INTERVAL 3 HOUR) AS created_at_local')

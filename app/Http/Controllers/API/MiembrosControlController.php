@@ -72,4 +72,32 @@ class MiembrosControlController extends Controller
             'message' => 'Miembro readmitido exitosamente (Ingreso #' . $miembro->cantidad_ingresos . ').'
         ]);
     }
+
+    /**
+     * Trae velozmente los miembros activos con campos específicos.
+     */
+    public function listadoRapido($token)
+    {
+        // Se asume que el token se validará mediante middleware o algún otro mecanismo si fuera necesario.
+        $miembros = Miembros::select(
+                'app_miembros.lumisialUuid as id_lumisial',
+                'app_miembros.documentNumber as dni',
+                'app_miembros.name as nombre',
+                'app_miembros.id as id_federacion',
+                'app_miembros.updated_at as update_at',
+                'app_miembros.sino_isInstructor',
+                'app_miembros.sino_isMissionary',
+                'app_miembros.sino_isPriest'
+            )
+            ->join('app_miembros_lumisial', 'app_miembros_lumisial.uuid', '=', 'app_miembros.lumisialUuid')
+            ->whereIn('app_miembros.sino_isActive', ['si', 'SI'])
+            ->whereRaw('LOWER(app_miembros_lumisial.status) = ?', ['abierto'])
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'total' => $miembros->count(),
+            'data' => $miembros
+        ], 200);
+    }
 }
