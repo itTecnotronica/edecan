@@ -18,7 +18,7 @@ class DiocesisController extends Controller
     public function index($token)
     {
         $this->validateToken($token);
-        $diocesis = AppMiembrosDiocesis::all();
+        $diocesis = AppMiembrosDiocesis::with('encargado')->get();
         return response()->json($diocesis, 200);
     }
 
@@ -55,6 +55,7 @@ class DiocesisController extends Controller
             $data['UUID'] = (string) Str::uuid();
         }
         $diocesis = AppMiembrosDiocesis::create($data);
+        
         return response()->json($diocesis, 201);
     }
 

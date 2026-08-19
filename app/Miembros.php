@@ -14,4 +14,9 @@ class Miembros extends Model
     {
         return $this->hasMany(HistorialIngreso::class, 'miembro_id', 'id');
     }
+
+    public function zonaEncargada()
+    {
+        return $this->hasOne(AppMiembrosDiocesis::class, 'encargado_id', 'id');
+    }
 }

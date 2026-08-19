@@ -41,7 +41,8 @@ Route::group(['middleware' => 'auth:api'], function(){
 	Route::post('paises', 'API\SeteosController@paises');
 });
 //conjunto del material segun la leccion
-Route::get('AULA/LECCIONES/{nroLeccion}', 'AppController@getLecciones');
+Route::get('AULA/LECCIONES/{nroLeccion}/{curso}', 'AppController@getLecciones');
+Route::get('AULA/CURSO/{curso}', 'AppController@getCurso');
 //la ulima leccion de un usuario
 Route::get('AULA/ULTIMALECCION/{usuario}/{solicitud}', 'AppController@getUltimaLecciones');
 //actualizo la leccion
@@ -110,6 +111,7 @@ Route::get('GAPP/GETMIEMBRO/{token}/{documento}', 'AppController@getMiembro');
 Route::post('GAPP/UPDATEMIEMBROFOTO', 'AppController@updateMiembroFoto'); 
 Route::post('GAPP/UPDATEMIEMBROFIRMA', 'AppController@updateMiembroFirma'); 
 Route::get('GAPP/GETMIEMBROS/{busqueda}/{tipoMiembro}/{token}', 'AppController@getMiembros');
+Route::get('GAPP/GETULTIMOSMIEMBROS/{cantidad}/{token}', 'AppController@getUltimosMiembros');
 Route::get('GAPP/GETMIEMBROID/{id_usuario}/{token}', 'AppController@getMiembroId');
 Route::get('GAPP/SAVEMIEMBROTELEFONO/{id_usuario}/{telefono}/{token}', 'AppController@updateMiembroTelefono');
 Route::get('GAPP/SAVEMIEMBRO/{id_usuario}/{campo}/{valor}/{token}', 'AppController@updateMiembro'); 

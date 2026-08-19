@@ -80,6 +80,8 @@ class MiembrosControlController extends Controller
     {
         // Se asume que el token se validará mediante middleware o algún otro mecanismo si fuera necesario.
         $miembros = Miembros::select(
+                'app_miembros.id',
+                'app_miembros.registration',
                 'app_miembros.lumisialUuid as id_lumisial',
                 'app_miembros.documentNumber as dni',
                 'app_miembros.name as nombre',

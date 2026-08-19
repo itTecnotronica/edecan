@@ -18,6 +18,12 @@ class AppMiembrosDiocesis extends Model
         'Name',
         'UUID',
         'Lumisial',
-        'State'
+        'State',
+        'encargado_id'
     ];
+
+    public function encargado()
+    {
+        return $this->belongsTo(Miembros::class, 'encargado_id', 'id');
+    }
 }

@@ -132,7 +132,21 @@ class AppController extends Controller
                             ];
                         }                      
                 }            
-           
+            if ($array_usuario && !isset($array_usuario['mensaje_de_error'])) {
+                $lum = $array_usuario['lumisial'];
+                $encargado_zona = DB::table('app_miembros_lumisial as lumi')
+                    ->join('app_miembros_diocesis as dio', function($join) {
+                        $join->on(DB::raw("FIND_IN_SET(lumi.uuid, dio.Lumisial)"), '>', DB::raw('0'));
+                    })
+                    ->join('app_miembros as enc', 'dio.encargado_id', '=', 'enc.id')
+                    ->where('lumi.name', $lum)
+                    ->orWhere('lumi.uuid', $lum)
+                    ->select('enc.name', 'dio.UUID as diocesisUuid')
+                    ->first();
+                $array_usuario['encargado_zona'] = $encargado_zona ? $encargado_zona->name : null;
+                $array_usuario['diocesisUuid'] = $encargado_zona ? $encargado_zona->diocesisUuid : null;
+            }
+
             $resultado = json_encode($array_usuario);
         }
         else {
@@ -278,7 +292,7 @@ class AppController extends Controller
         return response($resultado,200);
     }
 
-    public function getLecciones($nroLeccion) {
+    public function getLecciones($nroLeccion,$curso_id) {
 
         $subscribers = DB::table('Lecciones as lec')  
         ->select(DB::Raw('mat.id, 
@@ -290,10 +304,25 @@ class AppController extends Controller
                             url_enlace_a_la_leccion_2 urlPortada '
                         ))
             ->join('materiales_de_leccion as mat', 'lec.id', '=', 'mat.leccion_id')
-             ->where('lec.curso_id', 1)    
+             ->where('lec.curso_id', $curso_id)    
              ->where('lec.orden_de_leccion', $nroLeccion)             
             ->orderBy('lec.orden_de_leccion', 'desc')
             ->get();
+
+        $resultado = json_encode($subscribers);
+
+        return response($resultado,200);
+    }
+
+        public function getCurso($curso_id) {
+
+        $subscribers = DB::table('Lecciones as lec')  
+        ->select(DB::Raw(' lec.orden_de_leccion,  
+                            lec.nombre_de_la_leccion  '
+                        ))
+             ->where('lec.curso_id', $curso_id)              
+            ->orderBy('lec.orden_de_leccion', 'desc')
+            ->get(); 
 
         $resultado = json_encode($subscribers);
 
@@ -1560,12 +1589,15 @@ class AppController extends Controller
                                 mbr.cargoPrincipal,
                                 mbr.sino_esEditor,
                                 mbr.password,
-                                mbr.lumisialesHabilitados ,
-                                mbr.diocesisUuid ')) 
+                                mbr.lumisialesHabilitados,
+                                diocesis_encargada.UUID as diocesisUuid,
+                                enc.name as EncargadoZona ')) 
             ->join('app_miembros_lumisial AS lum', 'lum.uuid', '=', 'mbr.lumisialUuid')  
-             ->join('app_miembros_diocesis as dio', function($join) {
+             ->leftjoin('app_miembros_diocesis as dio', function($join) {
                 $join->on(DB::raw("FIND_IN_SET(mbr.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
             })
+            ->leftjoin('app_miembros as enc', 'dio.encargado_id', '=', 'enc.id')
+            ->leftjoin('app_miembros_diocesis as diocesis_encargada', 'diocesis_encargada.encargado_id', '=', 'mbr.id')
             ->where('mbr.documentNumber', $documento )   
             ->get(); 
             $resultado = json_encode($Miembros);
@@ -2273,12 +2305,19 @@ class AppController extends Controller
                                            mie.sino_isBishop,
                                            mie.cargoPrincipal,
                                            mie.lumisialesHabilitados, 
-                                           mie.diocesisUuid ,
+                                           diocesis_encargada.UUID as diocesisUuid,
                                            mie.responsable,
                                            lumi.city Ciudad,
-                                           mie.uuid UUID '))   
+                                           mie.uuid UUID,
+                                           mie.password,
+                                           enc.name as EncargadoZona '))   
                         ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
+                        ->leftjoin('app_miembros_diocesis as dio', function($join) {
+                            $join->on(DB::raw("FIND_IN_SET(mie.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
+                        })
+                        ->leftjoin('app_miembros as enc', 'dio.encargado_id', '=', 'enc.id')
+                        ->leftjoin('app_miembros_diocesis as diocesis_encargada', 'diocesis_encargada.encargado_id', '=', 'mie.id')
                         ->whereRaw($whereRaw)  
                         ->orderBy('mie.name', 'asc')
                         ->limit(200)
@@ -2292,6 +2331,61 @@ class AppController extends Controller
         catch(\Illuminate\Database\QueryException $ex){  
             $resultado = $ex->getMessage();
             }
+            
+        return response($resultado,200);
+    }
+    
+    public function getUltimosMiembros($cantidad, $token) {
+        try { 
+            if ($token == 'gapp') {           
+                        $Miembros = DB::table('app_miembros AS mie')    
+                        ->select(DB::Raw('  mie.id, 
+                                            mie.cantidad_ingresos,
+                                            mie.registration, 
+                                            mie.name nombre,
+                                            mie.name,
+                                            mie.documentNumber documento,  
+                                            mie.documentNumber , 
+                                            mie.email, 	 
+                                            mie.sino_isPriest ,
+                                            mie.priestType,
+                                            mie.sino_isInstructor,
+                                            mie.sino_isMissionary,
+                                            mie.sino_isActive,
+                                            pro.description Provincia,
+                                           lumi.name Lumisial,
+                                           lumi.uuid idLumisial,
+                                           mie.phoneNumber,
+                                           mie.img_imagen,
+                                           mie.sino_esEditor,
+                                           mie.sino_isBishop,
+                                           mie.cargoPrincipal,
+                                           mie.lumisialesHabilitados, 
+                                           diocesis_encargada.UUID as diocesisUuid,
+                                           mie.responsable,
+                                           lumi.city Ciudad,
+                                           mie.uuid UUID,
+                                           mie.password,
+                                           enc.name as EncargadoZona '))   
+                        ->leftjoin('app_miembros_lumisial as lumi', 'lumi.uuid', '=', 'mie.lumisialUuid')
+                        ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lumi.stateUuid')
+                        ->leftjoin('app_miembros_diocesis as dio', function($join) {
+                            $join->on(DB::raw("FIND_IN_SET(mie.lumisialUuid, dio.Lumisial)"), '>', DB::raw('0'));
+                        })
+                        ->leftjoin('app_miembros as enc', 'dio.encargado_id', '=', 'enc.id')
+                        ->leftjoin('app_miembros_diocesis as diocesis_encargada', 'diocesis_encargada.encargado_id', '=', 'mie.id')
+                        ->orderBy('mie.updated_at', 'desc')
+                        ->limit($cantidad)
+                        ->get(); 
+                        $resultado = json_encode($Miembros);            
+            }
+            else {
+                $resultado = 'ERROR';
+            }
+        }
+        catch(\Illuminate\Database\QueryException $ex){  
+            $resultado = $ex->getMessage();
+        }
             
         return response($resultado,200);
     }
@@ -2571,7 +2665,8 @@ class AppController extends Controller
                                            lum.city Ciudad,
                                            lum.name Lumisial,
                                            lum.uuid Id,
-                                           lum.diocesisUuid '))
+                                           lum.diocesisUuid,
+                                           lum.status '))
                         ->leftjoin('app_miembros_provincia as pro', 'pro.uuid', '=', 'lum.stateUuid')
                         ->orderBy('Lumisial', 'asc')
                          ->get(); 
@@ -2859,7 +2954,19 @@ class AppController extends Controller
                     $miembro->cargoPrincipal = trim($valor);
                     break; 
                 case 'diocesisUuid':
-                    $miembro->diocesisUuid = $valor;
+                    // 1. Quitar al miembro como encargado de cualquier zona que tuviera antes
+                    DB::table('app_miembros_diocesis')
+                        ->where('encargado_id', $miembro->id)
+                        ->update(['encargado_id' => null]);
+                    
+                    // 2. Asignarlo a la nueva zona seleccionada (si no es nulo)
+                    if ($valor && $valor !== 'null' && $valor !== '') {
+                        DB::table('app_miembros_diocesis')
+                            ->where('UUID', $valor)
+                            ->update(['encargado_id' => $miembro->id]);
+                    }
+                    
+                    // 3. Ya no guardamos diocesisUuid en el miembro porque la columna fue eliminada
                     break;
                 case 'lumisialesHabilitados':
                     $miembro->lumisialesHabilitados = $valor;
